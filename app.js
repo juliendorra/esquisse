@@ -2,16 +2,25 @@ import { callGPT } from './gpt.js';
 
 const groups = [];
 
-function updateDataTextarea(textarea, groupName) {
+function updateDataTextarea(dataTextarea, refResultTextarea, groupName) {
     const group = groups.find(group => group.name === groupName);
     if (!group) {
-        textarea.classList.add('error');
-        textarea.value = 'Error: Group not found.';
+        dataTextarea.style.display = 'none';
+        refResultTextarea.style.display = 'block';
+        refResultTextarea.classList.add('error');
+        refResultTextarea.value = 'Error: Group not found.';
         return;
     }
 
-    textarea.classList.remove('error');
-    textarea.value = group.result ? group.result : `#${groupName}`;
+    if (group.result) {
+        dataTextarea.style.display = 'none';
+        refResultTextarea.style.display = 'block';
+        refResultTextarea.classList.remove('error');
+        refResultTextarea.value = group.result;
+    } else {
+        dataTextarea.style.display = 'block';
+        refResultTextarea.style.display = 'none';
+    }
 }
 
 function addEventListenersToGroup(group, index) {
@@ -75,26 +84,33 @@ function addEventListenersToGroup(group, index) {
     });
 
     const dataTextarea = group.querySelector('.data-text');
+    const refResultTextarea = group.querySelector('.referenced-result-text');
+
     dataTextarea.addEventListener('input', () => {
         const groupNameMatch = dataTextarea.value.match(/#(.+)/);
 
         if (groupNameMatch) {
-            updateDataTextarea(dataTextarea, groupNameMatch[1]);
+            updateDataTextarea(dataTextarea, refResultTextarea, groupNameMatch[1]);
         }
     });
 
-    dataTextarea.addEventListener('focus', () => {
-        dataTextarea.classList.remove('error');
+    refResultTextarea.addEventListener('focus', () => {
+        refResultTextarea.style.display = 'none';
+        dataTextarea.style.display = 'block';
         const originalValue = groups[index].data;
         if (originalValue) {
             dataTextarea.value = originalValue;
         }
     });
 
-    dataTextarea.addEventListener('blur', () => {
-        groups[index].data = dataTextarea.value;
+    refResultTextarea.addEventListener('blur', () => {
+        const groupNameMatch = dataTextarea.value.match(/#(.+)/);
+        if (groupNameMatch) {
+            updateDataTextarea(dataTextarea, refResultTextarea, groupNameMatch[1]);
+        }
     });
 }
+
 
 function addGroup() {
     const group = document.createElement('div');
@@ -102,6 +118,7 @@ function addGroup() {
     group.innerHTML = `
         <input type="text" class="group-name" placeholder="Group Name">
         <textarea class="data-text" placeholder="Data Text"></textarea>
+        <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
         <textarea class="transform-text" placeholder="Transform Text"></textarea>
     `;
 
