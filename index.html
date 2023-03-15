@@ -44,35 +44,7 @@
         </div>
         <button class="add-group-btn">Add Group</button>
     </div>
-    <script>
-        document.querySelector('.add-group-btn').addEventListener('click', function () {
-            const group = document.createElement('div');
-            group.className = 'group';
-            group.innerHTML = `
-                <input type="text" class="group-name" placeholder="Group Name">
-                <textarea class="data-text" placeholder="Data Text"></textarea>
-                <textarea class="transform-text" placeholder="Transform Text"></textarea>
-            `;
-
-            const btn = document.querySelector('.add-group-btn');
-            btn.parentNode.insertBefore(group, btn);
-        });
-
-        function getGroupValues() {
-            const groups = document.querySelectorAll('.group');
-            const result = [];
-
-            groups.forEach(group => {
-                const name = group.querySelector('.group-name').value;
-                const data = group.querySelector('.data-text').value;
-                const transform = group.querySelector('.transform-text').value;
-
-                result.push({ name, data, transform });
-            });
-
-            return result;
-        }
-    </script>
+    <script type="module" src="app.js"></script>
 </body>
 
 </html>
