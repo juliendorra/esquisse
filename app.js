@@ -12,15 +12,8 @@ function updateDataTextarea(dataTextarea, refResultTextarea, groupName) {
         return;
     }
 
-    if (group.result) {
-        dataTextarea.style.display = 'none';
-        refResultTextarea.style.display = 'block';
-        refResultTextarea.classList.remove('error');
-        refResultTextarea.value = group.result;
-    } else {
-        dataTextarea.style.display = 'block';
-        refResultTextarea.style.display = 'none';
-    }
+    refResultTextarea.classList.remove('error');
+    refResultTextarea.value = group.result ? group.result : `#${groupName}`;
 }
 
 function addEventListenersToGroup(group, index) {
@@ -34,21 +27,28 @@ function addEventListenersToGroup(group, index) {
         const currentTime = Date.now();
 
         if (currentTime - lastRequestTime < 5000) {
-            console.log('Waiting for 5 seconds');
-            timer = setTimeout(handleInputChange, 5000 - (currentTime - lastRequestTime));
+            const timeout = 5000 - (currentTime - lastRequestTime)
+            console.log(`Waiting for ${timeout / 1000} seconds`);
+            timer = setTimeout(handleInputChange, timeout);
             return;
         }
 
         lastRequestTime = currentTime;
-        const dataInput = group.querySelector('.data-text');
-        const transformInput = group.querySelector('.transform-text');
+        groups[index].data = group.querySelector('.data-text').value;
+        groups[index].transform = group.querySelector('.transform-text').value;
 
-        if (dataInput.value && transformInput.value) {
+        const dataValue = groups[index].data;
+        const transformValue = groups[index].transform;
+
+        if (dataValue && transformValue) {
             latestRequestId++;
             const requestId = latestRequestId;
-            console.log(`Sending request ${requestId} with ${dataInput.value} and ${transformInput.value}`);
-            callGPT(dataInput.value, transformInput.value).then((result) => {
+            console.log(`Sending request ${requestId} with ${dataValue} and ${transformValue}`);
+
+            callGPT(dataValue, transformValue).then((result) => {
+
                 console.log(`Received result for request ${requestId}`);
+
                 if (requestId !== latestRequestId) return;
 
                 groups[index].result = result;
@@ -67,7 +67,8 @@ function addEventListenersToGroup(group, index) {
                 document.querySelectorAll('.data-text').forEach(dataTextarea => {
                     const groupNameMatch = dataTextarea.value.match(/#(.+)/);
                     if (groupNameMatch && groupNameMatch[1] === groups[index].name) {
-                        updateDataTextarea(dataTextarea, groupNameMatch[1]);
+                        const refResultTextarea = dataTextarea.nextElementSibling;
+                        updateDataTextarea(dataTextarea, refResultTextarea, groupNameMatch[1]);
                     }
                 });
             });
@@ -75,7 +76,14 @@ function addEventListenersToGroup(group, index) {
     }
 
     group.querySelectorAll('.data-text, .transform-text').forEach(input => {
-        input.addEventListener('change', handleInputChange);
+        input.addEventListener('input', (event) => {
+            if (input.classList.contains('data-text')) {
+                groups[index].data = event.target.value;
+            } else {
+                groups[index].transform = event.target.value;
+            }
+            handleInputChange();
+        });
     });
 
     group.querySelector('.group-name').addEventListener('input', (event) => {
@@ -85,28 +93,42 @@ function addEventListenersToGroup(group, index) {
 
     const dataTextarea = group.querySelector('.data-text');
     const refResultTextarea = group.querySelector('.referenced-result-text');
+    refResultTextarea.style.display = 'none';
 
-    dataTextarea.addEventListener('input', () => {
+    dataTextarea.addEventListener('blur', () => {
         const groupNameMatch = dataTextarea.value.match(/#(.+)/);
 
         if (groupNameMatch) {
-            updateDataTextarea(dataTextarea, refResultTextarea, groupNameMatch[1]);
+            const groupName = groupNameMatch[1];
+            const referencedGroup = groups.find(group => group.name === groupName);
+            if (referencedGroup && referencedGroup.result) {
+                refResultTextarea.value = referencedGroup.result;
+                refResultTextarea.style.display = 'block';
+                dataTextarea.style.display = 'none';
+            }
         }
     });
 
     refResultTextarea.addEventListener('focus', () => {
         refResultTextarea.style.display = 'none';
         dataTextarea.style.display = 'block';
-        const originalValue = groups[index].data;
-        if (originalValue) {
-            dataTextarea.value = originalValue;
-        }
+        dataTextarea.focus();
     });
 
     refResultTextarea.addEventListener('blur', () => {
         const groupNameMatch = dataTextarea.value.match(/#(.+)/);
         if (groupNameMatch) {
             updateDataTextarea(dataTextarea, refResultTextarea, groupNameMatch[1]);
+        }
+    });
+
+    refResultTextarea.addEventListener('focus', () => {
+        if (refResultTextarea.classList.contains('error')) {
+            refResultTextarea.style.display = 'none';
+            refResultTextarea.style.value = null;
+
+            dataTextarea.style.display = 'block';
+            dataTextarea.focus()
         }
     });
 }
