@@ -5,6 +5,7 @@ const groups = [];
 function updateDataTextarea(dataTextarea, refResultTextarea, groupName) {
     const group = groups.find(group => group.name === groupName);
     if (!group) {
+        console.log(`${groupName} not an existing group name`)
         dataTextarea.style.display = 'none';
         refResultTextarea.style.display = 'block';
         refResultTextarea.classList.add('error');
@@ -12,8 +13,10 @@ function updateDataTextarea(dataTextarea, refResultTextarea, groupName) {
         return;
     }
 
+    console.log(`Group ${groupName}|data: ${dataTextarea}|referenced result: ${refResultTextarea}`)
+
     refResultTextarea.classList.remove('error');
-    refResultTextarea.value = group.result ? group.result : `#${groupName}`;
+    refResultTextarea.value = group.result ? group.result : "";
 }
 
 function addEventListenersToGroup(group, index) {
@@ -37,8 +40,18 @@ function addEventListenersToGroup(group, index) {
         groups[index].data = group.querySelector('.data-text').value;
         groups[index].transform = group.querySelector('.transform-text').value;
 
-        const dataValue = groups[index].data;
+        let dataValue = groups[index].data;
         const transformValue = groups[index].transform;
+
+        // Check for a valid reference to a group result in data
+        const groupNameMatch = dataValue.match(/#(.+)/);
+        if (groupNameMatch) {
+            const groupName = groupNameMatch[1];
+            const referencedGroup = groups.find(group => group.name === groupName);
+            if (referencedGroup && referencedGroup.result) {
+                dataValue = referencedGroup.result; // Use the referenced result instead of data
+            }
+        }
 
         if (dataValue && transformValue) {
             latestRequestId++;
