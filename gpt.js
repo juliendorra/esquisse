@@ -30,5 +30,5 @@ export async function callGPT(data, transform) {
 
     var result = await response.json();
 
-    return result.choices[0].message.content;
+    return result.choices[0].message.content.trim();
 }
