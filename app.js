@@ -207,8 +207,6 @@ function addGroup() {
 
 document.querySelector('.add-group-btn').addEventListener('click', addGroup);
 
-addGroup();
-
 
 function persistGroups() {
     // Omit the results and only include {name, data}
@@ -225,6 +223,7 @@ function loadGroups() {
     const base64Groups = window.location.hash.slice(1);  // Get the hash and remove the '#'
 
     if (!base64Groups) {
+        addGroup();
         return;
     }
 
