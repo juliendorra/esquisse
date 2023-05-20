@@ -196,8 +196,8 @@ function addGroup() {
         <textarea class="transform-text" placeholder="Transform Text"></textarea>
     `;
 
-    const btn = document.querySelector('.add-group-btn');
-    btn.parentNode.insertBefore(group, btn);
+    const container = document.querySelector('.container');
+    container.appendChild(group);
 
     const index = groups.length;
     groups.push({ name: '', data: '', transform: '', result: null });
@@ -208,3 +208,68 @@ function addGroup() {
 document.querySelector('.add-group-btn').addEventListener('click', addGroup);
 
 addGroup();
+
+
+function persistGroups() {
+    // Omit the results and only include {name, data}
+    const strippedGroups = groups.map(({ name, data, transform }) => ({ name, data, transform }));
+
+    // Convert to JSON and then to Base64
+    const base64Groups = btoa(JSON.stringify(strippedGroups));
+
+    // Update the URL with the encoded groups
+    window.location.hash = base64Groups;
+}
+
+function loadGroups() {
+    const base64Groups = window.location.hash.slice(1);  // Get the hash and remove the '#'
+
+    if (!base64Groups) {
+        return;
+    }
+
+    try {
+        // Decode and parse the groups
+        const strippedGroups = JSON.parse(atob(base64Groups));
+
+        // Clear the existing groups
+        groups.length = 0;
+
+        // Populate the groups array with the loaded data
+        strippedGroups.forEach(({ name, data, transform }) => {
+            groups.push({ name, data, transform, result: null });
+        });
+
+        // Update the UI
+        const groupsContainer = document.querySelector('.container');
+        groupsContainer.innerHTML = '';  // Clear the container
+
+        groups.forEach((group, index) => {
+            addGroup();
+            const groupElement = groupsContainer.querySelector('.group:last-child');
+
+            // Populate the fields
+            groupElement.querySelector('.group-name').value = group.name;
+            groupElement.querySelector('.data-text').value = group.data;
+            groupElement.querySelector('.transform-text').value = group.transform;
+        });
+    } catch (error) {
+        console.error('Error loading groups', error);
+    }
+}
+
+// Call the load function when the page loads
+window.addEventListener('DOMContentLoaded', loadGroups);
+
+// Call the persist function when a group's name or data changes
+groups.forEach((group, index) => {
+    const groupElement = document.querySelector(`.group:nth-child(${index + 1})`);
+
+    const nameElement = groupElement.querySelector('.group-name');
+    const dataElement = groupElement.querySelector('.data-text');
+    const transformElement = groupElement.querySelector('.transform-text');
+
+    nameElement.addEventListener('change', persistGroups);
+    dataElement.addEventListener('change', persistGroups);
+    transformElement.addEventListener('change', persistGroups);
+});
