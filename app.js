@@ -42,7 +42,6 @@ function handleInputChange(group, index, groupElements, immediate = false) {
     console.log('handleInputChange called');
 
     // updating the values
-
     groups[index].data = groupElements.dataText.value;
     groups[index].transform = groupElements.transformText.value;
 
@@ -51,11 +50,15 @@ function handleInputChange(group, index, groupElements, immediate = false) {
 
     // Check for a valid reference to a group result in data
     const groupNameMatch = dataValue.match(/#(.+)/);
+    let groupName;
     if (groupNameMatch) {
-        const groupName = groupNameMatch[1];
+        groupName = groupNameMatch[1];
         const referencedGroup = groups.find(group => group.name === groupName);
         if (referencedGroup && referencedGroup.result) {
             dataValue = referencedGroup.result; // Use the referenced result instead of data
+        } else {
+            console.log(`No group found with the name ${groupName} or the group's result is not set yet.`);
+            return;
         }
     }
 
