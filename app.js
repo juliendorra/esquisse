@@ -8,6 +8,8 @@ let lastRequestTime = 0;
 
 const DELAY = 5000;
 
+let hashChangedProgrammatically = false;
+
 function displayReferencedResult(groupElement, referencedResult) {
 
     let groupSubElements;
@@ -276,6 +278,7 @@ function persistGroups() {
     console.log(groups, base64Groups)
 
     // Update the URL with the encoded groups
+    hashChangedProgrammatically = true;
     window.location.hash = base64Groups;
 }
 
@@ -343,4 +346,16 @@ if (document.readyState === 'loading') {
     init()
 }
 
-window.addEventListener('hashchange', () => { console.log('Hash changed!'); });
+window.addEventListener('hashchange', () => {
+
+    console.log('Hash changed! Programmatically? ', hashChangedProgrammatically);
+
+    if (!hashChangedProgrammatically) {
+
+        loadGroups()
+
+    }
+
+    hashChangedProgrammatically = false;
+}
+);
