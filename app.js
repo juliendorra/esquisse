@@ -1,4 +1,5 @@
 import { callGPT } from './gpt.js';
+import { tryGenerate as callStability } from './stability.js';
 
 const groups = [];
 
@@ -7,7 +8,7 @@ let lastRequestTime = 0;
 
 const DELAY = 5000;
 
-function DisplayReferencedResult(groupElement, referencedResult) {
+function displayReferencedResult(groupElement, referencedResult) {
 
     let groupSubElements;
 
@@ -81,43 +82,75 @@ function handleInputChange(groupElement, index, groupSubElements, immediate = fa
 
         lastRequestTime = currentTime;
 
-        console.log(`Sending request ${dataToSend} ||| ${transformValue}`);
+        if (groups[index].type === 'image') {
 
-        callGPT(dataToSend, transformValue)
-            .then((result) => {
+            console.log(`Sending image request ${dataToSend} ||| ${transformValue}`);
 
-                console.log(`Received result: ${result}`);
+            callStability(dataToSend + " " + transformValue)
+                .then((resultBuffer) => {
 
-                groups[index].result = result;
+                    console.log(`Received image result buffer`);
 
-                let resultParagraph = groupElement.querySelector('.result');
+                    const blob = new Blob([resultBuffer]);
+                    const reader = new FileReader();
 
-                if (!resultParagraph) {
-                    resultParagraph = document.createElement('p');
-                    resultParagraph.className = 'result';
-                    groupElement.appendChild(resultParagraph);
-                }
+                    reader.onloadend = function () {
+                        const base64data = reader.result;
+                        // Now base64data can be used as a source for an img tag for instance
+                        let resultImage = groupElement.querySelector('.result');
+                        if (!resultImage) {
+                            resultImage = document.createElement('img');
+                            resultImage.className = 'result';
+                            groupElement.appendChild(resultImage);
+                        }
 
-                resultParagraph.textContent = groups[index].result;
-
-                // Update all data textareas with the new result
-                document.querySelectorAll('.group').forEach((group, idx) => {
-
-                    const groupElements = {
-                        dataText: group.querySelector('.data-text'),
-                    };
-
-                    const groupNameMatch = groupElements.dataText.value.match(/#(.+)/);
-
-                    if (groupNameMatch && groupNameMatch[1] === groups[index].name) {
-                        DisplayReferencedResult(group, result);
-
+                        resultImage.src = base64data;
                     }
+
+                    reader.readAsDataURL(blob);
+
+                    delete requestQueue[index];
                 });
+        } else {
+
+            console.log(`Sending text request ${dataToSend} ||| ${transformValue}`);
+
+            callGPT(dataToSend, transformValue)
+                .then((result) => {
+
+                    console.log(`Received result: ${result}`);
+
+                    groups[index].result = result;
+
+                    let resultParagraph = groupElement.querySelector('.result');
+
+                    if (!resultParagraph) {
+                        resultParagraph = document.createElement('p');
+                        resultParagraph.className = 'result';
+                        groupElement.appendChild(resultParagraph);
+                    }
+
+                    resultParagraph.textContent = groups[index].result;
+
+                    // Update all data textareas with the new result
+                    document.querySelectorAll('.group').forEach((group, idx) => {
+
+                        const groupElements = {
+                            dataText: group.querySelector('.data-text'),
+                        };
+
+                        const groupNameMatch = groupElements.dataText.value.match(/#(.+)/);
+
+                        if (groupNameMatch && groupNameMatch[1] === groups[index].name) {
+                            displayReferencedResult(group, result);
+
+                        }
+                    });
 
 
-                delete requestQueue[index]; // Remove the request from the queue after it's complete
-            });
+                    delete requestQueue[index]; // Remove the request from the queue after it's complete
+                });
+        }
     }
 }
 
@@ -160,9 +193,23 @@ function addEventListenersToGroup(groupElement) {
 
     dataTextarea.addEventListener('blur', () => {
 
-        updateGroupReferenceDisplayToInclude(groupSubElements);
+        // Check for a valid reference to a group result in data
 
-    });
+        const groupNameMatch = groupSubElements.dataText.value.match(/#(.+)/);
+
+        let groupName;
+        if (groupNameMatch) {
+            groupName = groupNameMatch[1];
+            const referencedGroup = groups.find(group => group.name === groupName);
+            if (referencedGroup && referencedGroup.result) {
+                displayReferencedResult(groupElement, referencedGroup.result)
+            } else {
+                console.log(`When trying to show reference: No group found with the name ${groupName} or the group's result is not set yet.`);
+                return;
+            }
+        }
+    }
+    );
 
 
     refResultTextarea.addEventListener('focus', () => {
@@ -178,38 +225,50 @@ function addEventListenersToGroup(groupElement) {
 }
 
 
-function addGroupElement() {
+function addGroupElement(isImageGroup = false) {
     const group = document.createElement('div');
-    group.className = 'group';
-    group.innerHTML = `
-        <input type="text" class="group-name" placeholder="Group Name">
-        <textarea class="data-text" placeholder="Data Text"></textarea>
-        <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
-        <textarea class="transform-text" placeholder="Transform Text"></textarea>
-    `;
+
+    if (isImageGroup) {
+        group.className = 'group image';
+        group.innerHTML = `
+            <input type="text" class="group-name" placeholder="Group Name">
+            <textarea class="data-text" placeholder="Data Text"></textarea>
+            <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
+            <textarea class="transform-text" placeholder="Transform Text"></textarea>
+            <small>image gen</small>
+        `;
+    } else {
+        group.className = 'group text';
+        group.innerHTML = `
+            <input type="text" class="group-name" placeholder="Group Name">
+            <textarea class="data-text" placeholder="Data Text"></textarea>
+            <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
+            <textarea class="transform-text" placeholder="Transform Text"></textarea>
+        `;
+    }
 
     const container = document.querySelector('.container');
     container.appendChild(group);
 
-    addEventListenersToGroup(group);
+    addEventListenersToGroup(group, isImageGroup);
     return group;
 }
 
-function addGroupElementAndPushGroup() {
+function addGroupElementAndPushGroup(isImageGroup = false) {
 
-    addGroupElement();
+    addGroupElement(isImageGroup);
 
-    groups.push({ name: '', data: '', transform: '', result: null });
+    const type = isImageGroup ? "image" : "text"
+
+    groups.push({ name: '', data: '', transform: '', result: null, type: type });
 
 }
 
-document.querySelector('.add-group-btn').addEventListener('click', addGroupElementAndPushGroup);
-
-
 function persistGroups() {
 
-    // Omit the results and only include {name, data, transform}
-    const strippedGroups = groups.map(({ name, data, transform }) => ({ name, data, transform }));
+    // Omit the results and only include {name, data, transform} for text groups
+    // For image groups, we omit the result and the image
+    const strippedGroups = groups.map(({ name, data, transform, type }) => ({ name, data, transform, type }));
 
     // Convert to JSON and then to Base64
     const base64Groups = btoa(JSON.stringify(strippedGroups));
@@ -237,27 +296,23 @@ function loadGroups() {
         // Clear the existing groups
         groups.length = 0;
 
-        // Populate the groups array with the loaded data
-        strippedGroups.forEach(({ name, data, transform }) => {
-            groups.push({ name, data, transform, result: null });
-        });
-
-        // Update the UI
         const groupsContainer = document.querySelector('.container');
         groupsContainer.innerHTML = '';  // Clear the container
 
-        groups.forEach((group, index) => {
+        // Populate the groups array with the loaded data
+        strippedGroups.forEach(({ name, data, transform, type }, index) => {
+            groups.push({ name, data, transform, type, result: null });
 
-            const groupElement = addGroupElement();
+            const groupElement = type === "image" ? addGroupElement(true) : addGroupElement(false);
 
             // Populate the fields
             const groupNameElement = groupElement.querySelector('.group-name');
             const dataElement = groupElement.querySelector('.data-text');
             const transformElement = groupElement.querySelector('.transform-text');
 
-            groupNameElement.value = group.name;
-            dataElement.value = group.data;
-            transformElement.value = group.transform;
+            groupNameElement.value = name;
+            dataElement.value = data;
+            transformElement.value = transform;
 
             // If both data and transform fields are filled, send an immediate API request
             if (dataElement.value && transformElement.value) {
@@ -269,7 +324,23 @@ function loadGroups() {
     }
 }
 
-// Call the load function when the page loads
-window.addEventListener('DOMContentLoaded', loadGroups);
+
+function init() {
+
+    loadGroups()
+
+    document.querySelector('.add-group-btn').addEventListener('click', addGroupElementAndPushGroup);
+
+    document.querySelector('.add-img-group-btn').addEventListener('click', () => addGroupElementAndPushGroup(true));
+}
+
+
+// Call the init function when the page loads
+
+if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', init);
+} else {
+    init()
+}
 
 window.addEventListener('hashchange', () => { console.log('Hash changed!'); });
