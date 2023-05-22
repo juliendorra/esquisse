@@ -1,20 +1,26 @@
-export async function callGPT(data, transform) {
-    var apiKey = '';
-    var apiUrl = 'https://api.openai.com/v1/chat/completions';
+const apiKey = '';
 
-    var payload = {
+if (!apiKey) {
+    throw new Error("missing OPEN_API_API_KEY environment variable");
+}
+
+const apiUrl = 'https://api.openai.com/v1/chat/completions';
+
+export async function callGPT(data, transform) {
+
+    const payload = {
         model: "gpt-3.5-turbo",
         messages: [
             {
                 role: "user",
-                content: data + " " + transform,
+                content: data + " " + transform + " Answer in 1000 characters or less.",
             },
         ],
         temperature: 0.2,
         max_tokens: 1200,
     };
 
-    var options = {
+    const options = {
         'method': 'POST',
         'headers': {
             'Content-Type': 'application/json',
@@ -23,12 +29,12 @@ export async function callGPT(data, transform) {
         'body': JSON.stringify(payload),
     };
 
-    var response = await fetch(
+    const response = await fetch(
         apiUrl,
         options);
 
 
-    var result = await response.json();
+    const result = await response.json();
 
     return result.choices[0].message.content.trim();
 }
