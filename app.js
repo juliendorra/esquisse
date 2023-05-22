@@ -7,63 +7,57 @@ let lastRequestTime = 0;
 
 const DELAY = 5000;
 
-function updateReferencedResult(groupName, referencedResult) {
-    // Find the corresponding group and index
-    const groupIndex = groups.findIndex(g => g.name === groupName);
-    const groupElement = document.querySelectorAll('.group')[groupIndex];
+function DisplayReferencedResult(groupElement, referencedResult) {
 
     let groupSubElements;
 
     // Get the group sub elements
     if (groupElement) {
         groupSubElements = {
-            dataTextarea: groupElement.querySelector('.data-text'),
+            dataText: groupElement.querySelector('.data-text'),
             refResultTextarea: groupElement.querySelector('.referenced-result-text'),
             transformText: groupElement.querySelector('.transform-text'),
             groupName: groupElement.querySelector('.group-name')
         };
     }
 
-    console.log(`Group ${groupName}|data: ${groupSubElements.dataTextarea.value}|referenced result: ${referencedResult}`)
+    console.log(`Displaying the group referenced result in refResultTextarea. Group ${groupSubElements.groupName.value}|data: ${groupSubElements.dataText.value}|referenced result: ${referencedResult}`)
 
-    // Update the group's data with the referenced result and trigger handleInputChange()
-    // only update if the referenced Result is new
-    if (groupIndex > -1 && referencedResult !== groupSubElements.refResultTextarea.value) {
+    groupSubElements.refResultTextarea.value = referencedResult ? referencedResult : "";
+    groupSubElements.refResultTextarea.style.display = 'block';
+    groupSubElements.dataText.style.display = 'none';
 
-        console.log(`updating the group referenced result in refResultTextarea for display only`)
+    const index = Array.from(document.querySelectorAll('.group')).indexOf(groupElement);
 
-        groupSubElements.refResultTextarea.value = referencedResult ? referencedResult : "";
-    }
-
+    handleInputChange(groupElement, index, groupSubElements, true)
 }
 
-
-function handleInputChange(group, index, groupElements, immediate = false) {
+function handleInputChange(groupElement, index, groupSubElements, immediate = false) {
     console.log('handleInputChange called');
 
     // updating the values
     console.log(`Updating group at index: ${index}`);
-    groups[index].data = groupElements.dataText.value;
-    groups[index].transform = groupElements.transformText.value;
+    groups[index].data = groupSubElements.dataText.value;
+    groups[index].transform = groupSubElements.transformText.value;
 
-    let dataValue = groups[index].data;
+    let dataToSend = groups[index].data;
     const transformValue = groups[index].transform;
 
     // Check for a valid reference to a group result in data
-    const groupNameMatch = dataValue.match(/#(.+)/);
+    const groupNameMatch = dataToSend.match(/#(.+)/);
     let groupName;
     if (groupNameMatch) {
         groupName = groupNameMatch[1];
         const referencedGroup = groups.find(group => group.name === groupName);
         if (referencedGroup && referencedGroup.result) {
-            dataValue = referencedGroup.result; // Use the referenced result instead of data
+            dataToSend = referencedGroup.result; // Use the referenced result instead of data
         } else {
             console.log(`No group found with the name ${groupName} or the group's result is not set yet.`);
             return;
         }
     }
 
-    if (dataValue && transformValue) {
+    if (dataToSend && transformValue) {
         clearTimeout(requestQueue[index]);
 
         const currentTime = Date.now();
@@ -77,28 +71,31 @@ function handleInputChange(group, index, groupElements, immediate = false) {
             }
 
             requestQueue[index] = setTimeout(() => {
-                handleInputChange(group, index, groupElements, true);
+                handleInputChange(groupElement, index, groupSubElements, true);
             }, timeout);
+
+
+
             return;
         }
 
         lastRequestTime = currentTime;
 
-        console.log(`Sending request ${dataValue} ||| ${transformValue}`);
+        console.log(`Sending request ${dataToSend} ||| ${transformValue}`);
 
-        callGPT(dataValue, transformValue)
+        callGPT(dataToSend, transformValue)
             .then((result) => {
 
                 console.log(`Received result: ${result}`);
 
                 groups[index].result = result;
 
-                let resultParagraph = group.querySelector('.result');
+                let resultParagraph = groupElement.querySelector('.result');
 
                 if (!resultParagraph) {
                     resultParagraph = document.createElement('p');
                     resultParagraph.className = 'result';
-                    group.appendChild(resultParagraph);
+                    groupElement.appendChild(resultParagraph);
                 }
 
                 resultParagraph.textContent = groups[index].result;
@@ -108,12 +105,13 @@ function handleInputChange(group, index, groupElements, immediate = false) {
 
                     const groupElements = {
                         dataText: group.querySelector('.data-text'),
-                        refResultTextarea: group.querySelector('.referenced-result-text'),
                     };
 
                     const groupNameMatch = groupElements.dataText.value.match(/#(.+)/);
+
                     if (groupNameMatch && groupNameMatch[1] === groups[index].name) {
-                        updateReferencedResult(groupNameMatch[1], dataValue);
+                        DisplayReferencedResult(group, result);
+
                     }
                 });
 
@@ -123,65 +121,49 @@ function handleInputChange(group, index, groupElements, immediate = false) {
     }
 }
 
-function addEventListenersToGroup(group) {
+function addEventListenersToGroup(groupElement) {
 
-    const index = Array.from(document.querySelectorAll('.group')).indexOf(group);
+    const index = Array.from(document.querySelectorAll('.group')).indexOf(groupElement);
 
     console.log("adding listener to group index:", index)
 
-    const groupElements = {
-        dataText: group.querySelector('.data-text'),
-        refResultTextarea: group.querySelector('.referenced-result-text'),
-        transformText: group.querySelector('.transform-text'),
-        groupName: group.querySelector('.group-name')
+    const groupSubElements = {
+        dataText: groupElement.querySelector('.data-text'),
+        refResultTextarea: groupElement.querySelector('.referenced-result-text'),
+        transformText: groupElement.querySelector('.transform-text'),
+        groupName: groupElement.querySelector('.group-name')
     };
 
-    group.querySelectorAll('.data-text, .transform-text').forEach(input => {
-        input.addEventListener('input', () => handleInputChange(group, index, groupElements, false));
+    // group.querySelectorAll('.data-text, .transform-text').forEach(input => {
+    //     input.addEventListener('input', () => handleInputChange(group, index, groupSubElements, false));
+    // });
+
+    groupElement.querySelectorAll('.data-text, .transform-text').forEach(input => {
+        input.addEventListener('change', () => handleInputChange(groupElement, index, groupSubElements, true));
     });
 
-    group.querySelectorAll('.data-text, .transform-text').forEach(input => {
-        input.addEventListener('change', () => handleInputChange(group, index, groupElements, true));
-    });
 
-
-    group.querySelector('.group-name').addEventListener('input', (event) => {
+    groupElement.querySelector('.group-name').addEventListener('input', (event) => {
         groups[index].name = event.target.value;
         console.log(`Group ${index} name now:${groups[index].name})`)
     });
 
     // Call the persist function when a group's name, data or transform changes
-    groupElements.groupName.addEventListener('change', persistGroups);
-    groupElements.dataText.addEventListener('change', persistGroups);
-    groupElements.transformText.addEventListener('change', persistGroups);
+    groupSubElements.groupName.addEventListener('change', persistGroups);
+    groupSubElements.dataText.addEventListener('change', persistGroups);
+    groupSubElements.transformText.addEventListener('change', persistGroups);
 
-    const dataTextarea = groupElements.dataText;
-    const refResultTextarea = groupElements.refResultTextarea;
+    const dataTextarea = groupSubElements.dataText;
+    const refResultTextarea = groupSubElements.refResultTextarea;
 
     refResultTextarea.style.display = 'none';
 
     dataTextarea.addEventListener('blur', () => {
 
-        const groupNameMatch = dataTextarea.value.match(/#(.+)/);
+        updateGroupReferenceDisplayToInclude(groupSubElements);
 
-        // also check if focus is still inside refResultTextare
-
-        if (groupNameMatch && !refResultTextarea.contains(document.activeElement)) {
-
-            console.log(`${dataTextarea.value} is a valid group name`)
-            const groupName = groupNameMatch[1];
-            const referencedGroup = groups.find(group => group.name === groupName);
-
-            if (referencedGroup && referencedGroup.result) {
-
-                console.log(`refererenced group: ${referencedGroup.name} `)
-                console.log(`${groupName} is an existing group`)
-                refResultTextarea.value = referencedGroup.result;
-                refResultTextarea.style.display = 'block';
-                dataTextarea.style.display = 'none';
-            }
-        }
     });
+
 
     refResultTextarea.addEventListener('focus', () => {
         refResultTextarea.style.display = 'none';
