@@ -1,3 +1,5 @@
+import "https://deno.land/x/dotenv/load.ts";
+
 const apiKey = Deno.env.get("OPENAI_API_KEY");
 
 if (!apiKey) {
