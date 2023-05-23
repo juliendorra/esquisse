@@ -1,4 +1,5 @@
-const apiKey = "";
+const apiKey = Deno.env.get("STABILITY_API_KEY");
+;
 
 if (!apiKey) {
     throw new Error("missing STABILITY_API_KEY environment variable");

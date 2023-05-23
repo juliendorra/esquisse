@@ -1,4 +1,4 @@
-const apiKey = '';
+const apiKey = Deno.env.get("OPEN_API_API_KEY");
 
 if (!apiKey) {
     throw new Error("missing OPEN_API_API_KEY environment variable");
