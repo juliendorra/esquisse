@@ -10,6 +10,11 @@ const handler = async (request: Request): Promise<Response> => {
     return await handleJsonEndpoints(request);
   }
 
+  if (pathname.startsWith("/")) {
+    const file = await Deno.readFile(`./static/index.html`);
+    return new Response(file);
+  }
+
   // Fall back to serving static files
   try {
     const file = await Deno.readFile(`./static${pathname}`);
