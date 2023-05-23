@@ -261,20 +261,20 @@ function addGroupElement(isImageGroup = false) {
         group.className = 'group image';
         group.innerHTML = `
              <button class="delete-btn" style="align-self: flex-start;">X</button>
-            <input type="text" class="group-name" placeholder="Group Name">
-            <textarea class="data-text" placeholder="Data Text"></textarea>
+            <input type="text" class="group-name" placeholder="Name of this Block">
+            <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
-            <textarea class="transform-text" placeholder="Transform Text"></textarea>
+            <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
             <small>image gen</small>
         `;
     } else {
         group.className = 'group text';
         group.innerHTML = `
             <button class="delete-btn" style="align-self: flex-start;">X</button>
-            <input type="text" class="group-name" placeholder="Group Name">
-            <textarea class="data-text" placeholder="Data Text"></textarea>
+            <input type="text" class="group-name" placeholder="Name of this block">
+            <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
-            <textarea class="transform-text" placeholder="Transform Text"></textarea>
+            <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
         `;
     }
 
