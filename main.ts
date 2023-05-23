@@ -11,13 +11,13 @@ const handler = async (request: Request): Promise<Response> => {
     return await handleJsonEndpoints(request);
   }
 
-  // if (pathname.startsWith("/")) {
-  //   const file = await Deno.readFile(`./static/index.html`);
-  //   const type = contentType("html") || "text/plain";
-  //   return new Response(file, {
-  //     headers: { "content-type": type },
-  //   });
-  // }
+  if (pathname === "/") {
+    const file = await Deno.readFile(`./static/index.html`);
+    const type = contentType("html") || "text/plain";
+    return new Response(file, {
+      headers: { "content-type": type },
+    });
+  }
 
   // Fall back to serving static files
   try {
