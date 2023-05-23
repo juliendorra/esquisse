@@ -1,6 +1,3 @@
-import { callGPT } from './gpt.js';
-import { tryGenerate as callStability } from './stability.js';
-
 const groups = [];
 
 let requestQueue = {}; // Add a requestQueue object
@@ -101,11 +98,21 @@ function handleInputChange(groupElement, index, groupSubElements, immediate = fa
 
         lastRequestTime = currentTime;
 
+        const fetchOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                data: dataToSend,
+                transform: transformValue
+            })
+        };
+
         if (groups[index].type === 'image') {
 
             console.log(`Sending image request ${dataToSend} ||| ${transformValue}`);
 
-            callStability(dataToSend + " " + transformValue)
+            fetch('/stability', fetchOptions)
+                .then(response => response.arrayBuffer())
                 .then((resultBuffer) => {
 
                     console.log(`Received image result buffer`);
@@ -134,7 +141,8 @@ function handleInputChange(groupElement, index, groupSubElements, immediate = fa
 
             console.log(`Sending text request ${dataToSend} ||| ${transformValue}`);
 
-            callGPT(dataToSend, transformValue)
+            fetch('/chatgpt', fetchOptions)
+                .then(response => response.json())
                 .then((result) => {
 
                     console.log(`Received result: ${result}`);

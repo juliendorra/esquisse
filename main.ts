@@ -27,11 +27,13 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
   const body = await request.json();
 
   if (pathname.startsWith("/stability")) {
-    response = callStability(body);
+
+
+    response = callStability(body.data + " " + body.transform);
   }
 
   if (pathname.startsWith("/chatgpt")) {
-    response = callGPT(body);
+    response = callGPT(body.data, body.transform);
   }
 
   return new Response(JSON.stringify(response), {
