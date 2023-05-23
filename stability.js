@@ -131,15 +131,11 @@ export async function generate(prompt, negativeprompt, format) {
             console.log(`${key}: ${value}`);
         }
 
-
         const responseBuffer = await response.arrayBuffer();
 
-        // console.log(response.headers.get("Finish-Reason"))
-        // const isValid = response.headers.get("Finish-Reason") == "SUCCESS";
-        // const isBlurred = response.headers.get("Finish-Reason") == "CONTENT_FILTERED";
-
-        const isValid = true
-        const isBlurred = false
+        console.log(response.headers.get("Finish-Reason"))
+        const isValid = response.headers.get("Finish-Reason") == "SUCCESS";
+        const isBlurred = response.headers.get("Finish-Reason") == "CONTENT_FILTERED";
 
         return { data: responseBuffer, isValid, isBlurred };
     } catch (error) {
