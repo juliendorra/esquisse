@@ -38,17 +38,24 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
 
   const body = await request.json();
 
+  console.log(body);
+
   if (pathname.startsWith("/stability")) {
-    response = callStability(body.data + " " + body.transform);
+    response = await callStability(body.data + " " + body.transform);
+
+    return new Response(response, {
+      headers: { "content-type": "image/png" },
+    });
   }
 
   if (pathname.startsWith("/chatgpt")) {
-    response = callGPT(body.data, body.transform);
+    response = await callGPT(body.data, body.transform);
+
+    return new Response(JSON.stringify(response), {
+      headers: { "content-type": "application/json" },
+    });
   }
 
-  return new Response(JSON.stringify(response), {
-    headers: { "content-type": "application/json" },
-  });
 }
 
 const port = 8080;
