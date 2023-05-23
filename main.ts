@@ -31,7 +31,7 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
   }
 
   if (pathname.startsWith("/chatgpt")) {
-    response = callChatGPT(body);
+    response = callGPT(body);
   }
 
   return new Response(JSON.stringify(response), {
