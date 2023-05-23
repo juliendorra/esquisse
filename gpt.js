@@ -15,11 +15,11 @@ export async function callGPT(data, transform) {
         messages: [
             {
                 role: "user",
-                content: data + " " + transform + " Answer in 1000 characters or less.",
+                content: data + " " + transform + " Answer in 500 characters or less.",
             },
         ],
         temperature: 0.2,
-        max_tokens: 1200,
+        max_tokens: 600,
     };
 
     const options = {
