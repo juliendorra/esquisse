@@ -9,7 +9,6 @@ if (!apiKey) {
 const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
 export async function callGPT(data, transform) {
-
     const payload = {
         model: "gpt-3.5-turbo",
         messages: [
@@ -31,12 +30,18 @@ export async function callGPT(data, transform) {
         'body': JSON.stringify(payload),
     };
 
-    const response = await fetch(
-        apiUrl,
-        options);
+    try {
+        const response = await fetch(apiUrl, options);
 
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-    const result = await response.json();
+        const result = await response.json();
 
-    return result.choices[0].message.content.trim();
+        return result.choices[0].message.content.trim();
+    } catch (error) {
+        console.error(`Fetch failed: ${error}`);
+        return ""
+    }
 }
