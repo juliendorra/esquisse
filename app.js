@@ -334,7 +334,7 @@ function init() {
 
     loadGroups()
 
-    document.querySelector('.add-group-btn').addEventListener('click', addGroupElementAndPushGroup);
+    document.querySelector('.add-group-btn').addEventListener('click', () => addGroupElementAndPushGroup(false));
 
     document.querySelector('.add-img-group-btn').addEventListener('click', () => addGroupElementAndPushGroup(true));
 }
