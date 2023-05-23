@@ -35,6 +35,23 @@ function displayReferencedResult(groupElement, referencedResult) {
     handleInputChange(groupElement, index, groupSubElements, true)
 }
 
+function checkReferenceToGroupResult(data) {
+    // Check for a valid reference to a group result in data
+    const groupNameMatch = data.match(/#(.+)/);
+    let groupName;
+    if (groupNameMatch) {
+        groupName = groupNameMatch[1];
+        const referencedGroup = groups.find(group => group.name === groupName);
+        if (referencedGroup && referencedGroup.result) {
+            data = referencedGroup.result; // Use the referenced result instead of data
+        } else {
+            console.log(`No group found with the name ${groupName} or the group's result is not set yet.`);
+            return;
+        }
+    }
+
+}
+
 function handleInputChange(groupElement, index, groupSubElements, immediate = false) {
     console.log('handleInputChange called');
 
@@ -235,6 +252,7 @@ function addGroupElement(isImageGroup = false) {
     if (isImageGroup) {
         group.className = 'group image';
         group.innerHTML = `
+             <button class="delete-btn" style="align-self: flex-start;">X</button>
             <input type="text" class="group-name" placeholder="Group Name">
             <textarea class="data-text" placeholder="Data Text"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
@@ -244,6 +262,7 @@ function addGroupElement(isImageGroup = false) {
     } else {
         group.className = 'group text';
         group.innerHTML = `
+            <button class="delete-btn" style="align-self: flex-start;">X</button>
             <input type="text" class="group-name" placeholder="Group Name">
             <textarea class="data-text" placeholder="Data Text"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
@@ -267,6 +286,35 @@ function addGroupElementAndPushGroup(isImageGroup = false) {
     groups.push({ name: '', data: '', transform: '', result: null, type: type });
 
 }
+
+function deleteGroup(groupElement, index) {
+    // Remove the group from the HTML
+    groupElement.remove();
+
+    const name = groups[index].name;
+
+    // Delete the group entry in the groups array
+    groups.splice(index, 1);
+
+    // Update indices and event listeners for all groups
+    document.querySelectorAll('.group').forEach((group, idx) => {
+        group.querySelector('.delete-btn').addEventListener('click', () => deleteGroup(group, idx));
+
+        // If this group references the deleted group, remove the reference
+        const dataText = group.querySelector('.data-text').value;
+        const referencedGroup = dataText.match(/#(.+)/);
+
+        if (referencedGroup && referencedGroup[1] === name) {
+            group.querySelector('.referenced-result-text').value = "";
+            group.querySelector('.referenced-result-text').style.display = 'none';
+            group.querySelector('.data-text').style.display = 'block';
+        }
+    });
+
+    // Update the URL with the new groups
+    persistGroups();
+}
+
 
 function persistGroups() {
 
