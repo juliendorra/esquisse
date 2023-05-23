@@ -1,7 +1,7 @@
-const apiKey = Deno.env.get("OPEN_API_API_KEY");
+const apiKey = Deno.env.get("OPEN_API_KEY");
 
 if (!apiKey) {
-    throw new Error("missing OPEN_API_API_KEY environment variable");
+    throw new Error("missing OPEN_API_KEY environment variable");
 }
 
 const apiUrl = 'https://api.openai.com/v1/chat/completions';
