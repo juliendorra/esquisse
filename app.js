@@ -169,6 +169,8 @@ function addEventListenersToGroup(groupElement) {
         groupName: groupElement.querySelector('.group-name')
     };
 
+    groupElement.querySelector('.delete-btn').addEventListener('click', () => deleteGroup(groupElement, index));
+
     // group.querySelectorAll('.data-text, .transform-text').forEach(input => {
     //     input.addEventListener('input', () => handleInputChange(group, index, groupSubElements, false));
     // });
