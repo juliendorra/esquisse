@@ -265,7 +265,7 @@ function addGroupElement(isImageGroup = false) {
             <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
             <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
-            <small>image gen</small>
+            <small>🖍️</small>
         `;
     } else {
         group.className = 'group text';
@@ -275,6 +275,7 @@ function addGroupElement(isImageGroup = false) {
             <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
             <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
+            <small>📝</small>
         `;
     }
 
