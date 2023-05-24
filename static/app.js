@@ -7,7 +7,35 @@ const DELAY = 5000;
 
 let hashChangedProgrammatically = false;
 
-function displayReferencedResult(groupElement, referencedResult) {
+function getReferencedResults(dataText, groups) {
+    const groupNameMatches = dataText.match(/#(\w+)/g);
+
+    if (groupNameMatches) {
+        const groupNames = groupNameMatches.map(match => match.slice(1)); // Remove '#' from each match
+
+        let referencedResults = groupNames.map(name => {
+            const referencedGroup = groups.find(group => group.name === name);
+
+            if (!referencedGroup) {
+                console.log(`When trying to show reference: No group found with the name ${name}.`);
+                return null;
+            }
+
+            if (!referencedGroup.result) {
+                console.log(`When trying to show reference: The group's result is not set yet for group ${name}.`);
+                return null;
+            }
+
+            return { name: name, result: referencedGroup.result };
+        }).filter(result => result); // Filter out any null results
+
+        return referencedResults;
+    }
+
+    return [];
+}
+
+function displayReferencedResult(groupElement, referencedResults) {
 
     let groupSubElements;
 
@@ -21,33 +49,17 @@ function displayReferencedResult(groupElement, referencedResult) {
         };
     }
 
+    const referencedResult = referencedResults.map((result, idx) => `${result.name}: ${result.result}`).join('\n');
+
     console.log(`Displaying the group referenced result in refResultTextarea. Group ${groupSubElements.groupName.value}|data: ${groupSubElements.dataText.value}|referenced result: ${referencedResult}`)
 
     groupSubElements.refResultTextarea.value = referencedResult ? referencedResult : "";
     groupSubElements.refResultTextarea.style.display = 'block';
     groupSubElements.dataText.style.display = 'none';
 
-    const index = Array.from(document.querySelectorAll('.group')).indexOf(groupElement);
-
-    handleInputChange(groupElement, index, groupSubElements, true)
+    return referencedResult;
 }
 
-function checkReferenceToGroupResult(data) {
-    // Check for a valid reference to a group result in data
-    const groupNameMatch = data.match(/#(.+)/);
-    let groupName;
-    if (groupNameMatch) {
-        groupName = groupNameMatch[1];
-        const referencedGroup = groups.find(group => group.name === groupName);
-        if (referencedGroup && referencedGroup.result) {
-            data = referencedGroup.result; // Use the referenced result instead of data
-        } else {
-            console.log(`No group found with the name ${groupName} or the group's result is not set yet.`);
-            return;
-        }
-    }
-
-}
 
 function handleInputChange(groupElement, index, groupSubElements, immediate = false) {
     console.log('handleInputChange called');
@@ -60,18 +72,9 @@ function handleInputChange(groupElement, index, groupSubElements, immediate = fa
     let dataToSend = groups[index].data;
     const transformValue = groups[index].transform;
 
-    // Check for a valid reference to a group result in data
-    const groupNameMatch = dataToSend.match(/#(.+)/);
-    let groupName;
-    if (groupNameMatch) {
-        groupName = groupNameMatch[1];
-        const referencedGroup = groups.find(group => group.name === groupName);
-        if (referencedGroup && referencedGroup.result) {
-            dataToSend = referencedGroup.result; // Use the referenced result instead of data
-        } else {
-            console.log(`No group found with the name ${groupName} or the group's result is not set yet.`);
-            return;
-        }
+    let referencedResults = getReferencedResults(groupSubElements.dataText.value, groups);
+    if (referencedResults.length > 0) {
+        dataToSend = displayReferencedResult(groupElement, referencedResults);
     }
 
     if (dataToSend && transformValue) {
@@ -161,19 +164,24 @@ function handleInputChange(groupElement, index, groupSubElements, immediate = fa
 
                     // Update all data textareas with the new result
                     document.querySelectorAll('.group').forEach((group, idx) => {
-
                         const groupElements = {
                             dataText: group.querySelector('.data-text'),
                         };
+                        const groupNameMatches = groupElements.dataText.value.match(/#(\w+)/g);
 
-                        const groupNameMatch = groupElements.dataText.value.match(/#(.+)/);
+                        if (groupNameMatches) {
+                            const groupNames = groupNameMatches.map(match => match.slice(1)); // Remove '#' from each match
+                            if (groupNames.includes(groups[index].name)) { // Check if the updated group is among the referenced ones
+                                const referencedResults = groupNames.map(name => groups.find(group => group.name === name))
+                                    .filter(group => group && group.result)
+                                    .map(group => ({ name: group.name, result: group.result }));
 
-                        if (groupNameMatch && groupNameMatch[1] === groups[index].name) {
-                            displayReferencedResult(group, result);
-
+                                if (referencedResults.length > 0) {
+                                    displayReferencedResult(group, referencedResults);
+                                }
+                            }
                         }
                     });
-
 
                     delete requestQueue[index]; // Remove the request from the queue after it's complete
                 });
@@ -222,23 +230,13 @@ function addEventListenersToGroup(groupElement) {
 
     dataTextarea.addEventListener('blur', () => {
 
-        // Check for a valid reference to a group result in data
-
-        const groupNameMatch = groupSubElements.dataText.value.match(/#(.+)/);
-
-        let groupName;
-        if (groupNameMatch) {
-            groupName = groupNameMatch[1];
-            const referencedGroup = groups.find(group => group.name === groupName);
-            if (referencedGroup && referencedGroup.result) {
-                displayReferencedResult(groupElement, referencedGroup.result)
-            } else {
-                console.log(`When trying to show reference: No group found with the name ${groupName} or the group's result is not set yet.`);
-                return;
-            }
+        let referencedResults = getReferencedResults(groupSubElements.dataText.value, groups);
+        if (referencedResults.length > 0) {
+            console.log(referencedResults)
+            displayReferencedResult(groupElement, referencedResults);
         }
-    }
-    );
+
+    });
 
 
     refResultTextarea.addEventListener('focus', () => {
