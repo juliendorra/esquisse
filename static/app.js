@@ -189,7 +189,7 @@ function handleInputChange(groupElement, index, immediate = false) {
 
                             displayReferencedResult(groupElementIncludingReference, referencedResults);
 
-                            handleInputChange(groupElementIncludingReference, idx, true)
+                            //handleInputChange(groupElementIncludingReference, idx, true)
                         }
                     }
                     );
