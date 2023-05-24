@@ -68,8 +68,15 @@ function displayReferencedResult(groupElement, referencedResults) {
 }
 
 
-function handleInputChange(groupElement, index, groupSubElements, immediate = false) {
+function handleInputChange(groupElement, index, immediate = false) {
     console.log('handleInputChange called');
+
+    let groupSubElements = {
+        dataText: groupElement.querySelector('.data-text'),
+        refResultTextarea: groupElement.querySelector('.referenced-result-text'),
+        transformText: groupElement.querySelector('.transform-text'),
+        groupName: groupElement.querySelector('.group-name')
+    };
 
     // updating the values
     console.log(`Updating group at index: ${index}`);
@@ -84,7 +91,9 @@ function handleInputChange(groupElement, index, groupSubElements, immediate = fa
         dataToSend = displayReferencedResult(groupElement, referencedResults);
     }
 
-    if (dataToSend && transformValue) {
+    const dataReadyToSend = !hasHashReferences && dataToSend || referencedResults.length > 0;
+
+    if (dataReadyToSend && transformValue) {
         clearTimeout(requestQueue[index]);
 
         const currentTime = Date.now();
@@ -98,10 +107,8 @@ function handleInputChange(groupElement, index, groupSubElements, immediate = fa
             }
 
             requestQueue[index] = setTimeout(() => {
-                handleInputChange(groupElement, index, groupSubElements, true);
+                handleInputChange(groupElement, index, true);
             }, timeout);
-
-
 
             return;
         }
@@ -170,16 +177,19 @@ function handleInputChange(groupElement, index, groupSubElements, immediate = fa
                     resultParagraph.textContent = groups[index].result;
 
                     // Update all data textareas with the new result
-                    document.querySelectorAll('.group').forEach((groupElement, idx) => {
+                    document.querySelectorAll('.group').forEach((groupElementIncludingReference, idx) => {
 
                         const groupSubElements = {
-                            dataText: groupElement.querySelector('.data-text'),
+                            dataText: groupElementIncludingReference.querySelector('.data-text'),
                         };
 
                         let { hasHashReferences, isMatchingExistingGroups, referencedResults } = getReferencedResults(groupSubElements.dataText.value, groups);
 
                         if (referencedResults.length > 0) {
-                            displayReferencedResult(groupElement, referencedResults);
+
+                            displayReferencedResult(groupElementIncludingReference, referencedResults);
+
+                            handleInputChange(groupElementIncludingReference, idx, true)
                         }
                     }
                     );
@@ -196,28 +206,27 @@ function addEventListenersToGroup(groupElement) {
 
     console.log("adding listener to group index:", index)
 
+    groupElement.querySelector('.delete-btn').addEventListener('click', () => deleteGroup(groupElement, index));
+
+    // group.querySelectorAll('.data-text, .transform-text').forEach(input => {
+    //     input.addEventListener('input', () => handleInputChange(group, index, false));
+    // });
+
+    groupElement.querySelectorAll('.data-text, .transform-text').forEach(input => {
+        input.addEventListener('change', () => handleInputChange(groupElement, index, true));
+    });
+
+    groupElement.querySelector('.group-name').addEventListener('input', (event) => {
+        groups[index].name = event.target.value;
+        console.log(`Group ${index} name now:${groups[index].name})`)
+    });
+
     const groupSubElements = {
         dataText: groupElement.querySelector('.data-text'),
         refResultTextarea: groupElement.querySelector('.referenced-result-text'),
         transformText: groupElement.querySelector('.transform-text'),
         groupName: groupElement.querySelector('.group-name')
     };
-
-    groupElement.querySelector('.delete-btn').addEventListener('click', () => deleteGroup(groupElement, index));
-
-    // group.querySelectorAll('.data-text, .transform-text').forEach(input => {
-    //     input.addEventListener('input', () => handleInputChange(group, index, groupSubElements, false));
-    // });
-
-    groupElement.querySelectorAll('.data-text, .transform-text').forEach(input => {
-        input.addEventListener('change', () => handleInputChange(groupElement, index, groupSubElements, true));
-    });
-
-
-    groupElement.querySelector('.group-name').addEventListener('input', (event) => {
-        groups[index].name = event.target.value;
-        console.log(`Group ${index} name now:${groups[index].name})`)
-    });
 
     // Call the persist function when a group's name, data or transform changes
     groupSubElements.groupName.addEventListener('change', persistGroups);
@@ -382,7 +391,8 @@ function loadGroups() {
 
             // If both data and transform fields are filled, send an immediate API request
             if (dataElement.value && transformElement.value) {
-                handleInputChange(groupElement, index, { dataText: dataElement, transformText: transformElement, refResultTextarea: groupElement.querySelector('.referenced-result-text'), groupName: groupNameElement }, true);
+
+                handleInputChange(groupElement, index, true);
             }
         });
     } catch (error) {
