@@ -10,16 +10,24 @@ let hashChangedProgrammatically = false;
 function getReferencedResults(dataText, groups) {
     const groupNameMatches = dataText.match(/#(\w+)/g);
 
-    if (groupNameMatches) {
+    let hasHashReferences = false;
+    let isMatchingExistingGroups = false;
+    let referencedResults = [];
+
+    if (groupNameMatches && groupNameMatches.length > 0) {
+        hasHashReferences = true;
+
         const groupNames = groupNameMatches.map(match => match.slice(1)); // Remove '#' from each match
 
-        let referencedResults = groupNames.map(name => {
+        referencedResults = groupNames.map(name => {
             const referencedGroup = groups.find(group => group.name === name);
 
             if (!referencedGroup) {
                 console.log(`When trying to show reference: No group found with the name ${name}.`);
                 return null;
             }
+
+            isMatchingExistingGroups = true; // One matching group found.
 
             if (!referencedGroup.result) {
                 console.log(`When trying to show reference: The group's result is not set yet for group ${name}.`);
@@ -28,12 +36,11 @@ function getReferencedResults(dataText, groups) {
 
             return { name: name, result: referencedGroup.result };
         }).filter(result => result); // Filter out any null results
-
-        return referencedResults;
     }
 
-    return [];
+    return { hasHashReferences, isMatchingExistingGroups, referencedResults };
 }
+
 
 function displayReferencedResult(groupElement, referencedResults) {
 
@@ -72,7 +79,7 @@ function handleInputChange(groupElement, index, groupSubElements, immediate = fa
     let dataToSend = groups[index].data;
     const transformValue = groups[index].transform;
 
-    let referencedResults = getReferencedResults(groupSubElements.dataText.value, groups);
+    let { hasHashReferences, isMatchingExistingGroups, referencedResults } = getReferencedResults(groupSubElements.dataText.value, groups);
     if (referencedResults.length > 0) {
         dataToSend = displayReferencedResult(groupElement, referencedResults);
     }
@@ -169,7 +176,7 @@ function handleInputChange(groupElement, index, groupSubElements, immediate = fa
                             dataText: groupElement.querySelector('.data-text'),
                         };
 
-                        let referencedResults = getReferencedResults(groupSubElements.dataText.value, groups);
+                        let { hasHashReferences, isMatchingExistingGroups, referencedResults } = getReferencedResults(groupSubElements.dataText.value, groups);
 
                         if (referencedResults.length > 0) {
                             displayReferencedResult(groupElement, referencedResults);
@@ -224,7 +231,7 @@ function addEventListenersToGroup(groupElement) {
 
     dataTextarea.addEventListener('blur', () => {
 
-        let referencedResults = getReferencedResults(groupSubElements.dataText.value, groups);
+        let { hasHashReferences, isMatchingExistingGroups, referencedResults } = getReferencedResults(groupSubElements.dataText.value, groups);
         if (referencedResults.length > 0) {
             console.log(referencedResults)
             displayReferencedResult(groupElement, referencedResults);
@@ -331,7 +338,7 @@ function persistGroups() {
     // Convert to JSON and then to Base64
     const base64Groups = btoa(JSON.stringify(strippedGroups));
 
-    console.log(groups, base64Groups)
+    // console.log(groups, base64Groups)
 
     // Update the URL with the encoded groups
     hashChangedProgrammatically = true;
