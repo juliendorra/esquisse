@@ -1,7 +1,6 @@
 const groups = [];
 
 let requestQueue = {}; // Add a requestQueue object
-let lastRequestTime = 0;
 
 const DELAY = 5000;
 
@@ -68,7 +67,7 @@ function displayReferencedResult(groupElement, referencedResults) {
 }
 
 
-function handleInputChange(groupElement, index, immediate = false) {
+async function handleInputChange(groupElement, index, immediate = false) {
     console.log('handleInputChange called');
 
     let groupSubElements = {
@@ -78,27 +77,47 @@ function handleInputChange(groupElement, index, immediate = false) {
         groupName: groupElement.querySelector('.group-name')
     };
 
-    // updating the values
+    let currentData = groupSubElements.dataText.value;
+    const lastTransformValue = groupSubElements.transformText.value;
+
+    let referencedResultsChanged = false;
+
+    let { hasHashReferences, isMatchingExistingGroups, referencedResults } = getReferencedResults(groupSubElements.dataText.value, groups);
+
+    if (referencedResults.length > 0) {
+        currentData = displayReferencedResult(groupElement, referencedResults);
+
+        if (currentData !== groups[index].referencedresults) {
+            referencedResultsChanged = true;
+        }
+
+        groups[index].referencedresults = currentData;
+    }
+
+    // return early if values didn't change
+
+    if (groups[index].data === groupSubElements.dataText.value
+        && groups[index].transform == groupSubElements.transformText.value
+        && !referencedResultsChanged) {
+
+        console.log("no value changed, aborting input change");
+
+        return;
+    }
+
+    // updating the values in the groups structure
     console.log(`Updating group at index: ${index}`);
     groups[index].data = groupSubElements.dataText.value;
     groups[index].transform = groupSubElements.transformText.value;
 
-    let dataToSend = groups[index].data;
-    const transformValue = groups[index].transform;
+    const dataReadyToSend = !hasHashReferences && currentData || referencedResults.length > 0;
 
-    let { hasHashReferences, isMatchingExistingGroups, referencedResults } = getReferencedResults(groupSubElements.dataText.value, groups);
-    if (referencedResults.length > 0) {
-        dataToSend = displayReferencedResult(groupElement, referencedResults);
-    }
-
-    const dataReadyToSend = !hasHashReferences && dataToSend || referencedResults.length > 0;
-
-    if (dataReadyToSend && transformValue) {
+    if (dataReadyToSend && lastTransformValue) {
         clearTimeout(requestQueue[index]);
 
         const currentTime = Date.now();
-        if (currentTime - lastRequestTime < DELAY && !immediate) {
-            const timeout = DELAY - (currentTime - lastRequestTime);
+        if (currentTime - groups[index].lastRequestTime < DELAY && !immediate) {
+            const timeout = DELAY - (currentTime - groups[index].lastRequestTime);
             console.log(`Waiting for ${timeout / 1000} seconds`);
 
             // clearing the previous timeout
@@ -113,31 +132,41 @@ function handleInputChange(groupElement, index, immediate = false) {
             return;
         }
 
-        lastRequestTime = currentTime;
+        groups[index].lastRequestTime = currentTime;
+
 
         const fetchOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                data: dataToSend,
-                transform: transformValue
+                data: currentData,
+                transform: lastTransformValue
             })
         };
 
         if (groups[index].type === 'image') {
 
-            console.log(`Sending image request ${dataToSend} ||| ${transformValue}`);
+            console.log(`[REQUEST] image ||| ${currentData} ||| ${lastTransformValue}`);
 
-            fetch('/stability', fetchOptions)
-                .then(response => response.arrayBuffer())
-                .then((resultBuffer) => {
+            try {
+                const response = await fetch('/stability', fetchOptions);
 
-                    console.log(`Received image result buffer`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
-                    const blob = new Blob([resultBuffer]);
-                    const reader = new FileReader();
+                const resultBuffer = await response.arrayBuffer();
 
-                    reader.onloadend = function () {
+                console.log(`Received image result buffer`);
+
+                const blob = new Blob([resultBuffer]);
+                const reader = new FileReader();
+
+                return new Promise((resolve, reject) => {
+
+                    // what to do when the blob is read?
+                    reader.onloadend = async function () {
+
                         const base64data = reader.result;
                         // Now base64data can be used as a source for an img tag for instance
                         let resultImage = groupElement.querySelector('.result');
@@ -148,54 +177,71 @@ function handleInputChange(groupElement, index, immediate = false) {
                         }
 
                         resultImage.src = base64data;
+
+                        delete requestQueue[index];
+
+                        resolve(base64data);
                     }
 
-                    reader.readAsDataURL(blob);
+                    reader.onerror = reject;
 
-                    delete requestQueue[index];
+                    // start reading the blob
+                    reader.readAsDataURL(blob);
                 });
+            } catch (error) {
+                console.error(`Fetch failed: ${error}`);
+                // Here we should insert an UI element that allows the user to retry
+            }
+
         } else {
 
-            console.log(`Sending text request ${dataToSend} ||| ${transformValue}`);
+            console.log(`[REQUEST] text ||| ${currentData} ||| ${lastTransformValue}`);
 
-            fetch('/chatgpt', fetchOptions)
-                .then(response => response.json())
-                .then((result) => {
+            try {
+                const response = await fetch('/chatgpt', fetchOptions);
 
-                    console.log(`Received result: ${result}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
-                    groups[index].result = result;
+                const result = await response.json();
 
-                    let resultParagraph = groupElement.querySelector('.result');
+                console.log(`Received result: ${result}`);
 
-                    if (!resultParagraph) {
-                        resultParagraph = document.createElement('p');
-                        resultParagraph.className = 'result';
-                        groupElement.appendChild(resultParagraph);
+                groups[index].result = result;
+
+                let resultParagraph = groupElement.querySelector('.result');
+                if (!resultParagraph) {
+                    resultParagraph = document.createElement('p');
+                    resultParagraph.className = 'result';
+                    groupElement.appendChild(resultParagraph);
+                }
+
+                resultParagraph.textContent = groups[index].result;
+
+                // Update all data textareas with the new result
+                document.querySelectorAll('.group').forEach((groupElementIncludingReference, idx) => {
+
+                    const groupSubElements = {
+                        dataText: groupElementIncludingReference.querySelector('.data-text'),
+                    };
+
+                    let { hasHashReferences, isMatchingExistingGroups, referencedResults } = getReferencedResults(groupSubElements.dataText.value, groups);
+
+                    if (referencedResults.length > 0) {
+
+                        displayReferencedResult(groupElementIncludingReference, referencedResults);
+
+                        handleInputChange(groupElementIncludingReference, idx, true);
                     }
-
-                    resultParagraph.textContent = groups[index].result;
-
-                    // Update all data textareas with the new result
-                    document.querySelectorAll('.group').forEach((groupElementIncludingReference, idx) => {
-
-                        const groupSubElements = {
-                            dataText: groupElementIncludingReference.querySelector('.data-text'),
-                        };
-
-                        let { hasHashReferences, isMatchingExistingGroups, referencedResults } = getReferencedResults(groupSubElements.dataText.value, groups);
-
-                        if (referencedResults.length > 0) {
-
-                            displayReferencedResult(groupElementIncludingReference, referencedResults);
-
-                            //handleInputChange(groupElementIncludingReference, idx, true)
-                        }
-                    }
-                    );
-
-                    delete requestQueue[index]; // Remove the request from the queue after it's complete
                 });
+
+                delete requestQueue[index]; // Remove the request from the queue after it's complete
+            } catch (error) {
+                console.error(`Fetch failed: ${error}`);
+                // Here we should insert an UI element that allows the user to retry
+            }
+
         }
     }
 }
@@ -376,7 +422,9 @@ function loadGroups() {
 
         // Populate the groups array with the loaded data
         strippedGroups.forEach(({ name, data, transform, type }, index) => {
-            groups.push({ name, data, transform, type, result: null });
+
+            // data and transform will be adde by handleInputChange
+            groups.push({ name, data: null, transform: null, type, result: null, lastRequestTime: 0 });
 
             const groupElement = type === "image" ? addGroupElement(true) : addGroupElement(false);
 
