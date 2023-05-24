@@ -163,25 +163,19 @@ function handleInputChange(groupElement, index, groupSubElements, immediate = fa
                     resultParagraph.textContent = groups[index].result;
 
                     // Update all data textareas with the new result
-                    document.querySelectorAll('.group').forEach((group, idx) => {
-                        const groupElements = {
-                            dataText: group.querySelector('.data-text'),
+                    document.querySelectorAll('.group').forEach((groupElement, idx) => {
+
+                        const groupSubElements = {
+                            dataText: groupElement.querySelector('.data-text'),
                         };
-                        const groupNameMatches = groupElements.dataText.value.match(/#(\w+)/g);
 
-                        if (groupNameMatches) {
-                            const groupNames = groupNameMatches.map(match => match.slice(1)); // Remove '#' from each match
-                            if (groupNames.includes(groups[index].name)) { // Check if the updated group is among the referenced ones
-                                const referencedResults = groupNames.map(name => groups.find(group => group.name === name))
-                                    .filter(group => group && group.result)
-                                    .map(group => ({ name: group.name, result: group.result }));
+                        let referencedResults = getReferencedResults(groupSubElements.dataText.value, groups);
 
-                                if (referencedResults.length > 0) {
-                                    displayReferencedResult(group, referencedResults);
-                                }
-                            }
+                        if (referencedResults.length > 0) {
+                            displayReferencedResult(groupElement, referencedResults);
                         }
-                    });
+                    }
+                    );
 
                     delete requestQueue[index]; // Remove the request from the queue after it's complete
                 });
