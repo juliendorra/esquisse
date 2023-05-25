@@ -12,6 +12,7 @@ function getReferencedResults(dataText, groups) {
     let hasHashReferences = false;
     let isMatchingExistingGroups = false;
     let referencedResults = [];
+    let combinedResults = dataText;
 
     if (groupNameMatches && groupNameMatches.length > 0) {
         hasHashReferences = true;
@@ -33,15 +34,19 @@ function getReferencedResults(dataText, groups) {
                 return null;
             }
 
+            // Replace the reference in the dataText with the group name and result
+            combinedResults = combinedResults.replace(`#${name}`, `\n${name}: ${referencedGroup.result}\n`);
+
             return { name: name, result: referencedGroup.result };
         }).filter(result => result); // Filter out any null results
     }
 
-    return { hasHashReferences, isMatchingExistingGroups, referencedResults };
+    return { hasHashReferences, isMatchingExistingGroups, referencedResults, combinedResults };
 }
 
 
-function displayReferencedResult(groupElement, referencedResults) {
+
+function displayReferencedResult(groupElement, combinedResults) {
 
     let groupSubElements;
 
@@ -55,15 +60,13 @@ function displayReferencedResult(groupElement, referencedResults) {
         };
     }
 
-    const referencedResult = referencedResults.map((result, idx) => `${result.name}: ${result.result}`).join('\n');
+    console.log(`Displaying the group referenced result in refResultTextarea. Group ${groupSubElements.groupName.value}|data: ${groupSubElements.dataText.value}|referenced result: ${combinedResults}`)
 
-    console.log(`Displaying the group referenced result in refResultTextarea. Group ${groupSubElements.groupName.value}|data: ${groupSubElements.dataText.value}|referenced result: ${referencedResult}`)
-
-    groupSubElements.refResultTextarea.value = referencedResult ? referencedResult : "";
+    groupSubElements.refResultTextarea.value = combinedResults ? combinedResults : "";
     groupSubElements.refResultTextarea.style.display = 'block';
     groupSubElements.dataText.style.display = 'none';
 
-    return referencedResult;
+    return combinedResults;
 }
 
 
@@ -82,10 +85,10 @@ async function handleInputChange(groupElement, index, immediate = false) {
 
     let referencedResultsChanged = false;
 
-    let { hasHashReferences, isMatchingExistingGroups, referencedResults } = getReferencedResults(groupSubElements.dataText.value, groups);
+    let { hasHashReferences, isMatchingExistingGroups, referencedResults, combinedResults } = getReferencedResults(groupSubElements.dataText.value, groups);
 
     if (referencedResults.length > 0) {
-        currentData = displayReferencedResult(groupElement, referencedResults);
+        currentData = displayReferencedResult(groupElement, combinedResults);
 
         if (currentData !== groups[index].referencedresults) {
             referencedResultsChanged = true;
@@ -226,11 +229,11 @@ async function handleInputChange(groupElement, index, immediate = false) {
                         dataText: groupElementIncludingReference.querySelector('.data-text'),
                     };
 
-                    let { hasHashReferences, isMatchingExistingGroups, referencedResults } = getReferencedResults(groupSubElements.dataText.value, groups);
+                    let { hasHashReferences, isMatchingExistingGroups, referencedResults, combinedResults } = getReferencedResults(groupSubElements.dataText.value, groups);
 
                     if (referencedResults.length > 0) {
 
-                        displayReferencedResult(groupElementIncludingReference, referencedResults);
+                        displayReferencedResult(groupElementIncludingReference, combinedResults);
 
                         handleInputChange(groupElementIncludingReference, idx, true);
                     }
@@ -296,10 +299,10 @@ function addEventListenersToGroup(groupElement) {
 
     dataTextarea.addEventListener('blur', () => {
 
-        let { hasHashReferences, isMatchingExistingGroups, referencedResults } = getReferencedResults(groupSubElements.dataText.value, groups);
+        let { hasHashReferences, isMatchingExistingGroups, referencedResults, combinedResults } = getReferencedResults(groupSubElements.dataText.value, groups);
         if (referencedResults.length > 0) {
             console.log(referencedResults)
-            displayReferencedResult(groupElement, referencedResults);
+            displayReferencedResult(groupElement, combinedResults);
         }
 
     });
