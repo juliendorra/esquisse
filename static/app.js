@@ -70,7 +70,7 @@ function displayReferencedResult(groupElement, combinedResults) {
 }
 
 
-async function handleInputChange(groupElement, index, immediate = false) {
+async function handleInputChange(groupElement, index, immediate = false, isRefresh = false) {
     console.log('handleInputChange called');
 
     let groupSubElements = {
@@ -99,7 +99,7 @@ async function handleInputChange(groupElement, index, immediate = false) {
 
     // return early if values didn't change
 
-    if (groups[index].data === groupSubElements.dataText.value
+    if (!isRefresh && groups[index].data === groupSubElements.dataText.value
         && groups[index].transform == groupSubElements.transformText.value
         && !referencedResultsChanged) {
 
@@ -129,7 +129,7 @@ async function handleInputChange(groupElement, index, immediate = false) {
             }
 
             requestQueue[index] = setTimeout(() => {
-                handleInputChange(groupElement, index, true);
+                handleInputChange(groupElement, index, true, isRefresh);
             }, timeout);
 
             return;
@@ -181,6 +181,9 @@ async function handleInputChange(groupElement, index, immediate = false) {
 
                         resultImage.src = base64data;
 
+                        // Show the refresh button now that a result is displayed
+                        groupElement.querySelector('.refresh-btn').style.display = 'block';
+
                         delete requestQueue[index];
 
                         resolve(base64data);
@@ -222,6 +225,9 @@ async function handleInputChange(groupElement, index, immediate = false) {
 
                 resultParagraph.textContent = groups[index].result;
 
+                // Show the refresh button now that a result is displayed
+                groupElement.querySelector('.refresh-btn').style.display = 'block';
+
                 // Update all data textareas with the new result
                 document.querySelectorAll('.group').forEach((groupElementIncludingReference, idx) => {
 
@@ -257,12 +263,16 @@ function addEventListenersToGroup(groupElement) {
 
     groupElement.querySelector('.delete-btn').addEventListener('click', () => deleteGroup(groupElement, index));
 
+    // Initially hide the refresh button
+    groupElement.querySelector('.refresh-btn').style.display = 'none';
+    groupElement.querySelector('.refresh-btn').addEventListener('click', () => handleInputChange(groupElement, index, true, true));
+
     // group.querySelectorAll('.data-text, .transform-text').forEach(input => {
-    //     input.addEventListener('input', () => handleInputChange(group, index, false));
+    //     input.addEventListener('input', () => handleInputChange(group, index, false, false));
     // });
 
     groupElement.querySelectorAll('.data-text, .transform-text').forEach(input => {
-        input.addEventListener('change', () => handleInputChange(groupElement, index, true));
+        input.addEventListener('change', () => handleInputChange(groupElement, index, true, false));
     });
 
     // groupElement.querySelector('.group-name').addEventListener('input', (event) => {
@@ -328,7 +338,7 @@ function addGroupElement(isImageGroup = false) {
         group.className = 'group image';
         group.innerHTML = `
             <div class="group-header">
-                <small>🖍️</small>
+                <small>🎨</small>
                 <button class="delete-btn">&#x2715;</button>
                 
             </div>
@@ -336,18 +346,20 @@ function addGroupElement(isImageGroup = false) {
             <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
             <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
+            <button class="refresh-btn">⟳</button>
         `;
     } else {
         group.className = 'group text';
         group.innerHTML = `
             <div class="group-header">
-                <small>📝 </small>
+                <small>📝</small>
                 <button class="delete-btn">&#x2715</button>
             </div>
             <input type="text" class="group-name" placeholder="Name of this block">
             <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
             <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
+            <button class="refresh-btn">⟳</button>
         `;
     }
 
@@ -453,7 +465,7 @@ function loadGroups() {
             // If both data and transform fields are filled, send an immediate API request
             if (dataElement.value && transformElement.value) {
 
-                handleInputChange(groupElement, index, true);
+                handleInputChange(groupElement, index, true, false);
             }
         });
     } catch (error) {
