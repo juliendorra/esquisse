@@ -22,7 +22,7 @@ function getReferencedResults(dataText, groups) {
             const referencedGroup = groups.find(group => group.name === name);
 
             if (!referencedGroup) {
-                console.log(`When trying to show reference: No group found with the name ${name}.`);
+                console.log(`When trying to show reference: No group found with the name ${name}`);
                 return null;
             }
 
@@ -262,10 +262,10 @@ function addEventListenersToGroup(groupElement) {
         input.addEventListener('change', () => handleInputChange(groupElement, index, true));
     });
 
-    groupElement.querySelector('.group-name').addEventListener('input', (event) => {
-        groups[index].name = event.target.value;
-        console.log(`Group ${index} name now:${groups[index].name})`)
-    });
+    // groupElement.querySelector('.group-name').addEventListener('input', (event) => {
+    //     groups[index].name = event.currentTarget.value;
+    //     console.log(`Group ${index} name now:${groups[index].name})`)
+    // });
 
     const groupSubElements = {
         dataText: groupElement.querySelector('.data-text'),
@@ -275,7 +275,17 @@ function addEventListenersToGroup(groupElement) {
     };
 
     // Call the persist function when a group's name, data or transform changes
-    groupSubElements.groupName.addEventListener('change', persistGroups);
+    groupSubElements.groupName.addEventListener('change',
+
+        (event) => {
+            event.currentTarget.value = event.currentTarget.value.trim()
+            groups[index].name = event.currentTarget.value;
+            console.log(`Group ${index} name now:${groups[index].name}`)
+            persistGroups();
+        }
+
+    );
+
     groupSubElements.dataText.addEventListener('change', persistGroups);
     groupSubElements.transformText.addEventListener('change', persistGroups);
 
