@@ -36,12 +36,22 @@
             cursor: pointer;
         }
 
+        .function-buttons-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 0.5rem;
+        }
+
+
+        .lock-btn,
+        .entry-btn,
         .refresh-btn {
             padding: 0.15rem 0.25rem;
             font-size: 0.5em;
             align-self: flex-end;
             border: 1px solid #ccc;
             cursor: pointer;
+            margin-left: 1rem;
         }
 
         .group-name,
@@ -49,6 +59,15 @@
         .transform-text,
         .referenced-result-text {
             margin-bottom: 0.5rem;
+        }
+
+        textarea[readonly],
+        input[readonly] {
+            background-color: #dadada;
+        }
+
+        textarea.referenced-result-text[readonly] {
+            background-color: #c5e2e2;
         }
 
         .data-text,

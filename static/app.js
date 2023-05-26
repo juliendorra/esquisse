@@ -259,9 +259,41 @@ function addEventListenersToGroup(groupElement) {
 
     const index = Array.from(document.querySelectorAll('.group')).indexOf(groupElement);
 
+    const groupSubElements = {
+        groupName: groupElement.querySelector('.group-name'),
+        dataText: groupElement.querySelector('.data-text'),
+        refResultTextarea: groupElement.querySelector('.referenced-result-text'),
+        transformText: groupElement.querySelector('.transform-text'),
+    };
+
     console.log("adding listener to group index:", index)
 
     groupElement.querySelector('.delete-btn').addEventListener('click', () => deleteGroup(groupElement, index));
+
+    groupElement.querySelector('.lock-btn').addEventListener('click', () => {
+        const isReadonly = groupSubElements.groupName.hasAttribute('readonly');
+        if (isReadonly) {
+            groupSubElements.groupName.removeAttribute('readonly');
+            groupSubElements.dataText.removeAttribute('readonly');
+            groupSubElements.transformText.removeAttribute('readonly');
+        } else {
+            groupSubElements.groupName.setAttribute('readonly', 'readonly');
+            groupSubElements.dataText.setAttribute('readonly', 'readonly');
+            groupSubElements.transformText.setAttribute('readonly', 'readonly');
+        }
+    });
+
+    groupElement.querySelector('.entry-btn').addEventListener('click', () => {
+        const isReadonly = groupSubElements.groupName.hasAttribute('readonly');
+        if (isReadonly) {
+            groupSubElements.groupName.removeAttribute('readonly');
+            groupSubElements.transformText.removeAttribute('readonly');
+        } else {
+            groupSubElements.groupName.setAttribute('readonly', 'readonly');
+            groupSubElements.transformText.setAttribute('readonly', 'readonly');
+        }
+    });
+
 
     // Initially hide the refresh button
     groupElement.querySelector('.refresh-btn').style.display = 'none';
@@ -280,12 +312,6 @@ function addEventListenersToGroup(groupElement) {
     //     console.log(`Group ${index} name now:${groups[index].name})`)
     // });
 
-    const groupSubElements = {
-        dataText: groupElement.querySelector('.data-text'),
-        refResultTextarea: groupElement.querySelector('.referenced-result-text'),
-        transformText: groupElement.querySelector('.transform-text'),
-        groupName: groupElement.querySelector('.group-name')
-    };
 
     // Call the persist function when a group's name, data or transform changes
     groupSubElements.groupName.addEventListener('change',
@@ -346,7 +372,11 @@ function addGroupElement(isImageGroup = false) {
             <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
             <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
+            <div class="function-buttons-container">
+            <button class="entry-btn">📥</button>
+            <button class="lock-btn">🔒</button>
             <button class="refresh-btn">⟳</button>
+            </div>
         `;
     } else {
         group.className = 'group text';
@@ -359,7 +389,11 @@ function addGroupElement(isImageGroup = false) {
             <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
             <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
+            <div class="function-buttons-container">
+            <button class="entry-btn">📥</button>
+            <button class="lock-btn">🔒</button>
             <button class="refresh-btn">⟳</button>
+            </div>
         `;
     }
 
