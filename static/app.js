@@ -6,6 +6,12 @@ const DELAY = 5000;
 
 let hashChangedProgrammatically = false;
 
+const INTERACTION_STATE = {
+    OPEN: "open",
+    ENTRY: "entry",
+    LOCKED: "locked"
+};
+
 // Call the init function when the page loads
 
 if (document.readyState === 'loading') {
@@ -38,8 +44,17 @@ function init() {
     document.querySelector('.add-img-group-btn').addEventListener('click', () => addGroupElementAndPushGroup(true));
 }
 
+function persistGroups() {
+    const strippedGroups = groups.map(({ name, data, transform, type, interactionState }) => ({ name, data, transform, type, interactionState }));
+
+    const base64Groups = btoa(JSON.stringify(strippedGroups));
+
+    hashChangedProgrammatically = true;
+    window.location.hash = base64Groups;
+}
+
 function loadGroups() {
-    const base64Groups = window.location.hash.slice(1);  // Get the hash and remove the '#'
+    const base64Groups = window.location.hash.slice(1);
 
     if (!base64Groups) {
         addGroupElementAndPushGroup();
@@ -47,26 +62,18 @@ function loadGroups() {
     }
 
     try {
-        // Decode and parse the groups
         const strippedGroups = JSON.parse(atob(base64Groups));
 
-        console.log(strippedGroups);
-
-        // Clear the existing groups
         groups.length = 0;
 
         const groupsContainer = document.querySelector('.container');
-        groupsContainer.innerHTML = '';  // Clear the container
+        groupsContainer.innerHTML = '';
 
-        // Populate the groups array with the loaded data
-        strippedGroups.forEach(({ name, data, transform, type }, index) => {
-
-            // data and transform will be adde by handleInputChange
-            groups.push({ name, data: null, transform: null, type, result: null, lastRequestTime: 0 });
+        strippedGroups.forEach(({ name, data, transform, type, interactionState }, index) => {
+            groups.push({ name, data: null, transform: null, type, result: null, lastRequestTime: 0, interactionState: interactionState || INTERACTION_STATE.OPEN });
 
             const groupElement = type === "image" ? addGroupElement(true) : addGroupElement(false);
 
-            // Populate the fields
             const groupNameElement = groupElement.querySelector('.group-name');
             const dataElement = groupElement.querySelector('.data-text');
             const transformElement = groupElement.querySelector('.transform-text');
@@ -74,6 +81,8 @@ function loadGroups() {
             groupNameElement.value = name;
             dataElement.value = data;
             transformElement.value = transform;
+
+            setGroupInteractionState(groupElement, groups[index].interactionState);
 
             // If both data and transform fields are filled, send an immediate API request
             if (dataElement.value && transformElement.value) {
@@ -86,21 +95,6 @@ function loadGroups() {
     }
 }
 
-function persistGroups() {
-
-    // Omit the results and only include {name, data, transform} for text groups
-    // For image groups, we omit the result and the image
-    const strippedGroups = groups.map(({ name, data, transform, type }) => ({ name, data, transform, type }));
-
-    // Convert to JSON and then to Base64
-    const base64Groups = btoa(JSON.stringify(strippedGroups));
-
-    // console.log(groups, base64Groups)
-
-    // Update the URL with the encoded groups
-    hashChangedProgrammatically = true;
-    window.location.hash = base64Groups;
-}
 
 function addGroupElement(isImageGroup = false) {
     const group = document.createElement('div');
@@ -155,7 +149,7 @@ function addGroupElementAndPushGroup(isImageGroup = false) {
 
     const type = isImageGroup ? "image" : "text"
 
-    groups.push({ name: '', data: '', transform: '', result: null, type: type });
+    groups.push({ name: '', data: '', transform: '', result: null, type: type, interactionState: INTERACTION_STATE.OPEN });
 
 }
 
@@ -175,28 +169,17 @@ function addEventListenersToGroup(groupElement) {
     groupElement.querySelector('.delete-btn').addEventListener('click', () => deleteGroup(groupElement, index));
 
     groupElement.querySelector('.lock-btn').addEventListener('click', () => {
-        const isReadonly = groupSubElements.groupName.hasAttribute('readonly');
-        if (isReadonly) {
-            groupSubElements.groupName.removeAttribute('readonly');
-            groupSubElements.dataText.removeAttribute('readonly');
-            groupSubElements.transformText.removeAttribute('readonly');
-        } else {
-            groupSubElements.groupName.setAttribute('readonly', 'readonly');
-            groupSubElements.dataText.setAttribute('readonly', 'readonly');
-            groupSubElements.transformText.setAttribute('readonly', 'readonly');
-        }
+        groups[index].interactionState = groups[index].interactionState === INTERACTION_STATE.LOCKED ? INTERACTION_STATE.OPEN : INTERACTION_STATE.LOCKED;
+        setGroupInteractionState(groupElement, groups[index].interactionState);
+        persistGroups();
     });
 
     groupElement.querySelector('.entry-btn').addEventListener('click', () => {
-        const isReadonly = groupSubElements.groupName.hasAttribute('readonly');
-        if (isReadonly) {
-            groupSubElements.groupName.removeAttribute('readonly');
-            groupSubElements.transformText.removeAttribute('readonly');
-        } else {
-            groupSubElements.groupName.setAttribute('readonly', 'readonly');
-            groupSubElements.transformText.setAttribute('readonly', 'readonly');
-        }
+        groups[index].interactionState = groups[index].interactionState === INTERACTION_STATE.ENTRY ? INTERACTION_STATE.OPEN : INTERACTION_STATE.ENTRY;
+        setGroupInteractionState(groupElement, groups[index].interactionState);
+        persistGroups();
     });
+
 
 
     // Initially hide the refresh button
@@ -287,6 +270,31 @@ function deleteGroup(groupElement, index) {
     // Update the URL with the new groups
     persistGroups();
 }
+
+function setGroupInteractionState(groupElement, interactionState) {
+    const groupNameElement = groupElement.querySelector('.group-name');
+    const dataElement = groupElement.querySelector('.data-text');
+    const transformElement = groupElement.querySelector('.transform-text');
+
+    switch (interactionState) {
+        case INTERACTION_STATE.OPEN:
+            groupNameElement.removeAttribute('readonly');
+            dataElement.removeAttribute('readonly');
+            transformElement.removeAttribute('readonly');
+            break;
+        case INTERACTION_STATE.ENTRY:
+            groupNameElement.setAttribute('readonly', 'readonly');
+            dataElement.removeAttribute('readonly');
+            transformElement.setAttribute('readonly', 'readonly');
+            break;
+        case INTERACTION_STATE.LOCKED:
+            groupNameElement.setAttribute('readonly', 'readonly');
+            dataElement.setAttribute('readonly', 'readonly');
+            transformElement.setAttribute('readonly', 'readonly');
+            break;
+    }
+}
+
 
 async function handleInputChange(groupElement, index, immediate = false, isRefresh = false) {
     console.log('handleInputChange called');
