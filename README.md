@@ -1,4 +1,4 @@
-# <img width="64rem" style="border-radius: 0.4rem; vertical-align: middle;" src="https://github.com/BenthamRealities/visi-llm/assets/109677/9202bf9b-de1f-482c-b312-47669c776ece"> visi-llm — reactive LLM/Diffusion cells
+# <img width="128rem" style="border-radius: 0.4rem; vertical-align: middle;" src="https://github.com/BenthamRealities/visi-llm/assets/109677/9202bf9b-de1f-482c-b312-47669c776ece"> visi-llm — reactive LLM/Diffusion cells
 
 ### A light tool when you need to prototype a workflow one level or two above prompt engineering.
 
