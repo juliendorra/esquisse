@@ -7,14 +7,20 @@ I (https://github.com/juliendorra) originally built this web-tool so my design s
 ### Why create this mini AI-app builder?
 To give users a malleable and generic way to draft AI usages **one level or two up from just "prompting"**. Without code, my design students managed to build AI pipelines… and also asked for a few updates that I added and tested with them 😅
 
-## Create and share mini AI apps 
+## Install and use
+
+You can use the builder on you own computer by cloning and running the repo: [Local usage](#local-dev)
+
+Or you can easily deploy on Deno Deploy: [Deploy](#deploy-on-deno-deploy)
+
+## How to create and share mini AI apps?
 
 - Adds text and image generation blocks
 - Reference and use the result from a text block by using #[nameofthecell] in another block (text or image) top 'Data' cell. You can mix and match several text results and static text.
 - ⟳ button refresh a block result by sending a new request
 - The structure of your AI cells is saved in the URL: names, data text, transform text. Share the URL to share the structure (not the results). You can go back to reload a previous structure.
 
-## UI/UX Hints
+## Set UI/UX Hints on blocks
 
 - 📥 button set the block as an _entry_ block, only the data cell is writable.
 - 🔒 button set the block as an _locked_ block, no cell is writable. 
