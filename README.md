@@ -1,4 +1,5 @@
-# <img width="128rem" style="border-radius: 0.4rem; vertical-align: middle;" src="https://github.com/BenthamRealities/visi-llm/assets/109677/9202bf9b-de1f-482c-b312-47669c776ece"> visi-llm — reactive LLM/Diffusion cells
+# <img width="128rem" style="border-radius: 0.4rem; vertical-align: middle;" src="https://github.com/BenthamRealities/visi-llm/assets/109677/ea817721-ff7c-4aae-939b-b625cf97bb40"> visi-llm — reactive LLM/Diffusion cells
+
 
 ### A light tool when you need to prototype a workflow one level or two above prompt engineering.
 
@@ -31,13 +32,13 @@ These cells keeps updating normally when the results they reference update: thes
 
 _Screenshot of a simple app that generates three images combining a character and scene as paintings from the the 16th, 17th and 19th century:_
 
-<img width="50%" alt="screenshot of a simple app that generates three images combining a character and scene as paintings from the the 16th, 17th and 19th century" src="https://github.com/BenthamRealities/visi-llm/assets/109677/3b3b56c0-dacd-4618-8b40-646637319bc6">
+<img width="50%" alt="screenshot of a simple app that generates three images combining a character and scene as paintings from the the 16th, 17th and 19th century" src="https://github.com/BenthamRealities/visi-llm/assets/109677/2d42c609-91b9-49de-80d2-839322a3faae">
 
 _Students at Strate in the process of creating apps:_
 
-<img width="50%"  src="https://github.com/BenthamRealities/visi-llm/assets/109677/61eca7e3-2e43-466f-bfe0-17600de69943">
+<img width="50%"  src="https://github.com/BenthamRealities/visi-llm/assets/109677/9213c7fc-d86c-47ef-a9ce-a52fa3271394">
 
-<img width="50%"  src="https://github.com/BenthamRealities/visi-llm/assets/109677/603b4b68-c4dc-4019-bdb0-44d1415647bc">
+<img width="50%"  src="https://github.com/BenthamRealities/visi-llm/assets/109677/9faeded3-d248-4456-81e6-cce76358b28f">
 
 ## Local dev
 
