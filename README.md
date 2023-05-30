@@ -2,9 +2,10 @@
 
 ### A light tool when you need to prototype a workflow one level or two above prompt engineering.
 
-I originally built this web-tool so my design students could prototype mini AI-apps in a couple of hours: a fantasy football club generator, with logo and jersey; a user interview template that auto-update according to answers; an idea helper for products; and more!
+I (https://github.com/juliendorra) originally built this web-tool so my design students could prototype mini AI-apps in a couple of hours: _a fantasy football club generator, with logo and jersey; a user interview template that auto-update according to answers; an idea helper for products;_ and more!
 
-**Why create this mini AI-app builder?** To give them something malleable and generic to draft AI usages **one level or two** up from just "prompting". Without code, they managed to build AI pipelines… and also asked for a few updates that I could add and test with them 😅
+### Why create this mini AI-app builder?
+To give users a malleable and generic way to draft AI usages **one level or two up from just "prompting"**. Without code, my design students managed to build AI pipelines… and also asked for a few updates that I added and tested with them 😅
 
 ## Create and share mini AI apps 
 
@@ -32,4 +33,16 @@ _Students at Strate in the process of creating apps:_
 
 <img width="50%"  src="https://github.com/BenthamRealities/visi-llm/assets/109677/603b4b68-c4dc-4019-bdb0-44d1415647bc">
 
+## Local dev
 
+- create .env based on .env.SAMPLE and add your OpenAI and Stability API keys
+- `deno cache main.ts`
+- `deno task dev`
+- visit http://127.0.0.1:8000/ to use
+
+## Deploy on Deno Deploy
+
+The code has been written with deployement on Deno Deploy in mind, in a few easy steps:
+- Add your OpenAI and Stability API keys in your Deno Deploy project
+- link the repo in Deno Deploy Dashboard in automatic mode
+- pick main.ts as the entry point
