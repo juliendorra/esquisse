@@ -1,4 +1,4 @@
-# <img width="128rem" style="border-radius: 0.4rem; vertical-align: middle;" src="https://github.com/BenthamRealities/visi-llm/assets/109677/ea817721-ff7c-4aae-939b-b625cf97bb40"> visi-llm — reactive LLM/Diffusion cells
+# <img width="128rem" style="border-radius: 0.4rem; vertical-align: middle;" src="https://github.com/BenthamRealities/visi-llm/assets/109677/ea817721-ff7c-4aae-939b-b625cf97bb40"> Esquissse AI — reactive LLM/Diffusion cells
 
 
 ### A light tool when you need to prototype a workflow one level or two above prompt engineering.
