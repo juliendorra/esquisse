@@ -17,19 +17,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>visi-llm. Reactive LLM/diffusion cells</title>
     <style>
+        div,
+        button,
+        textarea {
+            border-radius: 0.1rem;
+        }
+
+        ::placeholder {
+
+            color: #8f8f8f;
+        }
+
         .container {
             display: flex;
             flex-wrap: wrap;
         }
 
         .group {
-            border: 1px solid #ccc;
+            border: 2px solid #ccc;
             padding: 0.75rem;
             margin: 0.75rem;
             display: flex;
             flex-direction: column;
             max-width: 20rem;
             position: relative;
+            border-radius: 0.25rem;
+        }
+
+
+        .group.text {
+            border-color: rgb(154, 123, 212);
+        }
+
+        .group.image {
+            border-color: rgb(233, 107, 168);
         }
 
         .group-header {
@@ -41,10 +62,11 @@
         }
 
         .delete-btn {
-            padding: 0.15rem 0.25rem;
-            font-size: 0.5em;
-            border: 1px solid #ccc;
+            padding: 0.1rem 0.3rem;
+            font-size: 0.8em;
+            border: 1px solid #cccccc;
             cursor: pointer;
+            background-color: transparent;
         }
 
         .function-buttons-container {
@@ -57,12 +79,13 @@
         .lock-btn,
         .entry-btn,
         .refresh-btn {
-            padding: 0.15rem 0.25rem;
-            font-size: 0.5em;
+            padding: 0.4rem 0.5rem;
+            font-size: 0.8em;
             align-self: flex-end;
-            border: 1px solid #ccc;
+            border: 1px solid #cccccc;
             cursor: pointer;
-            margin-left: 1rem;
+            background-color: transparent;
+            margin-left: 0.5rem;
         }
 
         .group-name,
@@ -74,11 +97,12 @@
 
         textarea[readonly],
         input[readonly] {
-            background-color: #dadada;
+            background: linear-gradient(0.25turn, #cfd8e5, #dedede);
+            border: 0;
         }
 
         textarea.referenced-result-text[readonly] {
-            background-color: #c5e2e2;
+            background-color: rgb(207, 239, 243);
         }
 
         .data-text,
