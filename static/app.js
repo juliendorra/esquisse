@@ -216,10 +216,12 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
                 <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
                 <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
                 <div class="function-buttons-container">
-                <button class="entry-btn">📥</button>
-                <button class="lock-btn">🔒</button>
-                <button class="refresh-btn">🔄</button>
+                    <button class="entry-btn">📥</button>
+                    <button class="lock-btn">🔒</button>
+                    <button class="refresh-btn">🔄</button>
                 </div>
+                <img class="result">
+                <a class="download-btn">⬇️</a>
             `;
             break;
 
@@ -247,11 +249,21 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
     if (refResultTextarea) {
         refResultTextarea.style.display = 'none';
     }
+    // Initially hide the result 
+    const resultElement = groupElement.querySelector(".result");
+    if (resultElement) {
+        resultElement.style.display = 'none';
+    }
 
     // Initially hide the refresh button
-    const refreshButton = groupElement.querySelector(".referenced-result-text");
+    const refreshButton = groupElement.querySelector(".refresh-btn");
     if (refreshButton) {
         refreshButton.style.display = 'none';
+    }
+    // Initially hide the download button
+    const downloadButton = groupElement.querySelector(".download-btn");
+    if (downloadButton) {
+        downloadButton.style.display = 'none';
     }
 
     const container = document.querySelector(".container");
@@ -512,9 +524,18 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
                             resultImage.className = "result";
                             groupElement.appendChild(resultImage);
                         }
+                        resultImage.style.display = "block";
                         resultImage.src = base64data;
                         group.result = base64data;
+
                         groupElement.querySelector(".refresh-btn").style.display = "block";
+
+                        const downloadButton = groupElement.querySelector(".download-btn");
+
+                        downloadButton.style.display = "block";
+                        downloadButton.href = base64data;
+                        downloadButton.download = group.name + "" + randomInt(1, 99999) + ".png";
+
                         delete REQUEST_QUEUE[group.name];
                         resolve(base64data);
                     };
