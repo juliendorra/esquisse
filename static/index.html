@@ -13,6 +13,8 @@
     <meta property='og:image' content='https://user-images.githubusercontent.com/109677/241988208-2d42c609-91b9-49de-80d2-839322a3faae.png' />
     <meta property='og:description' content='A light tool when you need to prototype an AI workflow one level or two above prompt engineering.
     ' />
+    <meta property='og:url' content='' />
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>visi-llm. Reactive LLM/diffusion cells</title>
@@ -44,6 +46,17 @@
             border-radius: 0.25rem;
         }
 
+        .group.break {
+            flex-basis: 100%;
+            height: fit-content;
+            background-color: transparent;
+            max-width: none;
+            border-color: rgb(224, 229, 235);
+        }
+
+        .group.static {
+            border-color: rgb(186, 226, 127);
+        }
 
         .group.text {
             border-color: rgb(154, 123, 212);
@@ -110,7 +123,8 @@
             height: 4em;
         }
 
-
+        .add-break-group-btn,
+        .add-static-group-btn,
         .add-group-btn,
         .add-img-group-btn {
             cursor: pointer;
@@ -131,8 +145,10 @@
     <div class="container">
 
     </div>
-    <button class="add-group-btn">Add Text Block 📝</button>
-    <button class="add-img-group-btn">Add Image Block 🎨</button>
+    <button class="add-break-group-btn">Add Break ➗</button>
+    <button class="add-static-group-btn">Add Static Text 💠</button>
+    <button class="add-group-btn">Add Text Transform 📝</button>
+    <button class="add-img-group-btn">Add Image Gen 🎨</button>
     <script type="module" src="app.js"></script>
 </body>
 

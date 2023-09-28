@@ -1,544 +1,816 @@
-const groups = [];
 
-let requestQueue = {}; // Add a requestQueue object
+import Graph from "https://cdn.jsdelivr.net/npm/graph-data-structure@3.3.0/+esm";
+
+// edge means ' uses the result of -> '
+// this is graph pointing to references each group list
+// pointing to groups a group depends on
+let USES_RESULT_OF_GRAPH = Graph();
+
+// edge means ' is used by -> '
+// this is a reverse reference graph
+// pointing to groups depending on a given group
+let IS_USED_BY_GRAPH = Graph();
+
+const GROUPS = new Map();
 
 const DELAY = 5000;
 
-let hashChangedProgrammatically = false;
+const REFERENCE_MATCHING_REGEX = /#([\w-.]+)|(?:\[)([^\]]+)(?:\])/g;
+
+let REQUEST_QUEUE = {};
+
+let HAS_HASH_CHANGED_PROGRAMMATICALLY = false;
 
 const INTERACTION_STATE = {
     OPEN: "open",
     ENTRY: "entry",
-    LOCKED: "locked"
+    LOCKED: "locked",
+};
+
+const GROUP_TYPE = {
+    STATIC: "static",
+    TEXT: "text",
+    IMAGE: "image",
+    BREAK: "break",
+    GRID: "grid",
+    IMPORT: "import",
 };
 
 // Call the init function when the page loads
 
-if (document.readyState === 'loading') {
-    window.addEventListener('DOMContentLoaded', init);
+if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", init);
 } else {
-    init()
+    init();
 }
 
 function init() {
+    loadGroups();
 
-    loadGroups()
-
-    window.addEventListener('hashchange', () => {
-
-        console.log('Hash changed! Programmatically? ', hashChangedProgrammatically);
-
-        if (!hashChangedProgrammatically) {
-
-            loadGroups()
-
+    window.addEventListener("hashchange", () => {
+        console.log("Hash changed! Programmatically? ", HAS_HASH_CHANGED_PROGRAMMATICALLY);
+        if (!HAS_HASH_CHANGED_PROGRAMMATICALLY) {
+            loadGroups();
         }
+        HAS_HASH_CHANGED_PROGRAMMATICALLY = false;
+    });
 
-        hashChangedProgrammatically = false;
-    }
+    document
+        .querySelector(".add-break-group-btn")
+        .addEventListener("click", () => createGroupAndAddGroupElement(GROUP_TYPE.BREAK));
+
+    document
+        .querySelector(".add-static-group-btn")
+        .addEventListener("click", () => createGroupAndAddGroupElement(GROUP_TYPE.STATIC));
+
+    document.querySelector(".add-group-btn").addEventListener("click", () =>
+        createGroupAndAddGroupElement(GROUP_TYPE.TEXT)
+    );
+
+    document.querySelector(".add-img-group-btn").addEventListener("click", () =>
+        createGroupAndAddGroupElement(GROUP_TYPE.IMAGE)
     );
 
 
-    document.querySelector('.add-group-btn').addEventListener('click', () => addGroupElementAndPushGroup(false));
+    document.body.appendChild(document.createElement("br"));
+    document.body.appendChild(THUMBNAIL_CANVAS);
 
-    document.querySelector('.add-img-group-btn').addEventListener('click', () => addGroupElementAndPushGroup(true));
 }
 
 function persistGroups() {
-    const strippedGroups = groups.map(({ name, data, transform, type, interactionState }) => ({ name, data, transform, type, interactionState }));
+    const strippedGroups = Array.from(GROUPS.values()).map(({ name, data, transform, type, interactionState }) => ({
+        name,
+        data,
+        transform,
+        type,
+        interactionState,
+    }));
+
+    console.log("Persisting in URL", strippedGroups);
 
     const base64Groups = btoa(JSON.stringify(strippedGroups));
 
-    hashChangedProgrammatically = true;
+    HAS_HASH_CHANGED_PROGRAMMATICALLY = true;
     window.location.hash = base64Groups;
+
 }
 
 function loadGroups() {
     const base64Groups = window.location.hash.slice(1);
 
     if (!base64Groups) {
-        addGroupElementAndPushGroup();
+        createGroupAndAddGroupElement();
         return;
     }
 
     try {
         const strippedGroups = JSON.parse(atob(base64Groups));
 
-        groups.length = 0;
+        console.log("loading groups from hash", strippedGroups);
 
-        const groupsContainer = document.querySelector('.container');
-        groupsContainer.innerHTML = '';
+        GROUPS.clear();
 
-        strippedGroups.forEach(({ name, data, transform, type, interactionState }, index) => {
-            groups.push({ name, data: null, transform: null, type, result: null, lastRequestTime: 0, interactionState: interactionState || INTERACTION_STATE.OPEN });
+        const groupsContainer = document.querySelector(".container");
+        groupsContainer.innerHTML = "";
 
-            const groupElement = type === "image" ? addGroupElement(true) : addGroupElement(false);
+        strippedGroups.forEach(({ name, data, transform, type, interactionState }) => {
+            const group = {
+                id: generateUniqueGroupID(),
+                name,
+                data,
+                transform,
+                type: type || GROUP_TYPE.TEXT,
+                result: null,
+                lastRequestTime: 0,
+                interactionState: interactionState || INTERACTION_STATE.OPEN,
+                referencedBy: new Set(),
+            };
 
-            const groupNameElement = groupElement.querySelector('.group-name');
-            const dataElement = groupElement.querySelector('.data-text');
-            const transformElement = groupElement.querySelector('.transform-text');
+            GROUPS.set(group.id, group);
+            USES_RESULT_OF_GRAPH.addNode(group.id);
 
-            groupNameElement.value = name;
-            dataElement.value = data;
-            transformElement.value = transform;
+            const groupElement = addGroupElement(group.type, group.id);
 
-            setGroupInteractionState(groupElement, groups[index].interactionState);
+            const groupNameElement = groupElement.querySelector(".group-name");
+            const dataElement = groupElement.querySelector(".data-text");
+            const transformElement = groupElement.querySelector(".transform-text");
 
-            // If both data and transform fields are filled, send an immediate API request
-            if (dataElement.value && transformElement.value) {
+            // Break groups elements don't have name and data elements
+            if (groupNameElement) groupNameElement.value = group.name;
+            if (dataElement) dataElement.value = group.data;
 
-                handleInputChange(groupElement, index, true, false);
+            if (type === GROUP_TYPE.STATIC) {
+                // If data is present, call handleInput to combine data and references into a referenceable result
+                if (dataElement.value) {
+                    handleInputChange(groupElement, true, false);
+                }
             }
+
+            if (group.type === GROUP_TYPE.TEXT || group.type === GROUP_TYPE.IMAGE) {
+
+                transformElement.value = transform;
+
+                // If data is present and transform value is present, call handleInput to try to send an immediate API request
+                if (dataElement.value && transformElement.value) {
+                    handleInputChange(groupElement, true, false);
+                }
+            }
+
+            // setGroupInteractionState set the right UI state, 
+            // using optional chaining to ignore absent inputs
+            setGroupInteractionState(groupElement, group.interactionState);
+
         });
     } catch (error) {
-        console.error('Error loading groups', error);
-    }
-}
-
-
-function addGroupElement(isImageGroup = false) {
-    const group = document.createElement('div');
-
-    if (isImageGroup) {
-        group.className = 'group image';
-        group.innerHTML = `
-            <div class="group-header">
-                <small>🎨</small>
-                <button class="delete-btn">&#x2715;</button>
-                
-            </div>
-            <input type="text" class="group-name" placeholder="Name of this Block">
-            <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
-            <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
-            <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
-            <div class="function-buttons-container">
-            <button class="entry-btn">📥</button>
-            <button class="lock-btn">🔒</button>
-            <button class="refresh-btn">⟳</button>
-            </div>
-        `;
-    } else {
-        group.className = 'group text';
-        group.innerHTML = `
-            <div class="group-header">
-                <small>📝</small>
-                <button class="delete-btn">&#x2715</button>
-            </div>
-            <input type="text" class="group-name" placeholder="Name of this block">
-            <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
-            <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
-            <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
-            <div class="function-buttons-container">
-            <button class="entry-btn">📥</button>
-            <button class="lock-btn">🔒</button>
-            <button class="refresh-btn">⟳</button>
-            </div>
-        `;
+        console.error("Error loading groups", error);
     }
 
-    const container = document.querySelector('.container');
-    container.appendChild(group);
+    console.log("groups loaded: ", GROUPS);
 
-    addEventListenersToGroup(group, isImageGroup);
-    return group;
+    IS_USED_BY_GRAPH = buildReverseReferenceGraph();
+
 }
 
-function addGroupElementAndPushGroup(isImageGroup = false) {
+function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
+    const groupElement = document.createElement("div");
 
-    addGroupElement(isImageGroup);
+    groupElement.dataset.id = groupId;
 
-    const type = isImageGroup ? "image" : "text"
+    switch (groupType) {
 
-    groups.push({ name: '', data: '', transform: '', result: null, type: type, interactionState: INTERACTION_STATE.OPEN });
+        case GROUP_TYPE.BREAK:
+            groupElement.className = "group break";
+            groupElement.innerHTML = `
+                <div class="group-header">
+                    <small>➗</small>
+                    <button class="delete-btn">&#x2715;</button>
+            `;
+            break;
 
+        case GROUP_TYPE.STATIC:
+            groupElement.className = "group static";
+            groupElement.innerHTML = `
+                <div class="group-header">
+                    <small>💠</small>
+                    <button class="delete-btn">&#x2715;</button>
+                </div>
+                <input type="text" class="group-name" placeholder="Name of this block">
+                <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
+                <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
+                <div class="function-buttons-container">
+                <button class="entry-btn">📥</button>
+                <button class="lock-btn">🔒</button>
+                </div>
+            `;
+            break;
+
+        case GROUP_TYPE.IMAGE:
+            groupElement.className = "group image";
+            groupElement.innerHTML = `
+                <div class="group-header">
+                    <small>🎨</small>
+                    <button class="delete-btn">&#x2715;</button>
+                </div>
+                <input type="text" class="group-name" placeholder="Name of this Block">
+                <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
+                <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
+                <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
+                <div class="function-buttons-container">
+                <button class="entry-btn">📥</button>
+                <button class="lock-btn">🔒</button>
+                <button class="refresh-btn">🔄</button>
+                </div>
+            `;
+            break;
+
+        default:
+            groupElement.className = "group text";
+            groupElement.innerHTML = `
+                <div class="group-header">
+                    <small>📝</small>
+                    <button class="delete-btn">&#x2715</button>
+                </div>
+                <input type="text" class="group-name" placeholder="Name of this block">
+                <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
+                <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
+                <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
+                <div class="function-buttons-container">
+                <button class="entry-btn">📥</button>
+                <button class="lock-btn">🔒</button>
+                <button class="refresh-btn">🔄</button>
+                </div>
+            `;
+    }
+
+    // Initially hide the referenced-result-text 
+    const refResultTextarea = groupElement.querySelector(".referenced-result-text");
+    if (refResultTextarea) {
+        refResultTextarea.style.display = 'none';
+    }
+
+    // Initially hide the refresh button
+    const refreshButton = groupElement.querySelector(".referenced-result-text");
+    if (refreshButton) {
+        refreshButton.style.display = 'none';
+    }
+
+    const container = document.querySelector(".container");
+    container.appendChild(groupElement);
+
+    addEventListenersToGroup(groupElement);
+    return groupElement;
+}
+
+function createGroupAndAddGroupElement(groupType = GROUP_TYPE.TEXT) {
+
+    const id = generateUniqueGroupID();
+
+    const group = {
+        id,
+        name: groupType + "-" + id,
+        data: "",
+        transform: "",
+        type: groupType,
+        result: null,
+        lastRequestTime: 0,
+        interactionState: INTERACTION_STATE.OPEN,
+        referencedBy: new Set(),
+    };
+
+    console.log("New group:", group)
+
+    GROUPS.set(group.id, group);
+    USES_RESULT_OF_GRAPH.addNode(group.id);
+
+
+    persistGroups();
+
+    const groupElement = addGroupElement(groupType, group.id);
+
+    const groupNameElement = groupElement.querySelector(".group-name");
+    groupNameElement.value = group.name;
+
+
+    return groupElement;
 }
 
 function addEventListenersToGroup(groupElement) {
+    const groupNameElement = groupElement.querySelector(".group-name");
+    const dataElement = groupElement.querySelector(".data-text");
+    const refResultTextarea = groupElement.querySelector(".referenced-result-text");
+    const transformElement = groupElement.querySelector(".transform-text");
 
-    const index = Array.from(document.querySelectorAll('.group')).indexOf(groupElement);
+    const group = getGroupFromElement(groupElement);
 
-    const groupSubElements = {
-        groupName: groupElement.querySelector('.group-name'),
-        dataText: groupElement.querySelector('.data-text'),
-        refResultTextarea: groupElement.querySelector('.referenced-result-text'),
-        transformText: groupElement.querySelector('.transform-text'),
-    };
+    console.log("got group:", group)
+    console.log("adding listener to group :", group.name)
 
-    console.log("adding listener to group index:", index)
+    // Persist and handle change when a group's name, data or transform changes
 
-    groupElement.querySelector('.delete-btn').addEventListener('click', () => deleteGroup(groupElement, index));
+    groupNameElement?.addEventListener("change", () => {
 
-    groupElement.querySelector('.lock-btn').addEventListener('click', () => {
-        groups[index].interactionState = groups[index].interactionState === INTERACTION_STATE.LOCKED ? INTERACTION_STATE.OPEN : INTERACTION_STATE.LOCKED;
-        setGroupInteractionState(groupElement, groups[index].interactionState);
+        group.name = groupNameElement.value.trim();
+
+        console.log(`Group ${groupNameElement} name now:${group.name}`)
         persistGroups();
     });
 
-    groupElement.querySelector('.entry-btn').addEventListener('click', () => {
-        groups[index].interactionState = groups[index].interactionState === INTERACTION_STATE.ENTRY ? INTERACTION_STATE.OPEN : INTERACTION_STATE.ENTRY;
-        setGroupInteractionState(groupElement, groups[index].interactionState);
-        persistGroups();
+    dataElement?.addEventListener('change',
+        () => {
+
+            handleInputChange(groupElement, true, false);
+
+        });
+
+
+    transformElement?.addEventListener("change", () => {
+        handleInputChange(groupElement, true, false);
     });
 
 
-
-    // Initially hide the refresh button
-    groupElement.querySelector('.refresh-btn').style.display = 'none';
-    groupElement.querySelector('.refresh-btn').addEventListener('click', () => handleInputChange(groupElement, index, true, true));
-
-    // group.querySelectorAll('.data-text, .transform-text').forEach(input => {
-    //     input.addEventListener('input', () => handleInputChange(group, index, false, false));
-    // });
-
-    groupElement.querySelectorAll('.data-text, .transform-text').forEach(input => {
-        input.addEventListener('change', () => handleInputChange(groupElement, index, true, false));
-    });
-
-    // groupElement.querySelector('.group-name').addEventListener('input', (event) => {
-    //     groups[index].name = event.currentTarget.value;
-    //     console.log(`Group ${index} name now:${groups[index].name})`)
-    // });
-
-
-    // Call the persist function when a group's name, data or transform changes
-    groupSubElements.groupName.addEventListener('change',
-
-        (event) => {
-            event.currentTarget.value = event.currentTarget.value.trim()
-            groups[index].name = event.currentTarget.value;
-            console.log(`Group ${index} name now:${groups[index].name}`)
-            persistGroups();
-        }
-
-    );
-
-    groupSubElements.dataText.addEventListener('change', persistGroups);
-    groupSubElements.transformText.addEventListener('change', persistGroups);
-
-    const dataTextarea = groupSubElements.dataText;
-    const refResultTextarea = groupSubElements.refResultTextarea;
-
-    refResultTextarea.style.display = 'none';
-
-    dataTextarea.addEventListener('blur', () => {
-
-        let { hasHashReferences, isMatchingExistingGroups, referencedResults, combinedResults } = getReferencedResults(groupSubElements.dataText.value, groups);
+    dataElement?.addEventListener("blur", () => {
+        const { hasReferences, referencedResults, combinedReferencedResults } = getReferencedResults(dataElement.value, group.name);
         if (referencedResults.length > 0) {
-            console.log(referencedResults)
-            displayReferencedResult(groupElement, combinedResults);
+            group.combinedReferencedResults = combinedReferencedResults;
+            displayCombinedReferencedResult(groupElement, combinedReferencedResults);
         }
+    });
 
+    refResultTextarea?.addEventListener("focus", () => {
+        refResultTextarea.style.display = "none";
+        dataElement.style.display = "block";
+        dataElement.focus();
+    });
+
+    dataElement?.addEventListener("focus", () => {
+        refResultTextarea.style.display = "none";
     });
 
 
-    refResultTextarea.addEventListener('focus', () => {
-        refResultTextarea.style.display = 'none';
-        dataTextarea.style.display = 'block';
-        dataTextarea.focus();
+
+    /******** Tool buttons *************/
+    groupElement.querySelector(".delete-btn").addEventListener("click", () => deleteGroup(groupElement));
+
+
+    groupElement.querySelector(".lock-btn")?.addEventListener("click", () => {
+        group.interactionState = group.interactionState === INTERACTION_STATE.LOCKED ? INTERACTION_STATE.OPEN : INTERACTION_STATE.LOCKED;
+        setGroupInteractionState(groupElement, group.interactionState);
+        persistGroups();
     });
 
-    dataTextarea.addEventListener('focus', () => {
-        refResultTextarea.style.display = 'none';
+    groupElement.querySelector(".entry-btn")?.addEventListener("click", () => {
+        group.interactionState = group.interactionState === INTERACTION_STATE.ENTRY ? INTERACTION_STATE.OPEN : INTERACTION_STATE.ENTRY;
+        setGroupInteractionState(groupElement, group.interactionState);
+        persistGroups();
     });
+
+
+    groupElement.querySelector(".refresh-btn")?.addEventListener("click", () => handleInputChange(groupElement, true, true));
+
 
 }
 
-function deleteGroup(groupElement, index) {
-    // Remove the group from the HTML
+function deleteGroup(groupElement) {
+    const id = getGroupIdFromElement(groupElement);
+    const groupName = GROUPS.get(id).name
+
+    GROUPS.delete(id);
+    USES_RESULT_OF_GRAPH.removeNode(id);
     groupElement.remove();
 
-    const name = groups[index].name;
+    updateGroupsReferencingIt(id);
 
-    // Delete the group entry in the groups array
-    groups.splice(index, 1);
-
-    // Update indices and event listeners for all groups
-    document.querySelectorAll('.group').forEach((group, idx) => {
-        group.querySelector('.delete-btn').addEventListener('click', () => deleteGroup(group, idx));
-
-        // If this group references the deleted group, remove the reference
-        const dataText = group.querySelector('.data-text').value;
-        const referencedGroup = dataText.match(/#(.+)/);
-
-        if (referencedGroup && referencedGroup[1] === name) {
-            group.querySelector('.referenced-result-text').value = "";
-            group.querySelector('.referenced-result-text').style.display = 'none';
-            group.querySelector('.data-text').style.display = 'block';
-        }
-    });
-
-    // Update the URL with the new groups
     persistGroups();
 }
 
 function setGroupInteractionState(groupElement, interactionState) {
-    const groupNameElement = groupElement.querySelector('.group-name');
-    const dataElement = groupElement.querySelector('.data-text');
-    const transformElement = groupElement.querySelector('.transform-text');
+    const groupNameElement = groupElement.querySelector(".group-name");
+    const dataElement = groupElement.querySelector(".data-text");
+    const transformElement = groupElement.querySelector(".transform-text");
 
     switch (interactionState) {
         case INTERACTION_STATE.OPEN:
-            groupNameElement.removeAttribute('readonly');
-            dataElement.removeAttribute('readonly');
-            transformElement.removeAttribute('readonly');
+            groupNameElement?.removeAttribute("readonly");
+            dataElement?.removeAttribute("readonly");
+            transformElement?.removeAttribute("readonly");
             break;
         case INTERACTION_STATE.ENTRY:
-            groupNameElement.setAttribute('readonly', 'readonly');
-            dataElement.removeAttribute('readonly');
-            transformElement.setAttribute('readonly', 'readonly');
+            groupNameElement?.setAttribute("readonly", "readonly");
+            dataElement?.removeAttribute("readonly");
+            transformElement?.setAttribute("readonly", "readonly");
             break;
         case INTERACTION_STATE.LOCKED:
-            groupNameElement.setAttribute('readonly', 'readonly');
-            dataElement.setAttribute('readonly', 'readonly');
-            transformElement.setAttribute('readonly', 'readonly');
+            groupNameElement?.setAttribute("readonly", "readonly");
+            dataElement?.setAttribute("readonly", "readonly");
+            transformElement?.setAttribute("readonly", "readonly");
             break;
     }
 }
 
+async function handleInputChange(groupElement, immediate = false, isRefresh = false) {
+    const group = getGroupFromElement(groupElement);
+    const dataElement = groupElement.querySelector(".data-text");
+    const transformElement = groupElement.querySelector(".transform-text");
+    const data = dataElement.value;
+    const transform = transformElement?.value || "";
 
-async function handleInputChange(groupElement, index, immediate = false, isRefresh = false) {
-    console.log('handleInputChange called');
-
-    let groupSubElements = {
-        dataText: groupElement.querySelector('.data-text'),
-        refResultTextarea: groupElement.querySelector('.referenced-result-text'),
-        transformText: groupElement.querySelector('.transform-text'),
-        groupName: groupElement.querySelector('.group-name')
-    };
-
-    let currentData = groupSubElements.dataText.value;
-    const lastTransformValue = groupSubElements.transformText.value;
-
+    let currentData = data;
     let referencedResultsChanged = false;
 
-    let { hasHashReferences, isMatchingExistingGroups, referencedResults, combinedResults } = getReferencedResults(groupSubElements.dataText.value, groups);
+    const { hasReferences, referencedResults, combinedReferencedResults } = getReferencedResults(data, group.name);
 
+    // if there's references, display them and use the combination of all references as currentData
     if (referencedResults.length > 0) {
-        currentData = displayReferencedResult(groupElement, combinedResults);
+        displayCombinedReferencedResult(groupElement, combinedReferencedResults);
 
-        if (currentData !== groups[index].referencedresults) {
-            referencedResultsChanged = true;
-        }
-
-        groups[index].referencedresults = currentData;
+        // check if the new combined results from references is different from the previous combination
+        currentData = combinedReferencedResults;
+        referencedResultsChanged = currentData !== group.combinedReferencedResults;
+        group.combinedReferencedResults = currentData;
     }
 
-    // return early if values didn't change
-
-    if (!isRefresh && groups[index].data === groupSubElements.dataText.value
-        && groups[index].transform == groupSubElements.transformText.value
-        && !referencedResultsChanged) {
-
-        console.log("no value changed, aborting input change");
-
+    // we do nothing more if no change and not an explicit refresh request
+    if (!isRefresh
+        && group.data === data
+        && group.transform === transform
+        && !referencedResultsChanged
+    ) {
+        console.log("No value changed, aborting input change");
         return;
     }
 
-    // updating the values in the groups structure
-    console.log(`Updating group at index: ${index}`);
-    groups[index].data = groupSubElements.dataText.value;
-    groups[index].transform = groupSubElements.transformText.value;
+    if (group.type === GROUP_TYPE.STATIC) {
+        console.log(`[COMBINING] statict text ||| ${currentData}`);
 
-    const dataReadyToSend = !hasHashReferences && currentData || referencedResults.length > 0;
+        group.result = combinedReferencedResults;
+
+        let resultParagraph = groupElement.querySelector(".result");
+
+        if (!resultParagraph) {
+            resultParagraph = document.createElement("p");
+            resultParagraph.className = "result";
+            groupElement.appendChild(resultParagraph);
+        }
+
+        resultParagraph.textContent = group.result;
+
+        updateGroupsReferencingIt(group.id);
+    }
+
+    group.data = data;
+    group.transform = transform;
+    persistGroups();
+
+    const lastTransformValue = transform;
+    const dataReadyToSend = !hasReferences && currentData || referencedResults.length > 0;
 
     if (dataReadyToSend && lastTransformValue) {
-        clearTimeout(requestQueue[index]);
+        clearTimeout(REQUEST_QUEUE[group.name]);
 
         const currentTime = Date.now();
-        if (currentTime - groups[index].lastRequestTime < DELAY && !immediate) {
-            const timeout = DELAY - (currentTime - groups[index].lastRequestTime);
+        if (currentTime - group.lastRequestTime < DELAY && !immediate) {
+            const timeout = DELAY - (currentTime - group.lastRequestTime);
             console.log(`Waiting for ${timeout / 1000} seconds`);
-
-            // clearing the previous timeout
-            if (requestQueue[index]) {
-                clearTimeout(requestQueue[index]);
+            if (REQUEST_QUEUE[group.name]) {
+                clearTimeout(REQUEST_QUEUE[group.name]);
             }
-
-            requestQueue[index] = setTimeout(() => {
-                handleInputChange(groupElement, index, true, isRefresh);
+            REQUEST_QUEUE[group.name] = setTimeout(() => {
+                handleInputChange(groupElement, true, isRefresh);
             }, timeout);
-
             return;
         }
 
-        groups[index].lastRequestTime = currentTime;
-
+        group.lastRequestTime = currentTime;
 
         const fetchOptions = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 data: currentData,
-                transform: lastTransformValue
-            })
+                transform: lastTransformValue,
+            }),
         };
 
-        if (groups[index].type === 'image') {
-
+        if (group.type === GROUP_TYPE.IMAGE) {
             console.log(`[REQUEST] image ||| ${currentData} ||| ${lastTransformValue}`);
-
             try {
-                const response = await fetch('/stability', fetchOptions);
-
+                const response = await fetch("/stability", fetchOptions);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-
                 const resultBuffer = await response.arrayBuffer();
-
                 console.log(`Received image result buffer`);
-
                 const blob = new Blob([resultBuffer]);
                 const reader = new FileReader();
 
                 return new Promise((resolve, reject) => {
-
-                    // what to do when the blob is read?
                     reader.onloadend = async function () {
-
                         const base64data = reader.result;
-                        // Now base64data can be used as a source for an img tag for instance
-                        let resultImage = groupElement.querySelector('.result');
+                        let resultImage = groupElement.querySelector(".result");
                         if (!resultImage) {
-                            resultImage = document.createElement('img');
-                            resultImage.className = 'result';
+                            resultImage = document.createElement("img");
+                            resultImage.className = "result";
                             groupElement.appendChild(resultImage);
                         }
-
                         resultImage.src = base64data;
-
-                        // Show the refresh button now that a result is displayed
-                        groupElement.querySelector('.refresh-btn').style.display = 'block';
-
-                        delete requestQueue[index];
-
+                        group.result = base64data;
+                        groupElement.querySelector(".refresh-btn").style.display = "block";
+                        delete REQUEST_QUEUE[group.name];
                         resolve(base64data);
-                    }
-
+                    };
                     reader.onerror = reject;
-
-                    // start reading the blob
                     reader.readAsDataURL(blob);
                 });
             } catch (error) {
                 console.error(`Fetch failed: ${error}`);
-                // Here we should insert an UI element that allows the user to retry
             }
-
-        } else {
-
+        } else if (group.type === GROUP_TYPE.TEXT) {
             console.log(`[REQUEST] text ||| ${currentData} ||| ${lastTransformValue}`);
-
             try {
-                const response = await fetch('/chatgpt', fetchOptions);
-
+                const response = await fetch("/chatgpt", fetchOptions);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
                 const result = await response.json();
-
                 console.log(`Received result: ${result}`);
 
-                groups[index].result = result;
-
-                let resultParagraph = groupElement.querySelector('.result');
+                group.result = result;
+                let resultParagraph = groupElement.querySelector(".result");
                 if (!resultParagraph) {
-                    resultParagraph = document.createElement('p');
-                    resultParagraph.className = 'result';
+                    resultParagraph = document.createElement("p");
+                    resultParagraph.className = "result";
                     groupElement.appendChild(resultParagraph);
                 }
+                resultParagraph.textContent = group.result;
+                groupElement.querySelector(".refresh-btn").style.display = "block";
 
-                resultParagraph.textContent = groups[index].result;
+                updateGroupsReferencingIt(group.id);
+                delete REQUEST_QUEUE[group.name];
 
-                // Show the refresh button now that a result is displayed
-                groupElement.querySelector('.refresh-btn').style.display = 'block';
-
-                // Update all data textareas with the new result
-                document.querySelectorAll('.group').forEach((groupElementIncludingReference, idx) => {
-
-                    const groupSubElements = {
-                        dataText: groupElementIncludingReference.querySelector('.data-text'),
-                    };
-
-                    let { hasHashReferences, isMatchingExistingGroups, referencedResults, combinedResults } = getReferencedResults(groupSubElements.dataText.value, groups);
-
-                    if (referencedResults.length > 0) {
-
-                        displayReferencedResult(groupElementIncludingReference, combinedResults);
-
-                        handleInputChange(groupElementIncludingReference, idx, true);
-                    }
-                });
-
-                delete requestQueue[index]; // Remove the request from the queue after it's complete
             } catch (error) {
                 console.error(`Fetch failed: ${error}`);
-                // Here we should insert an UI element that allows the user to retry
             }
-
         }
     }
 }
 
-function getReferencedResults(dataText, groups) {
-    const groupNameMatches = dataText.match(/#(\w+)/g);
+function getReferencedGroupNamesFromDataText(data) {
 
-    let hasHashReferences = false;
-    let isMatchingExistingGroups = false;
+    let matches = [];
+
+    const regex = REFERENCE_MATCHING_REGEX;
+
+    for (const match of data.matchAll(regex)) {
+        if (match[1]) matches.push(match[1]);
+        else if (match[2]) matches.push(match[2]);
+    }
+
+    return matches;
+}
+
+function replaceThisGroupReferenceWithResult(name, data) {
+    // Validate the name to ensure it conforms to the allowed format
+    if (!/^[\w\s-.]+$/.test(name)) {
+        console.error('Invalid name format');
+        return data; // return the original data if the name format is invalid
+    }
+
+    // Escape special regex characters in the name
+    const escapedName = name.replace(/([.*+?^${}()|\[\]\\])/g, '\\$&');
+
+    // Fetch the group using the given name and check its validity
+    const referencedGroup = getGroupFromName(name);
+    if (!referencedGroup || referencedGroup.result === undefined) {
+        console.error('Invalid group or result');
+        return data; // return the original data if the group or result is invalid
+    }
+
+    // Create regex patterns for the name with and without spaces
+    const targetPatternBracket = new RegExp(`\\[${escapedName}\\]`, 'g');
+    const targetPatternHash = /\s/.test(name) ? null : new RegExp(`#${escapedName}(?!\\w)`, 'g');
+
+    let replacedData = data;
+
+    // Replace each match of targetPatternBracket in data
+    replacedData = replacedData.replace(targetPatternBracket, () => referencedGroup.result);
+
+    // If the name does not contain spaces, replace each match of targetPatternHash in data
+    if (targetPatternHash) {
+        replacedData = replacedData.replace(targetPatternHash, () => referencedGroup.result);
+    }
+
+    return replacedData;
+}
+
+
+function getGroupIdFromElement(groupElement) {
+    return groupElement.dataset.id;
+}
+
+function getGroupElementFromName(groupName) {
+    console.log("Getting the element for group named", groupName)
+    const container = document.querySelector(".container");
+    return container.querySelector(`.group-name[value="${groupName}"]`).parentNode;
+}
+
+function getGroupElementFromId(groupId) {
+    console.log("Getting the element for group of id ", groupId);
+    return document.querySelector(`div[data-id="${groupId}"]`);
+}
+
+
+function getGroupFromElement(groupElement) {
+    const groupId = getGroupIdFromElement(groupElement);
+
+    console.log("group id found is", groupId)
+
+    return GROUPS.get(groupId);
+}
+
+function getGroupFromName(name) {
+
+    // will return the first group found by that name, ignore the rest
+
+    for (const [key, group] of GROUPS) {
+
+        if (group.name === name) {
+            return group;
+        }
+    }
+    console.log("couldn't find a group named ", name)
+    return undefined
+}
+
+function generateUniqueGroupID() {
+    let name = "";
+    let unique = false;
+    while (!unique) {
+        name = `${randomInt(1, 9999)}`;
+        if (!GROUPS.has(name)) {
+            unique = true;
+        }
+    }
+    return name;
+}
+
+function randomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+
+function buildReverseReferenceGraph() {
+
+    console.log("Building the invert dependency graph from the groups structure")
+
+    // Builds the graph of 'group as a result' =>> groups that reference them to use their result
+    //
+    // example:
+    // group 45 uses 62 and 336's results (45 references 62 and 336 in its dataText)
+    // edge will be 
+    // 62-> 45, 336-> 45
+    //
+    // that way 62 can easily find that 45 is using its result, and notify it of changes
+
+    const graph = Graph();
+
+    for (const [key, group] of GROUPS) {
+
+        graph.addNode(group.id);
+
+        const namesOfAllGroupsReferencedByThisGroup = getReferencedGroupNamesFromDataText(group.data);
+
+        console.log(namesOfAllGroupsReferencedByThisGroup);
+
+        for (const referencedGroupName of namesOfAllGroupsReferencedByThisGroup) {
+
+            const referencedGroup = getGroupFromName(referencedGroupName);
+
+            console.log(referencedGroupName, referencedGroup)
+
+            if (referencedGroup) {
+                console.log("named reference to existing group, added to invert dependency graph", referencedGroupName, referencedGroup)
+
+                graph.addEdge(referencedGroup.id, group.id)
+            }
+            else {
+                console.log("named reference to unexisting group, not added to invert dependency graph", referencedGroupName)
+            }
+        }
+    }
+
+    console.log(graph.serialize());
+
+    return graph;
+}
+
+async function updateGroupsReferencingIt(id) {
+
+    // a group has changed
+    // groups that reference it must be notified
+    // we get the name of the group
+    // we use the groups graph to find them
+
+    const nameOfChangedGroup = GROUPS.get(id).name
+
+    // get the list of groups that depends on the changed group in their dataText
+    // precomputed in the reverse graph.
+
+    const idsOfGroupsToUpdate = IS_USED_BY_GRAPH.adjacent(id);
+
+    // We sort the groups to update them in topological order
+    // to avoid re-updating a group that would depends on both this group and another updated group
+
+    // The sort raise a CycleError if a cycle is found 
+
+    let orderOfUpdate;
+
+    try {
+        orderOfUpdate = IS_USED_BY_GRAPH.topologicalSort(idsOfGroupsToUpdate)
+
+    } catch (error) {
+        console.log("[CycleError] Circular dependency between these groups:", idsOfGroupsToUpdate)
+        return;
+    }
+
+    for (const id of orderOfUpdate) {
+
+        console.log("updating the dependant group of id ", id)
+
+        // if we don't await, a further group might launch a request when it actually depends on the previous group results
+        // we stop being fully reactive and fully async here
+        // and await between each steps
+        // we should probably use the graph more to async everything that can
+
+        await handleInputChange(
+            getGroupElementFromId(id),
+            true,
+            false);
+
+    };
+}
+
+
+function getReferencedResults(dataText, currentGroupName) {
+
+    const namesOfAllGroupsReferencedByThisGroup = getReferencedGroupNamesFromDataText(dataText);
+
+    let hasReferences = namesOfAllGroupsReferencedByThisGroup && namesOfAllGroupsReferencedByThisGroup.length > 0;
+
     let referencedResults = [];
-    let combinedResults = dataText;
+    let combinedReferencedResults = dataText;
 
-    if (groupNameMatches && groupNameMatches.length > 0) {
-        hasHashReferences = true;
+    if (hasReferences) {
 
-        const groupNames = groupNameMatches.map(match => match.slice(1)); // Remove '#' from each match
+        const currentGroup = getGroupFromName(currentGroupName)
 
-        referencedResults = groupNames.map(name => {
-            const referencedGroup = groups.find(group => group.name === name);
+        referencedResults = namesOfAllGroupsReferencedByThisGroup.map((name) => {
+            const referencedGroup = getGroupFromName(name);
 
             if (!referencedGroup) {
                 console.log(`When trying to show reference: No group found with the name ${name}`);
                 return null;
             }
 
-            isMatchingExistingGroups = true; // One matching group found.
-
-            if (!referencedGroup.result) {
-                console.log(`When trying to show reference: The group's result is not set yet for group ${name}.`);
+            // Check for direct circular references between the two groups
+            // also check if it's a self reference
+            if (IS_USED_BY_GRAPH.hasEdge(referencedGroup.id, currentGroup.id)
+                && IS_USED_BY_GRAPH.hasEdge(currentGroup.id, referencedGroup.id)
+                || referencedGroup.id === currentGroup.id) {
+                console.log(`Direct circular reference between ${currentGroupName} and ${name}`);
                 return null;
             }
 
-            // Replace the reference in the dataText with the group name and result
-            combinedResults = combinedResults.replace(`#${name}`, `\n${name}: ${referencedGroup.result}\n`);
+            if (!referencedGroup.result) {
+                console.log(`When trying to get referenced results: ${name}'s result is not set, and can't be used by group ${currentGroupName}`);
+                return null;
+            }
+
+            // Not efficient to pass the name as we already fetched the group, 
+            // ensure it exists, and that it has a result
+
+            combinedReferencedResults = replaceThisGroupReferenceWithResult(name, combinedReferencedResults);
 
             return { name: name, result: referencedGroup.result };
-        }).filter(result => result); // Filter out any null results
+        })
+            .filter((result) => result);
     }
 
-    return { hasHashReferences, isMatchingExistingGroups, referencedResults, combinedResults };
+    return { hasReferences: hasReferences, referencedResults, combinedReferencedResults };
 }
 
-function displayReferencedResult(groupElement, combinedResults) {
+function displayCombinedReferencedResult(groupElement, combinedReferencedResults) {
+    const refResultTextarea = groupElement.querySelector(".referenced-result-text");
+    const dataText = groupElement.querySelector(".data-text");
 
-    let groupSubElements;
+    console.log(`Displaying the group referenced result in refResultTextarea`);
 
-    // Get the group sub elements
-    if (groupElement) {
-        groupSubElements = {
-            dataText: groupElement.querySelector('.data-text'),
-            refResultTextarea: groupElement.querySelector('.referenced-result-text'),
-            transformText: groupElement.querySelector('.transform-text'),
-            groupName: groupElement.querySelector('.group-name')
-        };
-    }
+    refResultTextarea.value = combinedReferencedResults ? combinedReferencedResults : "";
+    refResultTextarea.style.display = "block";
+    dataText.style.display = "none";
 
-    console.log(`Displaying the group referenced result in refResultTextarea. Group ${groupSubElements.groupName.value}|data: ${groupSubElements.dataText.value}|referenced result: ${combinedResults}`)
-
-    groupSubElements.refResultTextarea.value = combinedResults ? combinedResults : "";
-    groupSubElements.refResultTextarea.style.display = 'block';
-    groupSubElements.dataText.style.display = 'none';
-
-    return combinedResults;
+    return combinedReferencedResults;
 }
+
+
 
