@@ -149,6 +149,23 @@
             border-color: red;
             color: red;
         }
+
+        .waiting {
+            background-image: linear-gradient(270deg, #f8a7ff, #efe4f9, #f8a7ff);
+            animation: scrollingBackground 40s infinite linear;
+            color: #f8a7ff;
+            cursor: default;
+        }
+
+        @keyframes scrollingBackground {
+            0% {
+                background-position: 0 0
+            }
+
+            100% {
+                background-position: 1000vw 0
+            }
+        }
     </style>
 </head>
 

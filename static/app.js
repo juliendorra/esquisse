@@ -73,7 +73,7 @@ function init() {
 
 
     document.body.appendChild(document.createElement("br"));
-    document.body.appendChild(THUMBNAIL_CANVAS);
+    // document.body.appendChild(THUMBNAIL_CANVAS);
 
 }
 
@@ -504,7 +504,11 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
         };
 
         if (group.type === GROUP_TYPE.IMAGE) {
+
             console.log(`[REQUEST] image ||| ${currentData} ||| ${lastTransformValue}`);
+            groupElement.classList.remove("error");
+            groupElement.classList.add("waiting");
+
             try {
                 const response = await fetch("/stability", fetchOptions);
                 if (!response.ok) {
@@ -541,12 +545,20 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
                     };
                     reader.onerror = reject;
                     reader.readAsDataURL(blob);
+                    groupElement.classList.remove("waiting")
+
                 });
             } catch (error) {
+                groupElement.classList.remove("waiting")
+                groupElement.classList.add("error")
                 console.error(`Fetch failed: ${error}`);
             }
         } else if (group.type === GROUP_TYPE.TEXT) {
             console.log(`[REQUEST] text ||| ${currentData} ||| ${lastTransformValue}`);
+
+            groupElement.classList.remove("error");
+            groupElement.classList.add("waiting");
+
             try {
                 const response = await fetch("/chatgpt", fetchOptions);
                 if (!response.ok) {
@@ -568,8 +580,11 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
                 updateGroupsReferencingIt(group.id);
                 delete REQUEST_QUEUE[group.name];
+                groupElement.classList.remove("waiting");
 
             } catch (error) {
+                groupElement.classList.remove("waiting");
+                groupElement.classList.add("error");
                 console.error(`Fetch failed: ${error}`);
             }
         }
