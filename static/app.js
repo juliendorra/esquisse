@@ -1,11 +1,6 @@
 
 import Graph from "https://cdn.jsdelivr.net/npm/graph-data-structure@3.3.0/+esm";
 
-// edge means ' uses the result of -> '
-// this is graph pointing to references each group list
-// pointing to groups a group depends on
-let USES_RESULT_OF_GRAPH = Graph();
-
 // edge means ' is used by -> '
 // this is a reverse reference graph
 // pointing to groups depending on a given group
@@ -126,7 +121,6 @@ function loadGroups() {
             };
 
             GROUPS.set(group.id, group);
-            USES_RESULT_OF_GRAPH.addNode(group.id);
 
             const groupElement = addGroupElement(group.type, group.id);
 
@@ -290,8 +284,6 @@ function createGroupAndAddGroupElement(groupType = GROUP_TYPE.TEXT) {
     console.log("New group:", group)
 
     GROUPS.set(group.id, group);
-    USES_RESULT_OF_GRAPH.addNode(group.id);
-
 
     persistGroups();
 
@@ -385,7 +377,6 @@ function deleteGroup(groupElement) {
     const groupName = GROUPS.get(id).name
 
     GROUPS.delete(id);
-    USES_RESULT_OF_GRAPH.removeNode(id);
     groupElement.remove();
 
     updateGroupsReferencingIt(id);
