@@ -123,7 +123,6 @@ function loadGroups() {
                 result: null,
                 lastRequestTime: 0,
                 interactionState: interactionState || INTERACTION_STATE.OPEN,
-                referencedBy: new Set(),
             };
 
             GROUPS.set(group.id, group);
@@ -286,7 +285,6 @@ function createGroupAndAddGroupElement(groupType = GROUP_TYPE.TEXT) {
         result: null,
         lastRequestTime: 0,
         interactionState: INTERACTION_STATE.OPEN,
-        referencedBy: new Set(),
     };
 
     console.log("New group:", group)
