@@ -290,7 +290,8 @@ function createGroupAndAddGroupElement(groupType = GROUP_TYPE.TEXT) {
 
     // we are interested in having even the isolated groups in the graph
     // as we will use them in the updateGroups function
-    IS_USED_BY_GRAPH.addNode(group.id);
+    // except for the break groups
+    if (!GROUP_TYPE.BREAK) IS_USED_BY_GRAPH.addNode(group.id);
 
     persistGroups();
 
@@ -426,6 +427,9 @@ function setGroupInteractionState(groupElement, interactionState) {
 async function handleInputChange(groupElement, immediate = false, isRefresh = false, isUserActivatedUpdate = true) {
 
     const group = getGroupFromElement(groupElement);
+
+    if (group.type === GROUP_TYPE.BREAK) return;
+
     const dataElement = groupElement.querySelector(".data-text");
     const transformElement = groupElement.querySelector(".transform-text");
     const data = dataElement.value;
