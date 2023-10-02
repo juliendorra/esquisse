@@ -3,12 +3,15 @@ import Graph from "https://cdn.jsdelivr.net/npm/graph-data-structure@3.3.0/+esm"
 
 // drag and drop reordering 
 
-import Sortable from 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/+esm';
+import { Sortable, MultiDrag } from 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/+esm';
+
+Sortable.mount(new MultiDrag());
 
 Sortable.create(document.querySelector('.container'), {
     handle: '.group-header', // Restricts drag start to this element
     animation: 150,
     draggable: ".group",
+    multiDrag: true,
     onEnd: onEnd
 });
 
@@ -20,6 +23,8 @@ function onEnd(event) {
     const groupElements = document.querySelectorAll('.container .group');
 
     groupElements.forEach(element => {
+
+        Sortable.utils.deselect(element);
 
         const id = element.getAttribute('data-id');
 
