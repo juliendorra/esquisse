@@ -162,6 +162,9 @@ function loadGroups() {
 
     IS_USED_BY_GRAPH = buildReverseReferenceGraph();
 
+    // update all nodes, in topological order
+    // this will fail if a cycle is detected
+    updateGroups(IS_USED_BY_GRAPH.nodes(), true);
 }
 
 function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
@@ -285,6 +288,10 @@ function createGroupAndAddGroupElement(groupType = GROUP_TYPE.TEXT) {
 
     GROUPS.set(group.id, group);
 
+    // we are interested in having even the isolated groups in the graph
+    // as we will use them in the updateGroups function
+    IS_USED_BY_GRAPH.addNode(group.id);
+
     persistGroups();
 
     const groupElement = addGroupElement(groupType, group.id);
@@ -331,7 +338,7 @@ function addEventListenersToGroup(groupElement) {
 
 
     dataElement?.addEventListener("blur", () => {
-        const { hasReferences, referencedResults, combinedReferencedResults } = getReferencedResults(dataElement.value, group.name);
+        const { hasReferences, referencedResults, combinedReferencedResults } = getReferencedResultsAndCombinedDataWithResults(dataElement.value, group.name);
         if (referencedResults.length > 0) {
             group.combinedReferencedResults = combinedReferencedResults;
             displayCombinedReferencedResult(groupElement, combinedReferencedResults);
@@ -374,12 +381,20 @@ function addEventListenersToGroup(groupElement) {
 
 function deleteGroup(groupElement) {
     const id = getGroupIdFromElement(groupElement);
-    const groupName = GROUPS.get(id).name
 
-    GROUPS.delete(id);
     groupElement.remove();
 
+    GROUPS.delete(id);
+
+    // the actual group data is now gone, 
+    // so references to the group will be treated as wrong
+
     updateGroupsReferencingIt(id);
+
+    // as updateGroupsReferencingIt() uses the graph to find the groups to update
+    // we can only call removeNode() on the graph once all groups have been alerted.
+
+    IS_USED_BY_GRAPH.removeNode(id)
 
     persistGroups();
 }
@@ -408,7 +423,8 @@ function setGroupInteractionState(groupElement, interactionState) {
     }
 }
 
-async function handleInputChange(groupElement, immediate = false, isRefresh = false) {
+async function handleInputChange(groupElement, immediate = false, isRefresh = false, isUserActivatedUpdate = true) {
+
     const group = getGroupFromElement(groupElement);
     const dataElement = groupElement.querySelector(".data-text");
     const transformElement = groupElement.querySelector(".transform-text");
@@ -418,7 +434,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     let currentData = data;
     let referencedResultsChanged = false;
 
-    const { hasReferences, referencedResults, combinedReferencedResults } = getReferencedResults(data, group.name);
+    const { hasReferences, referencedResults, combinedReferencedResults } = getReferencedResultsAndCombinedDataWithResults(data, group.name);
 
     // if there's references, display them and use the combination of all references as currentData
     if (referencedResults.length > 0) {
@@ -455,7 +471,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
         resultParagraph.textContent = group.result;
 
-        updateGroupsReferencingIt(group.id);
+        if (isUserActivatedUpdate) updateGroupsReferencingIt(group.id);
     }
 
     group.data = data;
@@ -469,6 +485,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
         clearTimeout(REQUEST_QUEUE[group.name]);
 
         const currentTime = Date.now();
+
         if (currentTime - group.lastRequestTime < DELAY && !immediate) {
             const timeout = DELAY - (currentTime - group.lastRequestTime);
             console.log(`Waiting for ${timeout / 1000} seconds`);
@@ -500,10 +517,13 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
             try {
                 const response = await fetch("/stability", fetchOptions);
+
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
+
                 const resultBuffer = await response.arrayBuffer();
+
                 console.log(`Received image result buffer`);
                 const blob = new Blob([resultBuffer]);
                 const reader = new FileReader();
@@ -550,6 +570,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
             try {
                 const response = await fetch("/chatgpt", fetchOptions);
+
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -567,7 +588,9 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
                 resultParagraph.textContent = group.result;
                 groupElement.querySelector(".refresh-btn").style.display = "block";
 
-                updateGroupsReferencingIt(group.id);
+                if (isUserActivatedUpdate) updateGroupsReferencingIt(group.id);
+
+
                 delete REQUEST_QUEUE[group.name];
                 groupElement.classList.remove("waiting");
 
@@ -705,8 +728,6 @@ function buildReverseReferenceGraph() {
 
         const namesOfAllGroupsReferencedByThisGroup = getReferencedGroupNamesFromDataText(group.data);
 
-        console.log(namesOfAllGroupsReferencedByThisGroup);
-
         for (const referencedGroupName of namesOfAllGroupsReferencedByThisGroup) {
 
             const referencedGroup = getGroupFromName(referencedGroupName);
@@ -729,38 +750,50 @@ function buildReverseReferenceGraph() {
     return graph;
 }
 
-async function updateGroupsReferencingIt(id) {
-
-    // a group has changed
-    // groups that reference it must be notified
-    // we get the name of the group
-    // we use the groups graph to find them
-
-    const nameOfChangedGroup = GROUPS.get(id).name
-
-    // get the list of groups that depends on the changed group in their dataText
-    // precomputed in the reverse graph.
-
-    const idsOfGroupsToUpdate = IS_USED_BY_GRAPH.adjacent(id);
+async function updateGroups(idsOfGroupsToUpdate, forceRefresh = false) {
 
     // We sort the groups to update them in topological order
     // to avoid re-updating a group that would depends on both this group and another updated group
 
+    // if forceRefresh is true, we will update all groups in order.
+    // it useful foe example on loading.
+
+    // select the isolated nodes, to update them without blocking
+    let independentUpdates = idsOfGroupsToUpdate.filter(id =>
+        IS_USED_BY_GRAPH.indegree(id) === 0
+        && IS_USED_BY_GRAPH.outdegree(id) === 0
+    );
+
+    // filter out the independent nodes from the dependent updates
+    let dependentUpdates = idsOfGroupsToUpdate.filter(id => !independentUpdates.includes(id));
+
+    console.log("[UpdateGroups] Dependent updates Sorted: ", dependentUpdates);
+
+    console.log("[UpdateGroups] Independent Updates", independentUpdates);
+
     // The sort raise a CycleError if a cycle is found 
-
-    let orderOfUpdate;
-
     try {
-        orderOfUpdate = IS_USED_BY_GRAPH.topologicalSort(idsOfGroupsToUpdate)
+        dependentUpdates = IS_USED_BY_GRAPH.topologicalSort(idsOfGroupsToUpdate)
 
     } catch (error) {
         console.log("[CycleError] Circular dependency between these groups:", idsOfGroupsToUpdate)
         return;
     }
 
-    for (const id of orderOfUpdate) {
+    for (const id of independentUpdates) {
 
-        console.log("updating the dependant group of id ", id)
+        console.log("Independent group, updating without awaiting", id)
+
+        handleInputChange(
+            getGroupElementFromId(id),
+            true,
+            forceRefresh,
+            false);
+    };
+
+    for (const id of dependentUpdates) {
+
+        console.log("Dependent group, awaiting update", id)
 
         // if we don't await, a further group might launch a request when it actually depends on the previous group results
         // we stop being fully reactive and fully async here
@@ -770,13 +803,23 @@ async function updateGroupsReferencingIt(id) {
         await handleInputChange(
             getGroupElementFromId(id),
             true,
+            forceRefresh,
             false);
-
     };
 }
 
+function updateGroupsReferencingIt(id) {
 
-function getReferencedResults(dataText, currentGroupName) {
+    // get the list of groups that depends on the changed group in their dataText
+    // precomputed in the reverse graph.
+
+    const idsOfGroupsToUpdate = IS_USED_BY_GRAPH.adjacent(id);
+
+    updateGroups(idsOfGroupsToUpdate);
+
+}
+
+function getReferencedResultsAndCombinedDataWithResults(dataText, currentGroupName) {
 
     const namesOfAllGroupsReferencedByThisGroup = getReferencedGroupNamesFromDataText(dataText);
 
@@ -786,40 +829,41 @@ function getReferencedResults(dataText, currentGroupName) {
     let combinedReferencedResults = dataText;
 
     if (hasReferences) {
+        const currentGroup = getGroupFromName(currentGroupName);
+        const validReferencedResults = [];
 
-        const currentGroup = getGroupFromName(currentGroupName)
-
-        referencedResults = namesOfAllGroupsReferencedByThisGroup.map((name) => {
+        for (const name of namesOfAllGroupsReferencedByThisGroup) {
             const referencedGroup = getGroupFromName(name);
 
             if (!referencedGroup) {
-                console.log(`When trying to show reference: No group found with the name ${name}`);
-                return null;
+                console.log(`Trying to show reference but no group "${name}" found`);
+                continue;
             }
 
-            // Check for direct circular references between the two groups
-            // also check if it's a self reference
-            if (IS_USED_BY_GRAPH.hasEdge(referencedGroup.id, currentGroup.id)
-                && IS_USED_BY_GRAPH.hasEdge(currentGroup.id, referencedGroup.id)
-                || referencedGroup.id === currentGroup.id) {
+            // The referenced group exists and is used by the current group
+            // We update the inverse reference graph
+            IS_USED_BY_GRAPH.addEdge(referencedGroup.id, currentGroup.id);
+
+            const hasDirectCircularReference = IS_USED_BY_GRAPH.hasEdge(referencedGroup.id, currentGroup.id) && IS_USED_BY_GRAPH.hasEdge(currentGroup.id, referencedGroup.id);
+            const isSelfReference = referencedGroup.id === currentGroup.id;
+
+            if (hasDirectCircularReference || isSelfReference) {
                 console.log(`Direct circular reference between ${currentGroupName} and ${name}`);
-                return null;
+                continue;
             }
 
             if (!referencedGroup.result) {
-                console.log(`When trying to get referenced results: ${name}'s result is not set, and can't be used by group ${currentGroupName}`);
-                return null;
+                console.log(`The result for "${name}" is not set and can't be used by group "${currentGroupName}" when trying to get referenced results`);
+                continue;
             }
 
-            // Not efficient to pass the name as we already fetched the group, 
-            // ensure it exists, and that it has a result
-
             combinedReferencedResults = replaceThisGroupReferenceWithResult(name, combinedReferencedResults);
+            validReferencedResults.push({ name, result: referencedGroup.result });
+        }
 
-            return { name: name, result: referencedGroup.result };
-        })
-            .filter((result) => result);
+        referencedResults = validReferencedResults;
     }
+
 
     return { hasReferences: hasReferences, referencedResults, combinedReferencedResults };
 }
