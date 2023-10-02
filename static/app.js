@@ -1,12 +1,46 @@
 
 import Graph from "https://cdn.jsdelivr.net/npm/graph-data-structure@3.3.0/+esm";
 
+// drag and drop reordering 
+
+import Sortable from 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/+esm';
+
+Sortable.create(document.querySelector('.container'), {
+    handle: '.group-header', // Restricts drag start to this element
+    animation: 150,
+    draggable: ".group",
+    onEnd: onEnd
+});
+
+function onEnd(event) {
+
+    // Intermediary Map to store the reordered groups
+    const newGroups = new Map();
+
+    const groupElements = document.querySelectorAll('.container .group');
+
+    groupElements.forEach(element => {
+
+        const id = element.getAttribute('data-id');
+
+        // Retrieve the group object from GROUPS
+        // to set it into the newGroups map
+        newGroups.set(id, GROUPS.get(id));
+    });
+
+    GROUPS = newGroups;
+
+    persistGroups();
+}
+
+// END drag and drop reordering
+
 // edge means ' is used by -> '
 // this is a reverse reference graph
 // pointing to groups depending on a given group
 let IS_USED_BY_GRAPH = Graph();
 
-const GROUPS = new Map();
+let GROUPS = new Map();
 
 const DELAY = 5000;
 
