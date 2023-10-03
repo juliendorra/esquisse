@@ -233,7 +233,7 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
             groupElement.innerHTML = `
                 <div class="group-header">
                     <small>➗</small>
-                    <button class="delete-btn">&#x2715;</button>
+                    <button class="tool-btn delete-btn">&#x2715;</button>
             `;
             break;
 
@@ -242,14 +242,14 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
             groupElement.innerHTML = `
                 <div class="group-header">
                     <small>💠</small>
-                    <button class="delete-btn">&#x2715;</button>
+                    <button class="tool-btn delete-btn">&#x2715;</button>
                 </div>
                 <input type="text" class="group-name" placeholder="Name of this block">
                 <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
                 <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
                 <div class="function-buttons-container">
-                <button class="entry-btn">📥</button>
-                <button class="lock-btn">🔒</button>
+                <button class="tool-btn entry-btn">📥</button>
+                <button class="tool-btn lock-btn">🔒</button>
                 </div>
             `;
             break;
@@ -259,16 +259,16 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
             groupElement.innerHTML = `
                 <div class="group-header">
                     <small>🎨</small>
-                    <button class="delete-btn">&#x2715;</button>
+                    <button class="tool-btn delete-btn">&#x2715;</button>
                 </div>
                 <input type="text" class="group-name" placeholder="Name of this Block">
                 <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
                 <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
                 <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
                 <div class="function-buttons-container">
-                    <button class="entry-btn">📥</button>
-                    <button class="lock-btn">🔒</button>
-                    <button class="refresh-btn">🔄</button>
+                    <button class="tool-btn entry-btn">📥</button>
+                    <button class="tool-btn lock-btn">🔒</button>
+                    <button class="tool-btn refresh-btn">🔄</button>
                 </div>
                 <img class="result">
                 <a class="download-btn">⬇️</a>
@@ -280,16 +280,16 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
             groupElement.innerHTML = `
                 <div class="group-header">
                     <small>📝</small>
-                    <button class="delete-btn">&#x2715</button>
+                    <button class="tool-btn delete-btn">&#x2715</button>
                 </div>
                 <input type="text" class="group-name" placeholder="Name of this block">
                 <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
                 <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
                 <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
                 <div class="function-buttons-container">
-                <button class="entry-btn">📥</button>
-                <button class="lock-btn">🔒</button>
-                <button class="refresh-btn">🔄</button>
+                <button class="tool-btn entry-btn">📥</button>
+                <button class="tool-btn lock-btn">🔒</button>
+                <button class="tool-btn refresh-btn">🔄</button>
                 </div>
             `;
     }
