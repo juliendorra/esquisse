@@ -24,8 +24,6 @@ function onEnd(event) {
 
     groupElements.forEach(element => {
 
-        element.classList.remove("sortable-drag");
-
         Sortable.utils.deselect(element);
 
         const id = element.getAttribute('data-id');
@@ -44,13 +42,35 @@ function onEnd(event) {
 // https://github.com/SortableJS/Vue.Draggable/issues/815#issuecomment-1552904628
 
 function onDragStart(e) {
+
+    const groupsContainer = document.querySelector(".container");
+
+    let scale = Math.min(1, window.innerHeight / groupsContainer.scrollHeight);
+
+    let marginTop = - (1 - scale) * 0.5;
+
     setTimeout(() => {
+
+        groupsContainer.style.setProperty('--scale', scale);
+        groupsContainer.style.setProperty('--margin-top', marginTop);
+
+        groupsContainer.classList.add("miniview");
         e.target.classList.add("grabbing");
     }, 100);
 
+};
 
 function onDragEnd(e) {
-    e.target.classList.remove("grabbing");
+
+    setTimeout(() => {
+
+        const groupsContainer = document.querySelector(".container");
+
+        groupsContainer.classList.remove("miniview");
+        e.target.classList.remove("grabbing");
+        e.target.classList.remove("sortable-drag");
+        e.target.classList.remove("sortable-drag");
+    }, 100);
 };
 
 // END drag and drop reordering

@@ -19,6 +19,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Esquisse AI. Reactive LLM/diffusion cells</title>
     <style>
+        body {
+            position: relative;
+        }
+
         div,
         button,
         textarea {
@@ -33,6 +37,11 @@
         .container {
             display: flex;
             flex-wrap: wrap;
+            transition:
+                transform 0.15s ease-in-out,
+                margin-top 0.15s ease-in-out,
+                margin-bottom 0.15s ease-in-out;
+
         }
 
         .group {
@@ -181,6 +190,25 @@
             cursor: grabbing !important;
         }
 
+        .miniview.container {
+            position: absolute;
+            --scale: 0.4;
+            --margin-top: -0.3;
+            transform: scale(var(--scale));
+            margin-top: calc(100vh*var(--margin-top));
+            margin-bottom: calc(100vh*var(--margin-top));
+        }
+
+        .miniview .tool-btn {
+            display: none;
+        }
+
+
+        /* hide the siblings, ex. buttons, when in miniview */
+        .miniview.container~button {
+            display: none;
+        }
+
         .error {
             border-color: red;
             color: red;
@@ -214,6 +242,7 @@
     <div class="container">
 
     </div>
+
     <button class="add-break-group-btn">Add Break ➗</button>
     <button class="add-static-group-btn">Add Static Text 💠</button>
     <button class="add-group-btn">Add Text Transform 📝</button>
