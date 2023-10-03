@@ -21,7 +21,7 @@
     <style>
         :root {
             --scale: 0.4;
-            --margin-top: -0.3;
+            --margin-top-ratio: -0.3;
         }
 
         body {
@@ -163,6 +163,7 @@
         .add-static-group-btn,
         .add-group-btn,
         .add-img-group-btn {
+            height: 2rem;
             cursor: pointer;
             border: 1px solid #ccc;
             padding: 0.5rem;
@@ -182,7 +183,6 @@
             background-color: rgba(153, 187, 255, 0.5);
         }
 
-
         .sortable-drag {
             opacity: 0.3;
         }
@@ -196,16 +196,16 @@
         }
 
         .miniview.container {
-            position: absolute;
+            /* substract the size of the add buttons to the miniview */
+            --container-height: calc(100vh - 2rem - 1rem - 0.5rem - 2px);
+            height: var(--container-height);
             transform: scale(var(--scale));
-            margin-top: calc(100vh*var(--margin-top));
-            margin-bottom: calc(100vh*var(--margin-top));
+            margin-top: calc(var(--container-height)*var(--margin-top-ratio));
         }
 
         .miniview .tool-btn {
             opacity: 0;
         }
-
 
         /* hide the siblings, ex. buttons, when in miniview */
         .miniview.container~button {

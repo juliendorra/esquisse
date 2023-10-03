@@ -52,7 +52,7 @@ function onDragStart(e) {
     setTimeout(() => {
 
         document.documentElement.style.setProperty('--scale', scale);
-        document.documentElement.style.setProperty('--margin-top', marginTop);
+        document.documentElement.style.setProperty('--margin-top-ratio', marginTop);
 
         groupsContainer.classList.add("miniview");
         e.target.classList.add("grabbing");
