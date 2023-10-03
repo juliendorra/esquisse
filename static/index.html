@@ -19,6 +19,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Esquisse AI. Reactive LLM/diffusion cells</title>
     <style>
+        :root {
+            --scale: 0.4;
+            --margin-top: -0.3;
+        }
+
         body {
             position: relative;
         }
@@ -171,15 +176,15 @@
         }
 
         .sortable-ghost {
-            max-width: 10vw;
             max-height: 10vw;
+            align-self: center;
             overflow: hidden;
+            background-color: rgba(153, 187, 255, 0.5);
         }
 
+
         .sortable-drag {
-            max-width: 10vw;
-            max-height: 10vw;
-            overflow: hidden;
+            opacity: 0.3;
         }
 
         .sortable-selected {
@@ -192,21 +197,19 @@
 
         .miniview.container {
             position: absolute;
-            --scale: 0.4;
-            --margin-top: -0.3;
             transform: scale(var(--scale));
             margin-top: calc(100vh*var(--margin-top));
             margin-bottom: calc(100vh*var(--margin-top));
         }
 
         .miniview .tool-btn {
-            display: none;
+            opacity: 0;
         }
 
 
         /* hide the siblings, ex. buttons, when in miniview */
         .miniview.container~button {
-            display: none;
+            opacity: 0;
         }
 
         .error {
