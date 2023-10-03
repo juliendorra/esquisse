@@ -72,6 +72,17 @@
             align-items: center;
             width: 100%;
             margin-bottom: 0.5rem;
+            user-select: none;
+        }
+
+        .group-header small,
+        .group-header button {
+            user-select: none;
+        }
+
+        .group-header small {
+            user-select: none;
+            cursor: grab !important;
         }
 
         .delete-btn {
@@ -164,6 +175,10 @@
 
         .sortable-selected {
             background-color: rgba(153, 187, 255, 0.5);
+        }
+
+        .grabbing * {
+            cursor: grabbing !important;
         }
 
         .error {

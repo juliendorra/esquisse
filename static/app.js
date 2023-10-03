@@ -12,7 +12,7 @@ Sortable.create(document.querySelector('.container'), {
     animation: 150,
     draggable: ".group",
     multiDrag: true,
-    onEnd: onEnd
+    onEnd: onEnd,
 });
 
 function onEnd(event) {
@@ -23,6 +23,8 @@ function onEnd(event) {
     const groupElements = document.querySelectorAll('.container .group');
 
     groupElements.forEach(element => {
+
+        element.classList.remove("sortable-drag");
 
         Sortable.utils.deselect(element);
 
@@ -37,6 +39,19 @@ function onEnd(event) {
 
     persistGroups();
 }
+
+// Setting the grab cursor as per
+// https://github.com/SortableJS/Vue.Draggable/issues/815#issuecomment-1552904628
+
+function onDragStart(e) {
+    setTimeout(() => {
+        e.target.classList.add("grabbing");
+    }, 100);
+
+
+function onDragEnd(e) {
+    e.target.classList.remove("grabbing");
+};
 
 // END drag and drop reordering
 
@@ -353,6 +368,11 @@ function addEventListenersToGroup(groupElement) {
 
     console.log("got group:", group)
     console.log("adding listener to group :", group.name)
+
+    // Handle drag events for better SortableJS management
+
+    groupElement.addEventListener("dragstart", onDragStart);
+    groupElement.addEventListener("dragend", onDragEnd);
 
     // Persist and handle change when a group's name, data or transform changes
 
