@@ -28,13 +28,20 @@
             position: relative;
         }
 
-        @media screen and (max-width: 992px) {
+        @media screen and (max-width: 450px) {
 
             .group input,
             .group textarea,
             .group p {
                 font-size: 100%;
             }
+        }
+
+        input,
+        textarea {
+            border: 1px;
+            border-style: solid;
+            border-color: #cccccc;
         }
 
         div,
@@ -71,7 +78,7 @@
             border-radius: 0.25rem;
         }
 
-        @media screen and (max-width: 992px) {
+        @media screen and (max-width: 450px) {
             .group {
                 width: 100%;
             }
@@ -116,12 +123,20 @@
             user-select: none;
         }
 
-        .group-header small {
+        .group-header .drag-handle {
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
 
             cursor: grab !important;
+
+            font-size: 200%;
+            height: 1ex;
+            margin-top: -2ex;
+            padding-left: 1em;
+            padding-right: 1em;
+
+            color: #929292;
         }
 
         .delete-btn {
@@ -172,7 +187,8 @@
         textarea[readonly],
         input[readonly] {
             background: linear-gradient(0.25turn, #cfd8e5, #dedede);
-            border: 0;
+            border-color: transparent;
+            outline: none;
         }
 
         textarea.referenced-result-text[readonly] {
@@ -212,7 +228,7 @@
             background-color: rgba(153, 187, 255, 0.5);
         }
 
-        @media screen and (max-width: 992px) {
+        @media screen and (max-width: 450px) {
 
             .sortable-drag,
             .sortable-drag * {
@@ -237,7 +253,7 @@
             cursor: grabbing !important;
         }
 
-        @media screen and (max-width: 992px) {
+        @media screen and (max-width: 450px) {
 
             .sortable-drag,
             .sortable-drag * {

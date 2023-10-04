@@ -5,17 +5,23 @@ import Graph from "https://cdn.jsdelivr.net/npm/graph-data-structure@3.3.0/+esm"
 
 import { Sortable, MultiDrag } from 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/+esm';
 
+// mobile agent detection
+const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+const isAndroid = /android/i.test(userAgent);
+const isIPhone = /iphone/i.test(userAgent) || /ipod/i.test(userAgent);
+const isIPad = /ipad/i.test(userAgent);
+
 Sortable.mount(new MultiDrag());
 
 Sortable.create(document.querySelector('.container'), {
-    handle: '.group-header', // Restricts drag start to this element
+    handle: '.drag-handle', // Restricts drag start to this element
     animation: 150,
     draggable: ".group",
     multiDrag: true,
     onStart: onStartSortable,
     onEnd: onEndSortable,
     // fix multidrag on mobile https://github.com/SortableJS/Sortable/issues/1733#issuecomment-1560720653
-    supportPointer: true,
+    supportPointer: isAndroid || isIPhone || isIPad,
     fallbackTolerance: 5,
 });
 
@@ -252,6 +258,7 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
             groupElement.innerHTML = `
                 <div class="group-header">
                     <small>➗</small>
+                    <div class="drag-handle">···</div>
                     <button class="tool-btn delete-btn">&#x2715;</button>
             `;
             break;
@@ -261,6 +268,7 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
             groupElement.innerHTML = `
                 <div class="group-header">
                     <small>💠</small>
+                    <div class="drag-handle">···</div>
                     <button class="tool-btn delete-btn">&#x2715;</button>
                 </div>
                 <input type="text" class="group-name" placeholder="Name of this block">
@@ -278,6 +286,7 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
             groupElement.innerHTML = `
                 <div class="group-header">
                     <small>🎨</small>
+                    <div class="drag-handle">···</div>
                     <button class="tool-btn delete-btn">&#x2715;</button>
                 </div>
                 <input type="text" class="group-name" placeholder="Name of this Block">
@@ -299,6 +308,7 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
             groupElement.innerHTML = `
                 <div class="group-header">
                     <small>📝</small>
+                    <div class="drag-handle">···</div>
                     <button class="tool-btn delete-btn">&#x2715</button>
                 </div>
                 <input type="text" class="group-name" placeholder="Name of this block">
