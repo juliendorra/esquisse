@@ -12,10 +12,40 @@ Sortable.create(document.querySelector('.container'), {
     animation: 150,
     draggable: ".group",
     multiDrag: true,
-    onEnd: onEnd,
+    onStart: onStartSortable,
+    onEnd: onEndSortable,
+    // fix multidrag on mobile https://github.com/SortableJS/Sortable/issues/1733#issuecomment-1560720653
+    supportPointer: true,
+    fallbackTolerance: 5,
 });
 
-function onEnd(event) {
+function onStartSortable(event) {
+
+    const groupsContainer = document.querySelector(".container");
+
+    let scale = Math.min(1, window.innerHeight / groupsContainer.scrollHeight);
+
+    let marginTop = - (1 - scale) * 0.5;
+
+    document.documentElement.style.setProperty('--scale', scale);
+    document.documentElement.style.setProperty('--margin-top-ratio', marginTop);
+
+    groupsContainer.classList.add("miniview");
+}
+
+function onDragStart(event) {
+
+    setTimeout(() => {
+        event.target.classList.add("grabbing");
+    }, 50);
+}
+
+function onEndSortable(event) {
+
+    const groupsContainer = document.querySelector(".container");
+
+    groupsContainer.classList.remove("miniview");
+    event.item.classList.remove("grabbing");
 
     // Intermediary Map to store the reordered groups
     const newGroups = new Map();
@@ -38,40 +68,9 @@ function onEnd(event) {
     persistGroups();
 }
 
-// Setting the grab cursor as per
-// https://github.com/SortableJS/Vue.Draggable/issues/815#issuecomment-1552904628
-
-function onDragStart(e) {
-
-    const groupsContainer = document.querySelector(".container");
-
-    let scale = Math.min(1, window.innerHeight / groupsContainer.scrollHeight);
-
-    let marginTop = - (1 - scale) * 0.5;
-
-    setTimeout(() => {
-
-        document.documentElement.style.setProperty('--scale', scale);
-        document.documentElement.style.setProperty('--margin-top-ratio', marginTop);
-
-        groupsContainer.classList.add("miniview");
-        e.target.classList.add("grabbing");
-    }, 100);
-
-};
-
-function onDragEnd(e) {
-
-    setTimeout(() => {
-
-        const groupsContainer = document.querySelector(".container");
-
-        groupsContainer.classList.remove("miniview");
-        e.target.classList.remove("grabbing");
-        e.target.classList.remove("sortable-drag");
-        e.target.classList.remove("sortable-drag");
-    }, 100);
-};
+function onDragEnd(event) {
+    event.target.classList.remove("grabbing");
+}
 
 // END drag and drop reordering
 
@@ -389,7 +388,9 @@ function addEventListenersToGroup(groupElement) {
     console.log("got group:", group)
     console.log("adding listener to group :", group.name)
 
-    // Handle drag events for better SortableJS management
+    // Handle drag events to fix custom cursors with SortableJS 
+    // https://github.com/SortableJS/Vue.Draggable/issues/815#issuecomment-1552904628
+    // these drag events won't be fired on iOS, so we use them only for the cursor fix
 
     groupElement.addEventListener("dragstart", onDragStart);
     groupElement.addEventListener("dragend", onDragEnd);

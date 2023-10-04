@@ -42,6 +42,8 @@
         .container {
             display: flex;
             flex-wrap: wrap;
+
+            /* this transitions are used by the miniview styles */
             transition:
                 transform 0.15s ease-in-out,
                 margin-top 0.15s ease-in-out,
@@ -58,6 +60,12 @@
             max-width: 20rem;
             position: relative;
             border-radius: 0.25rem;
+        }
+
+        @media screen and (max-width: 992px) {
+            .group {
+                width: 100%;
+            }
         }
 
         .group.break {
@@ -86,16 +94,24 @@
             align-items: center;
             width: 100%;
             margin-bottom: 0.5rem;
+
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
             user-select: none;
         }
 
         .group-header small,
         .group-header button {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
             user-select: none;
         }
 
         .group-header small {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
             user-select: none;
+
             cursor: grab !important;
         }
 
@@ -171,11 +187,6 @@
             margin: 0.25rem;
         }
 
-        .group.break.sortable-ghost {
-            flex-basis: 10vw;
-            max-height: 10vw;
-        }
-
         .sortable-ghost {
             max-height: 10vw;
             align-self: center;
@@ -187,8 +198,46 @@
             opacity: 0.3;
         }
 
+        .group.break.sortable-ghost {
+            flex-basis: 10vw;
+        }
+
+        @media screen and (max-width: 992px) {
+
+            .sortable-drag,
+            .sortable-drag * {
+                opacity: 0;
+                border: none;
+            }
+
+            .group.break.sortable-ghost {
+                flex-basis: 50%;
+            }
+        }
+
         .sortable-selected {
             background-color: rgba(153, 187, 255, 0.5);
+        }
+
+        .sortable-chosen {
+            cursor: grabbing !important;
+        }
+
+        @media screen and (max-width: 992px) {
+
+            .sortable-drag,
+            .sortable-drag * {
+                opacity: 0;
+                border: none;
+            }
+
+            .group.break.sortable-ghost {
+                flex-basis: 50%;
+            }
+
+            .sortable-drag.sortable-selected {
+                background-color: transparent;
+            }
         }
 
         .grabbing * {
