@@ -24,8 +24,15 @@
             --margin-top-ratio: -0.3;
         }
 
+        html {
+            box-sizing: border-box;
+        }
+
         body {
             position: relative;
+            margin: 0;
+            padding: 0;
+            font-weight: normal;
         }
 
         @media screen and (max-width: 450px) {
@@ -58,6 +65,8 @@
         .container {
             display: flex;
             flex-wrap: wrap;
+
+            padding: 1rem;
 
             /* this transitions are used by the miniview styles */
             transition:
@@ -315,6 +324,20 @@
             cursor: wait !important;
         }
 
+        .fetching-indicator {
+            display: none;
+        }
+
+        .waiting.fetching-indicator {
+            display: block;
+            position: fixed;
+            z-index: 99;
+            width: 100vw;
+            height: 0.5ex;
+            background-image: linear-gradient(270deg, #f8a7ff, #efe4f9, #f8a7ff);
+            animation: scrollingBackground 40s infinite linear;
+            color: #f8a7ff;
+        }
         @keyframes scrollingBackground {
             0% {
                 background-position: 0 0
@@ -328,7 +351,8 @@
 </head>
 
 <body>
-    <div class="container">
+    <div class="fetching-indicator"></div>
+
 
     </div>
 

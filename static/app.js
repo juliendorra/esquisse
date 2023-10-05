@@ -606,8 +606,11 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
         if (group.type === GROUP_TYPE.IMAGE) {
 
             console.log(`[REQUEST] image ||| ${currentData} ||| ${lastTransformValue}`);
+
             groupElement.classList.remove("error");
             groupElement.classList.add("waiting");
+            const fetchingIndicatorElement = document.querySelector(".fetching-indicator");
+            fetchingIndicatorElement.classList.add("waiting");
 
             try {
                 const response = await fetch("/stability", fetchOptions);
@@ -648,11 +651,14 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
                     };
                     reader.onerror = reject;
                     reader.readAsDataURL(blob);
+
                     groupElement.classList.remove("waiting")
+                    removeGlobalWaitingIndicator();
 
                 });
             } catch (error) {
                 groupElement.classList.remove("waiting")
+                removeGlobalWaitingIndicator();
                 groupElement.classList.add("error")
                 console.error(`Fetch failed: ${error}`);
             }
@@ -661,6 +667,8 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
             groupElement.classList.remove("error");
             groupElement.classList.add("waiting");
+            const fetchingIndicatorElement = document.querySelector(".fetching-indicator");
+            fetchingIndicatorElement.classList.add("waiting");
 
             try {
                 const response = await fetch("/chatgpt", fetchOptions);
@@ -687,13 +695,26 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
                 delete REQUEST_QUEUE[group.name];
                 groupElement.classList.remove("waiting");
+                removeGlobalWaitingIndicator();
 
             } catch (error) {
                 groupElement.classList.remove("waiting");
+                removeGlobalWaitingIndicator();
                 groupElement.classList.add("error");
                 console.error(`Fetch failed: ${error}`);
             }
         }
+    }
+}
+
+function removeGlobalWaitingIndicator() {
+
+    const waitingGroups = document.querySelector(".group.waiting");
+
+    if (!waitingGroups) {
+        const fetchingIndicatorElement = document.querySelector(".fetching-indicator");
+
+        fetchingIndicatorElement.classList.remove("waiting");
     }
 }
 
