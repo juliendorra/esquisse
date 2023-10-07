@@ -309,6 +309,8 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
                     <small>➗</small>
                     <div class="drag-handle">···</div>
                     <button class="tool-btn delete-btn">&#x2715;</button>
+                </div>
+                <input type="text" class="group-name" placeholder="Name of this block">
             `;
             break;
 
