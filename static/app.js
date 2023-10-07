@@ -432,7 +432,7 @@ function createGroupAndAddGroupElement(groupType = GROUP_TYPE.TEXT) {
     const groupNameElement = groupElement.querySelector(".group-name");
     groupNameElement.value = group.name;
 
-    groupElement.scrollIntoView(false);
+    groupElement.scrollIntoView(true, { behavior: "auto", block: "end" });
 
     return groupElement;
 }
