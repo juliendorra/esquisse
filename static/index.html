@@ -20,8 +20,8 @@
     <title>Esquisse AI. Reactive LLM/diffusion cells</title>
     <style>
         :root {
+            --footer-height: 2.5rem;
             --scale: 0.4;
-            --margin-top-ratio: -0.3;
         }
 
         html {
@@ -67,6 +67,8 @@
             flex-wrap: wrap;
 
             padding: 1rem;
+            margin-bottom: var(--footer-height);
+            height: fit-content;
 
             /* this transitions are used by the miniview styles */
             transition:
@@ -213,8 +215,29 @@
             max-width: 0.77.5vw;
         }
 
+        .footer-tools {
+            position: fixed;
+            bottom: 0;
+
+            display: flex;
+            flex-flow: row;
+            height: var(--footer-height);
+            padding-top: 0.2rem;
+            padding-bottom: 0.9rem;
+
+            width: 94vw;
+            padding-left: 3vw;
+            padding-right: 3vw;
+
+            overflow-x: auto;
+            white-space: nowrap;
+            background-color: white;
+            box-shadow: 0 6px 1rem 0.5rem rgba(0, 0, 0, 0.09);
+        }
+
+
         .footer-btn {
-            height: 2rem;
+            display: inline-block;
             cursor: pointer;
             border: 1px solid #ccc;
             border-radius: 0.5rem;
@@ -224,8 +247,14 @@
             padding-left: 0.7rem;
             padding-right: 0.7rem;
 
-            background-color: #ffffff;
             margin: 0.25rem;
+            margin-top: 0.5rem;
+
+            background-color: #ffffff;
+        }
+
+        .exit-miniview-btn {
+            display: none;
         }
 
         .sortable-ghost {
@@ -295,20 +324,16 @@
         }
 
         .miniview.container {
-            /* substract the size of the add buttons to the miniview */
-            --container-height: calc(100vh - 2rem - 1rem - 0.5rem - 2px);
-            height: var(--container-height);
             transform: scale(var(--scale));
-            margin-top: calc(var(--container-height)*var(--margin-top-ratio));
+            transform-origin: top center;
+            /* arbitrary small sizing to avoid white space below the container */
+            height: 10vh;
         }
 
         .miniview .tool-btn {
             opacity: 0;
-        }
-
-        /* hide the siblings, ex. buttons, when in miniview */
-        .miniview.container~button {
-            opacity: 0;
+            cursor: not-allowed;
+            pointer-events: none;
         }
 
         .error {
@@ -342,6 +367,7 @@
             animation: scrollingBackground 40s infinite linear;
             color: #f8a7ff;
         }
+
         @keyframes scrollingBackground {
             0% {
                 background-position: 0 0
@@ -359,12 +385,15 @@
 
     <div class="container"> </div>
 
+    <div class="footer-tools">
+        <button class="footer-btn exit-miniview-btn">Back 🗺️</button>
+        <button class="footer-btn enter-miniview-btn">Miniview 🗺️</button>
+        <button class="footer-btn add-break-group-btn">Add Break ➗</button>
+        <button class="footer-btn add-static-group-btn">Add Static Text 💠</button>
+        <button class="footer-btn add-group-btn">Add Text Transform 📝</button>
+        <button class="footer-btn add-img-group-btn">Add Image Gen 🎨</button>
     </div>
 
-    <button class="footer-btn add-break-group-btn">Add Break ➗</button>
-    <button class="footer-btn add-static-group-btn">Add Static Text 💠</button>
-    <button class="footer-btn add-group-btn">Add Text Transform 📝</button>
-    <button class="footer-btn add-img-group-btn">Add Image Gen 🎨</button>
     <script type="module" src="app.js"></script>
 </body>
 

@@ -11,6 +11,9 @@ const isAndroid = /android/i.test(userAgent);
 const isIPhone = /iphone/i.test(userAgent) || /ipod/i.test(userAgent);
 const isIPad = /ipad/i.test(userAgent);
 
+// We want to be able to treat entering teh miniview with drag or via button differently
+let MINI_VIEW_BY_BUTTON = false;
+
 Sortable.mount(new MultiDrag());
 
 Sortable.create(document.querySelector('.container'), {
@@ -27,14 +30,25 @@ Sortable.create(document.querySelector('.container'), {
 
 function onStartSortable(event) {
 
+    const windowHeight = window.innerHeight;
+
     const groupsContainer = document.querySelector(".container");
+    const containerElementFullHeight = groupsContainer.scrollHeight;
 
-    let scale = Math.min(1, window.innerHeight / groupsContainer.scrollHeight);
+    console.log("[miniview] containerElementFullHeight ", containerElementFullHeight)
 
-    let marginTop = - (1 - scale) * 0.5;
+    const footerTools = document.querySelector(".footer-tools");
+    const footerToolsHeight = footerTools.clientHeight;
+
+    const containerElementVisibleContentHeight = windowHeight - footerToolsHeight;
+
+    console.log("[miniview] containerElementVisibleContentHeight ", containerElementVisibleContentHeight)
+
+    const scale = Math.min(1, containerElementVisibleContentHeight / containerElementFullHeight);
+
+    console.log("[miniview] scale ", scale);
 
     document.documentElement.style.setProperty('--scale', scale);
-    document.documentElement.style.setProperty('--margin-top-ratio', marginTop);
 
     groupsContainer.classList.add("miniview");
 }
@@ -50,7 +64,8 @@ function onEndSortable(event) {
 
     const groupsContainer = document.querySelector(".container");
 
-    groupsContainer.classList.remove("miniview");
+    if (!MINI_VIEW_BY_BUTTON) groupsContainer.classList.remove("miniview");
+
     event.item.classList.remove("grabbing");
 
     // Intermediary Map to store the reordered groups
@@ -128,6 +143,40 @@ function init() {
         }
         HAS_HASH_CHANGED_PROGRAMMATICALLY = false;
     });
+
+    document
+        .querySelector(".enter-miniview-btn")
+        .addEventListener("click", () => {
+
+            MINI_VIEW_BY_BUTTON = true;
+
+            onStartSortable();
+
+            const enterMiniviewButton = document.querySelector(".enter-miniview-btn");
+            enterMiniviewButton.style.display = 'none';
+
+            const exitMiniviewButton = document.querySelector(".exit-miniview-btn");
+            exitMiniviewButton.style.display = 'inline-block';
+
+        });
+
+
+    document
+        .querySelector(".exit-miniview-btn")
+        .addEventListener("click", () => {
+
+            MINI_VIEW_BY_BUTTON = false;
+
+            const groupsContainer = document.querySelector(".container");
+            groupsContainer.classList.remove("miniview");
+
+            const enterMiniviewButton = document.querySelector(".enter-miniview-btn");
+            enterMiniviewButton.style.display = 'inline-block';
+
+            const exitMiniviewButton = document.querySelector(".exit-miniview-btn");
+            exitMiniviewButton.style.display = 'none';
+
+        });
 
     document
         .querySelector(".add-break-group-btn")
