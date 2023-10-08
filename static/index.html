@@ -20,7 +20,7 @@
     <title>Esquisse AI. Reactive LLM/diffusion cells</title>
     <style>
         :root {
-            --footer-height: 2.5rem;
+            --footer-height: 3rem;
             --scale: 0.4;
         }
 
@@ -92,6 +92,9 @@
         @media screen and (max-width: 450px) {
             .group {
                 width: 100%;
+                align-self: center;
+                margin: 0.75rem 0 0.75rem 0;
+
             }
         }
 
@@ -104,13 +107,20 @@
         }
 
         .group.break input {
-            width: 60vw;
-            margin-left: 30%;
+            align-self: center;
             width: 40%;
             border: none;
             font-size: 120%;
             text-align: center;
             color: #929292;
+        }
+
+        @media screen and (max-width: 450px) {
+
+            .group.break input {
+                align-self: center;
+                width: 90%;
+            }
         }
 
         .group.static {
@@ -249,8 +259,14 @@
         .footer-btn {
             display: inline-block;
             cursor: pointer;
+
+            color: black;
+            background-color: #ffffff;
+
             border: 1px solid #ccc;
             border-radius: 0.5rem;
+
+            min-height: fit-content;
 
             padding-top: 0.5rem;
             padding-bottom: 0.5rem;
@@ -259,8 +275,6 @@
 
             margin: 0.25rem;
             margin-top: 0.5rem;
-
-            background-color: #ffffff;
         }
 
         .exit-miniview-btn {
