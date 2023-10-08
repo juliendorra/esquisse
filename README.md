@@ -1,25 +1,27 @@
-## <img width="96rem" style="vertical-align: middle;" src="https://github.com/BenthamRealities/visi-llm/assets/109677/ea817721-ff7c-4aae-939b-b625cf97bb40"> Esquisse AI — reactive LLM/Diffusion cells
+## <img width="96rem" style="vertical-align: middle;" src="https://github.com/BenthamRealities/visi-llm/assets/109677/ea817721-ff7c-4aae-939b-b625cf97bb40"> Esquisse, quick prototyping tool to create AI workflows one level or two above prompt engineering.
 
-
-### A light tool when you need to prototype a workflow one level or two above prompt engineering.
+### A light quick tool when you need to prototype a generative AI workflow one level or two above prompt engineering.
 
 I (https://github.com/juliendorra) originally built this web-tool so my design students could prototype mini AI-apps in a couple of hours: _a fantasy football club generator, with logo and jersey; a user interview template that auto-update according to answers; an idea helper for products;_ and more!
 
 ### Why create this mini AI-app builder?
+
 To give users a malleable and generic way to draft AI usages **one level or two up from just "prompting"**. Without code, my design students managed to build AI pipelines… and also asked for a few updates that I added and tested with them 😅
 
 ## Install and use
 
-You can use the builder on you own computer by cloning and running the repo: [Local usage](#local-dev)
+You can use Esquisse on you own computer by cloning and running the repo: [Local usage](#local-dev)
 
 Or you can easily deploy on Deno Deploy: [Deploy](#deploy-on-deno-deploy)
+
+You will need [OpenAI](https://platform.openai.com/) and [Stability](https://platform.stability.ai) API keys.
 
 ## How to create and share mini AI apps?
 
 - Adds text and image generation blocks
 - Reference and use the result from a text block by using #[nameofthecell] in another block (text or image) top 'Data' cell. You can mix and match several text results and static text.
 - ⟳ button refresh a block result by sending a new request
-- The structure of your AI cells is saved in the URL: names, data text, transform text. Share the URL to share the structure (not the results). You can go back to reload a previous structure.
+- The _structure_ of your AI cells is **saved in the URL**: names, data text, transform text. Share the URL to share the structure (not the results). You can go back to reload a previous structure.
 
 ## Set UI/UX Hints on blocks
 
