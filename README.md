@@ -32,7 +32,12 @@ These cells keeps updating normally when the results they reference update: thes
 
 ## Examples:
 
-_Screenshot of a simple app that generates three images combining a character and scene as paintings from the the 16th, 17th and 19th century:_
+_Building an AI Cadavre Exquis app in 12 minutes (accelerated!)_
+
+https://github.com/juliendorra/esquisse/assets/109677/96162abe-a2eb-42b2-91e2-5df241a6722b
+
+
+_[early version] Screenshot of a simple app that generates three images combining a character and scene as paintings from the the 16th, 17th and 19th century:_
 
 <img width="50%" alt="screenshot of a simple app that generates three images combining a character and scene as paintings from the the 16th, 17th and 19th century" src="https://github.com/BenthamRealities/visi-llm/assets/109677/2d42c609-91b9-49de-80d2-839322a3faae">
 
