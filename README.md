@@ -19,7 +19,7 @@ Or you can easily deploy on Deno Deploy: [Deploy](#deploy-on-deno-deploy)
 - Adds text and image generation blocks
 - Reference and use the result from a text block by using #[nameofthecell] in another block (text or image) top 'Data' cell. You can mix and match several text results and static text.
 - ⟳ button refresh a block result by sending a new request
-- The structure of your AI cells is saved in the URL: names, data text, transform text. Share the URL to share the structure (not the results). You can go back to reload a previous structur
+- The structure of your AI cells is saved in the URL: names, data text, transform text. Share the URL to share the structure (not the results). You can go back to reload a previous structure.
 
 ## Set UI/UX Hints on blocks
 
