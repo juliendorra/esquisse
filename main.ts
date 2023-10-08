@@ -1,9 +1,17 @@
 import { serve } from "https://deno.land/std/http/server.ts";
+import { basicAuth } from "./auth.ts";
 import { contentType } from "https://deno.land/std/media_types/mod.ts";
 import { tryGenerate as callStability } from "./stability.js";
 import { callGPT } from "./gpt.js";
 
 const handler = async (request: Request): Promise<Response> => {
+
+  const isAuthenticated = await basicAuth(request);
+
+  if (!isAuthenticated) {
+    return new Response('Unauthorized', { status: 401, headers: { 'WWW-Authenticate': 'Basic realm="Esquisse"', } });
+  }
+
   const url = new URL(request.url);
   const { pathname } = url;
 
