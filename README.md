@@ -19,7 +19,7 @@ Or you can easily deploy on Deno Deploy: [Deploy](#deploy-on-deno-deploy)
 - Adds text and image generation blocks
 - Reference and use the result from a text block by using #[nameofthecell] in another block (text or image) top 'Data' cell. You can mix and match several text results and static text.
 - ⟳ button refresh a block result by sending a new request
-- The structure of your AI cells is saved in the URL: names, data text, transform text. Share the URL to share the structure (not the results). You can go back to reload a previous structure.
+- The structure of your AI cells is saved in the URL: names, data text, transform text. Share the URL to share the structure (not the results). You can go back to reload a previous structur
 
 ## Set UI/UX Hints on blocks
 
@@ -41,8 +41,14 @@ _Students at Strate in the process of creating apps:_
 <img width="50%"  src="https://github.com/BenthamRealities/visi-llm/assets/109677/9faeded3-d248-4456-81e6-cce76358b28f">
 
 ## Local dev
+- install Deno locally https://docs.deno.com/runtime/manual/
+- clone the repo locally
 
-- create .env based on .env.SAMPLE and add your OpenAI and Stability API keys
+- create your local .env file based on .env.SAMPLE
+- add your OpenAI and Stability API keys
+- add at least one local user
+- for quick **local** dev you can copy the users from the .env.SAMPLE 
+
 - `deno cache main.ts`
 - `deno task dev`
 - visit http://127.0.0.1:8000/ to use
@@ -50,6 +56,15 @@ _Students at Strate in the process of creating apps:_
 ## Deploy on Deno Deploy
 
 The code has been written with deployement on Deno Deploy in mind, in a few easy steps:
-- Add your OpenAI and Stability API keys in your Deno Deploy project
+
+### Environnement variables: API Keys and users
+  - Add your OpenAI and Stability API keys in your Deno Deploy Settings / Environnements Variables
+- Add users for your instance. Prefixed user name as key and Bcrypt hashed password as value. 
+- Prefix the user name with USER_
+- You can use a tool like https://bcrypt.online to generate the password hashes
+
+<img width="50%" alt="screenshot of Deno Deploy Settings / Environnements Variables with API keys and an user being added" src="https://github.com/juliendorra/esquisse/assets/109677/6ceef65e-02a4-4e69-8f01-066f5848e802">
+
+### Deploy 
 - link the repo in Deno Deploy Dashboard in automatic mode
 - pick main.ts as the entry point
