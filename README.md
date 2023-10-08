@@ -1,6 +1,6 @@
-## <img width="96rem" style="vertical-align: middle;" src="https://github.com/BenthamRealities/visi-llm/assets/109677/ea817721-ff7c-4aae-939b-b625cf97bb40"> Esquisse, quick prototyping tool to create AI workflows one level or two above prompt engineering.
+## <img width="96rem" style="vertical-align: middle;" src="https://github.com/BenthamRealities/visi-llm/assets/109677/ea817721-ff7c-4aae-939b-b625cf97bb40"> Esquisse. Quick prototyping of AI workflows one level or two above prompt engineering.
 
-### A light quick tool when you need to prototype a generative AI workflow one level or two above prompt engineering.
+### A light and quick tool when you need to prototype a generative AI workflow one level or two above prompt engineering.
 
 I (https://github.com/juliendorra) originally built this web-tool so my design students could prototype mini AI-apps in a couple of hours: _a fantasy football club generator, with logo and jersey; a user interview template that auto-update according to answers; an idea helper for products;_ and more!
 
