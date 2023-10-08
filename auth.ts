@@ -1,11 +1,8 @@
-import * as bcrypt from "https://deno.land/x/bcrypt/mod.ts";
+import { compare } from "./bcrypt.ts";
 
 const PREFIX = "USER_";
 
 const env = Deno.env.toObject();
-
-console.log(env)
-
 
 const userEntries = Object.entries(env)
     .filter(([key]) => key.startsWith(PREFIX))
@@ -36,7 +33,7 @@ export async function basicAuth(request: Request): Promise<boolean> {
     // Check credentials
     for (const [envUser, envHash] of userEntries) {
         if (envUser === username) {
-            if (await bcrypt.compare(password, envHash)) {
+            if (await compare(password, envHash)) {
                 console.log(`Authentication successful for user: ${username}`);
                 return true;
             } else {
