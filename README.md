@@ -19,7 +19,8 @@ You will need [OpenAI](https://platform.openai.com/) and [Stability](https://pla
 ## How to create and share mini AI apps?
 
 - Adds text and image generation blocks
-- Reference and use the result from a text block by using #[nameofthecell] in another block (text or image) top 'Data' cell. You can mix and match several text results and static text.
+- Reference and use the result from a text block in another text or image block top 'Data' cell by using either `#name` (no white space, for example a single word block name) or `[name of the block]` (white space allowed in the name of the block)
+- You can mix and match several text results with static text: `head face [character for head] #style`
 - ⟳ button refresh a block result by sending a new request
 - The _structure_ of your AI cells is **saved in the URL**: names, data text, transform text. Share the URL to share the structure (not the results). You can go back to reload a previous structure.
 
@@ -28,7 +29,8 @@ You will need [OpenAI](https://platform.openai.com/) and [Stability](https://pla
 - 📥 button set the block as an _entry_ block, only the data cell is writable.
 - 🔒 button set the block as an _locked_ block, no cell is writable. 
 
-These cells keeps updating normally when the results they reference update: these are purely UI/UX hints, and can be reversed any time.
+These are purely UI/UX hints to help you organize your mini-app, and can be reversed any time.
+These cells keeps updating normally when the results they reference update.
 
 ## Examples:
 
@@ -65,7 +67,7 @@ _Students at Strate in the process of creating apps:_
 The code has been written with deployement on Deno Deploy in mind, in a few easy steps:
 
 ### Environnement variables: API Keys and users
-  - Add your OpenAI and Stability API keys in your Deno Deploy Settings / Environnements Variables
+- Add your OpenAI and Stability API keys in your Deno Deploy Settings / Environnements Variables
 - Add users for your instance. Prefixed user name as key and Bcrypt hashed password as value. 
 - Prefix the user name with USER_
 - You can use a tool like https://bcrypt.online to generate the password hashes
