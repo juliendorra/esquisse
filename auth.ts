@@ -1,3 +1,4 @@
+import "https://deno.land/x/dotenv/load.ts";
 import { compare } from "./bcrypt.ts";
 
 const PREFIX = "USER_";
