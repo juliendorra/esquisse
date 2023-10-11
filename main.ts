@@ -6,14 +6,17 @@ import { callGPT } from "./gpt.js";
 
 const handler = async (request: Request): Promise<Response> => {
 
-  const isAuthenticated = await basicAuth(request);
-
-  if (!isAuthenticated) {
-    return new Response('Unauthorized', { status: 401, headers: { 'WWW-Authenticate': 'Basic realm="Esquisse"', } });
-  }
-
   const url = new URL(request.url);
   const { pathname } = url;
+
+  const isAuthenticated = await basicAuth(request);
+
+  if (!pathname.endsWith(".webmanifest") && !pathname.startsWith("/public/")) {
+
+    if (!isAuthenticated) {
+      return new Response('Unauthorized', { status: 401, headers: { 'WWW-Authenticate': 'Basic realm="Esquisse"', } });
+    }
+  }
 
   if (pathname.startsWith("/stability") || pathname.startsWith("/chatgpt")) {
     return await handleJsonEndpoints(request);
