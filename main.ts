@@ -11,7 +11,7 @@ const handler = async (request: Request): Promise<Response> => {
 
   const isAuthenticated = await basicAuth(request);
 
-  if (!pathname.endsWith(".webmanifest") && !pathname.startsWith("/public/")) {
+  if (!pathname.startsWith("/public/")) {
 
     if (!isAuthenticated) {
       return new Response('Unauthorized', { status: 401, headers: { 'WWW-Authenticate': 'Basic realm="Esquisse"', } });
