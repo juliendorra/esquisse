@@ -400,6 +400,11 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
     container.appendChild(groupElement);
 
     addEventListenersToGroup(groupElement);
+
+    groupElement.scrollIntoView(true, { behavior: "auto", block: "end" });
+
+    groupElement.classList.add('new-group-appearing');
+
     return groupElement;
 }
 
@@ -432,9 +437,8 @@ function createGroupAndAddGroupElement(groupType = GROUP_TYPE.TEXT) {
     const groupElement = addGroupElement(groupType, group.id);
 
     const groupNameElement = groupElement.querySelector(".group-name");
-    groupNameElement.value = group.name;
 
-    groupElement.scrollIntoView(true, { behavior: "auto", block: "end" });
+    groupNameElement.value = group.name;
 
     return groupElement;
 }
