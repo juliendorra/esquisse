@@ -1,7 +1,9 @@
 ## Esquisse ✍️ 
-## Quick prototyping of AI workflows one level or two above prompt engineering.
+## Quick AI workflow prototyping.
 
-Esquisse is a light and quick tool when you need to prototype a generative AI workflow, one level or two above prompt engineering.
+Esquisse is a light and quick tool for when you need to prototype a generative AI workflow, one level or two above basic prompt engineering.
+
+Draft and test AI ideas, move up from basic prompts to your own mini AI apps.
 
 I (https://github.com/juliendorra) originally built this web-tool so my design students could prototype mini AI-apps in a couple of hours: _a fantasy football club generator, with logo and jersey; a user interview template that auto-update according to answers; an idea helper for products;_ and more!
 
