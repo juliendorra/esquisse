@@ -403,6 +403,14 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
 
     groupElement.scrollIntoView(true, { behavior: "auto", block: "end" });
 
+    groupElement.addEventListener(
+        'animationend',
+        () => {
+            groupElement.classList.remove('new-group-appearing');
+            groupElement.removeEventListener('animationend');
+        }
+    );
+
     groupElement.classList.add('new-group-appearing');
 
     return groupElement;
