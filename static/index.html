@@ -429,6 +429,73 @@
                 opacity: 1;
             }
         }
+
+
+        @media print {
+
+            .container {
+                display: block;
+                height: auto;
+            }
+
+            textarea.referenced-result-text[readonly],
+            textarea[readonly],
+            input[readonly] {
+
+                background-color: none;
+                background: none;
+            }
+
+            .group-name {
+                font-size: 200%;
+                background-color: none;
+                background: none;
+            }
+
+            .group.static,
+            .group.image,
+            .group.text {
+
+                page-break-inside: avoid;
+                page-break-before: auto;
+                page-break-after: auto;
+
+                break-inside: avoid-page;
+                break-before: auto;
+                break-after: auto;
+            }
+
+            .group.break {
+
+                page-break-inside: avoid;
+                page-break-before: auto;
+                page-break-after: avoid;
+
+                break-inside: avoid-page;
+                break-before: auto;
+                break-after: avoid-page;
+            }
+
+            .group-header,
+            .tool-btn,
+            .footer-tools,
+            .download-btn {
+                display: none;
+            }
+
+            .data-text,
+            .transform-text {
+                display: none;
+            }
+
+            input {
+                outline: none;
+                border: none;
+            }
+
+
+
+
         }
     </style>
 </head>
