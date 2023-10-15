@@ -226,12 +226,14 @@ function persistGroups() {
     }));
 
     console.log("Persisting in URL", strippedGroups);
-
-    const base64Groups = btoa(JSON.stringify(strippedGroups));
-
-    HAS_HASH_CHANGED_PROGRAMMATICALLY = true;
-    window.location.hash = base64Groups;
-
+    try {
+        const base64Groups = btoa(JSON.stringify(strippedGroups));
+        HAS_HASH_CHANGED_PROGRAMMATICALLY = true;
+        window.location.hash = base64Groups;
+    } catch (error) {
+        console.log("Base64 failed, impossible to persist in URL")
+        return;
+    }
 }
 
 function loadGroups() {
