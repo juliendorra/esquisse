@@ -421,12 +421,14 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
 
     groupElement.scrollIntoView(true, { behavior: "auto", block: "end" });
 
+    const animationendHAndler = () => {
+        groupElement.classList.remove('new-group-appearing');
+        groupElement.removeEventListener('animationend', animationendHAndler);
+    }
+
     groupElement.addEventListener(
         'animationend',
-        () => {
-            groupElement.classList.remove('new-group-appearing');
-            groupElement.removeEventListener('animationend');
-        }
+        animationendHAndler
     );
 
     groupElement.classList.add('new-group-appearing');
