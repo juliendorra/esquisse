@@ -2,23 +2,41 @@ import "https://deno.land/x/dotenv/load.ts";
 
 const apiKey = Deno.env.get("STABILITY_API_KEY");
 
+const FAST_CHEAP_MODEL = {
+    id: "stable-diffusion-512-v2-1",
+    width: 512,
+    height: 512,
+    widthWide: 768,
+    heightWide: 640,
+}
+
+const QUALITY_EXPENSIVE_MODEL = {
+    id: "stable-diffusion-xl-1024-v1-0",
+    width: 1024,
+    height: 1024,
+    widthWide: 1152,
+    heightWide: 896,
+
+}
+
 if (!apiKey) {
     throw new Error("missing STABILITY_API_KEY environment variable");
 }
 
-const stepCount = 45;
+const STEP_COUNT = 45;
 const apiHost = "https://api.stability.ai";
 
 export async function tryGenerate(
     prompt,
     negativeprompt,
     format,
+    qualityEnabled = false,
     maxAttempts = 3,
 ) {
     let generated;
 
     for (let i = 0; i < maxAttempts; i++) {
-        generated = await generate(prompt, negativeprompt, format);
+        generated = await generate(prompt, negativeprompt, format, qualityEnabled);
 
         if (generated.isValid) {
             return generated.data;
@@ -42,7 +60,7 @@ export async function tryGenerate(
                 const pattern = new RegExp("\\b" + word + "\\b", "g");
                 cleanedPromptToTest = prompt.replace(pattern, "");
 
-                generated = await generate(cleanedPromptToTest, negativeprompt, format);
+                generated = await generate(prompt, negativeprompt, format, engine);
 
                 if (generated.isValid) {
                     return generated.data;
@@ -81,18 +99,16 @@ export async function tryGenerate(
     } // no image
 }
 
-export async function generate(prompt, negativeprompt, format) {
-    const engineId = "stable-diffusion-512-v2-1";
+export async function generate(prompt, negativeprompt, format, qualityEnabled = false) {
 
-    let width = 512;
-    let height = 512;
+    const engine = qualityEnabled ? QUALITY_EXPENSIVE_MODEL : FAST_CHEAP_MODEL;
 
-    if (format == "wide") {
-        width = 768;
-        height = 640;
-    }
+    console.log("Calling Stability with model: ", engine);
 
-    const url = `${apiHost}/v1alpha/generation/${engineId}/text-to-image`;
+    const width = format == "wide" ? engine.widthWide : engine.width;
+    const height = format == "wide" ? engine.heightWide : engine.height;;
+
+    const url = `${apiHost}/v1alpha/generation/${engine.id}/text-to-image`;
 
     try {
         const response = await fetch(
@@ -107,7 +123,7 @@ export async function generate(prompt, negativeprompt, format) {
                     // sampler: "K_DPMPP_2M",
                     samples: 1,
                     seed: 0,
-                    steps: stepCount,
+                    steps: STEP_COUNT,
                     text_prompts: [
                         {
                             text: prompt,

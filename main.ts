@@ -52,7 +52,12 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
   console.log(body);
 
   if (pathname.startsWith("/stability")) {
-    response = await callStability(body.data + " " + body.transform);
+    response = await callStability(
+      body.data + " " + body.transform,
+      "",
+      "",
+      body.qualityEnabled,
+      3);
 
     return new Response(response, {
       headers: { "content-type": "image/png" },
@@ -60,7 +65,10 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
   }
 
   if (pathname.startsWith("/chatgpt")) {
-    response = await callGPT(body.data, body.transform);
+    response = await callGPT(
+      body.data,
+      body.transform,
+      body.qualityEnabled);
 
     return new Response(JSON.stringify(response), {
       headers: { "content-type": "application/json" },

@@ -23,6 +23,11 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.9.0/cdn/themes/light.css" />
+
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.9.0/cdn/shoelace-autoloader.js"></script>
+
     <title>Esquisse AI. Quick AI Workflow Prototyping</title>
     <style>
         :root {
@@ -344,6 +349,9 @@
             border-right: 1px solid var(--light-border);
         }
 
+        .exit-miniview-btn {
+            display: none;
+        }
 
         .add-break-group-btn {
             border-color: var(--title-text-color)
@@ -361,10 +369,47 @@
             border-color: var(--group-image-color-code);
         }
 
-
-        .exit-miniview-btn {
-            display: none;
+        .footer-btn:nth-last-of-type(2) {
+            margin-right: 2rem;
         }
+
+        .open-settings-menu-btn {
+            margin-left: auto;
+        }
+
+        .quality-switch {
+            --width: 3rem;
+            --height: 1.5rem;
+            --thumb-size: 1.5rem;
+
+            /* used for unchecked */
+            /* --sl-color-neutral-400: rgb(148, 230, 148); */
+            /* used for checked */
+            /* --sl-color-primary-600: rgb(221, 78, 73);  */
+
+        }
+
+        .quality-switch::part(control) {
+            border-color: rgb(148, 230, 148);
+            background-color: var(--neutral-color);
+        }
+
+        .quality-switch[checked]::part(control) {
+            border-color: rgb(249, 99, 94);
+            background-color: var(--neutral-color);
+        }
+
+
+        .quality-switch::part(thumb) {
+            border-color: rgb(148, 230, 148);
+            background-color: rgb(148, 230, 148);
+        }
+
+        .quality-switch[checked]::part(thumb) {
+            border-color: rgb(249, 99, 94);
+            background-color: rgb(249, 99, 94);
+        }
+
 
         .sortable-ghost {
             max-height: 10vw;
@@ -593,7 +638,15 @@
         <button class="footer-btn add-static-group-btn">Add Static Text 💠</button>
         <button class="footer-btn add-group-btn">Add Text Transform 📝</button>
         <button class="footer-btn add-img-group-btn">Add Image Gen 🎨</button>
+        <button class="footer-btn open-settings-menu-btn">⚙️</button>
     </div>
+
+    <sl-drawer label="Settings" class="settings-menu">
+        <div>Fast&nbsp;&&nbsp;Cheap&nbsp;
+            <sl-switch class="quality-switch"></sl-switch>
+            &nbsp;Quality
+        </div> <button class="footer-btn close-settings-menu-btn" slot="footer">Close</button>
+    </sl-drawer>
 
     <script type="module" src="app.js"></script>
 </body>

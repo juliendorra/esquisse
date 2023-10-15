@@ -125,6 +125,12 @@ const GROUP_TYPE = {
     IMPORT: "import",
 };
 
+const SETTINGS = {
+
+    qualityEnabled: false,
+
+}
+
 // Call the init function when the page loads
 
 if (document.readyState === "loading") {
@@ -194,9 +200,19 @@ function init() {
         createGroupAndAddGroupElement(GROUP_TYPE.IMAGE)
     );
 
+    const settingsMenu = document.querySelector('.settings-menu');
+    const openButton = document.querySelector('.open-settings-menu-btn');
+    const closeButton = settingsMenu.querySelector('.close-settings-menu-btn');
 
-    document.body.appendChild(document.createElement("br"));
-    // document.body.appendChild(THUMBNAIL_CANVAS);
+    openButton.addEventListener('click', () => settingsMenu.show());
+    closeButton.addEventListener('click', () => settingsMenu.hide());
+
+    const qualitySwitch = settingsMenu.querySelector('.quality-switch');
+
+    qualitySwitch.addEventListener('sl-change', event => {
+        console.log(event.target.checked ? 'qualitySwitch checked' : 'qualitySwitch un-checked');
+        SETTINGS.qualityEnabled = event.target.checked;
+    });
 
 }
 
@@ -664,6 +680,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
             body: JSON.stringify({
                 data: currentData,
                 transform: lastTransformValue,
+                qualityEnabled: SETTINGS.qualityEnabled,
             }),
         };
 
@@ -686,7 +703,10 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
                 const resultBuffer = await response.arrayBuffer();
 
                 console.log(`Received image result buffer`);
+
                 const blob = new Blob([resultBuffer]);
+                group.result = blob;
+
                 const reader = new FileReader();
 
                 return new Promise((resolve, reject) => {
@@ -700,7 +720,6 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
                         }
                         resultImage.style.display = "block";
                         resultImage.src = base64data;
-                        group.result = base64data;
 
                         groupElement.querySelector(".refresh-btn").style.display = "block";
 

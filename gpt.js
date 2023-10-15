@@ -8,13 +8,22 @@ if (!apiKey) {
 
 const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
-export async function callGPT(data, transform) {
+export async function callGPT(data, transform, qualityEnabled = false) {
+
+    let model = qualityEnabled ? "gpt-4" : "gpt-3.5-turbo";
+
+    console.log("calling ChatGPT using model: ", model)
+
     const payload = {
-        model: "gpt-3.5-turbo",
+        model: model,
         messages: [
             {
+                role: "system",
+                content: "Answer in 500 characters or less.",
+            },
+            {
                 role: "user",
-                content: data + " " + transform + " Answer in 500 characters or less.",
+                content: data + " " + transform,
             },
         ],
         temperature: 0.2,
