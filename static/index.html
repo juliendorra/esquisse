@@ -27,6 +27,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.9.0/cdn/themes/light.css" />
 
     <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.9.0/cdn/shoelace-autoloader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leader-line@1.0.7"></script>
 
     <title>Esquisse AI. Quick AI Workflow Prototyping</title>
     <style>
@@ -377,7 +378,11 @@
             margin-left: auto;
         }
 
-        .quality-switch {
+        sl-drawer div {
+            margin-bottom: 2rem;
+        }
+
+        sl-switch {
             --width: 3rem;
             --height: 1.5rem;
             --thumb-size: 1.5rem;
@@ -386,7 +391,6 @@
             /* --sl-color-neutral-400: rgb(148, 230, 148); */
             /* used for checked */
             /* --sl-color-primary-600: rgb(221, 78, 73);  */
-
         }
 
         .quality-switch::part(control) {
@@ -642,10 +646,17 @@
     </div>
 
     <sl-drawer label="Settings" class="settings-menu">
-        <div>Fast&nbsp;&&nbsp;Cheap&nbsp;
+        <div>
+            Fast&nbsp;&&nbsp;Cheap&nbsp;
             <sl-switch class="quality-switch"></sl-switch>
             &nbsp;Quality
-        </div> <button class="footer-btn close-settings-menu-btn" slot="footer">Close</button>
+        </div>
+        <div>
+            Flow&nbsp;Off&nbsp;
+            <sl-switch class="dataflow-switch"></sl-switch>
+            &nbsp;Flow&nbsp;On
+        </div>
+        <button class="footer-btn close-settings-menu-btn" slot="footer">Close</button>
     </sl-drawer>
 
     <script type="module" src="app.js"></script>

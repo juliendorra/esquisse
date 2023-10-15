@@ -131,6 +131,23 @@ const SETTINGS = {
 
 }
 
+let DATAFLOW_LINES = [];
+
+// Palette generated thanks to 
+// https://gka.github.io/palettes/
+// https://www.zonums.com/online/color_converter/
+
+const DATAFLOW_LINES_PALETTE =
+    [
+        "rgba(233,0,44,0.5)",
+        "rgba(255,111,159,0.5)",
+        "rgba(255,185,220,0.5)",
+        "rgba(255,255,227,0.5)",
+        "rgba(221,214,253,0.5)",
+        "rgba(195,172,242,0.5)",
+        "rgba(241,104,133,0.5)"
+    ]
+
 // Call the init function when the page loads
 
 if (document.readyState === "loading") {
@@ -200,7 +217,10 @@ function init() {
         createGroupAndAddGroupElement(GROUP_TYPE.IMAGE)
     );
 
+    // Settings Menu Listeners
+
     const settingsMenu = document.querySelector('.settings-menu');
+
     const openButton = document.querySelector('.open-settings-menu-btn');
     const closeButton = settingsMenu.querySelector('.close-settings-menu-btn');
 
@@ -214,6 +234,58 @@ function init() {
         SETTINGS.qualityEnabled = event.target.checked;
     });
 
+    const dataflowSwitch = settingsMenu.querySelector('.dataflow-switch');
+
+    dataflowSwitch.addEventListener('sl-change', event => {
+        console.log(event.target.checked ? 'dataflow-switch checked' : 'dataflow-switch un-checked');
+
+        if (event.target.checked) {
+            showDataFlow();
+        }
+        else {
+            removeDataFlow();
+        }
+
+    });
+}
+
+function showDataFlow() {
+
+    const nodes = IS_USED_BY_GRAPH.nodes();
+
+    for (const node of nodes) {
+
+        const adjacents = IS_USED_BY_GRAPH.adjacent(node)
+
+        for (const adjacent of adjacents) {
+
+            const sourceElement = document.querySelector(`div[data-id="${node}"]`);
+            const targetElement = document.querySelector(`div[data-id="${adjacent}"]`);
+
+            // Pick colors in cycle
+            const colorIndex = (DATAFLOW_LINES.length - 1) % DATAFLOW_LINES_PALETTE.length;
+            const color = DATAFLOW_LINES_PALETTE[colorIndex];
+
+            DATAFLOW_LINES.push(
+                new LeaderLine(
+                    sourceElement,
+                    targetElement,
+                    {
+                        color: color,
+                        dash: { animation: true },
+                        endPlug: 'arrow3',
+                    }
+                )
+            );
+        }
+    }
+}
+
+function removeDataFlow() {
+    for (const line of DATAFLOW_LINES) {
+        line.remove();
+    }
+    DATAFLOW_LINES = [];
 }
 
 function persistGroups() {
