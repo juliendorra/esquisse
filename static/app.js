@@ -91,6 +91,8 @@ function onEndSortable(event) {
 
     GROUPS = newGroups;
 
+    document.title = `${GROUPS.values().next().value.name} · Esquisse AI`
+
     persistGroups();
 }
 
@@ -402,6 +404,8 @@ function loadGroups() {
 
     console.log("groups loaded: ", GROUPS);
 
+    document.title = `${GROUPS.values().next().value.name} · Esquisse AI`
+
     IS_USED_BY_GRAPH = buildReverseReferenceGraph();
 
     // update all nodes, in topological order
@@ -590,6 +594,11 @@ function addEventListenersToGroup(groupElement) {
     groupNameElement?.addEventListener("change", () => {
 
         group.name = groupNameElement.value.trim();
+
+        // if this is the first group, rename the page using its new name
+        if (group.id === GROUPS.keys().next().value) {
+            document.title = `${group.name} · Esquisse AI`;
+        }
 
         console.log(`Group ${groupNameElement} name now:${group.name}`)
         persistGroups();
