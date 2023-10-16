@@ -263,7 +263,7 @@ function showDataFlow() {
             const targetElement = document.querySelector(`div[data-id="${adjacent}"]`);
 
             // Pick colors in cycle
-            const colorIndex = (DATAFLOW_LINES.length - 1) % DATAFLOW_LINES_PALETTE.length;
+            const colorIndex = DATAFLOW_LINES.length % DATAFLOW_LINES_PALETTE.length;
             const color = DATAFLOW_LINES_PALETTE[colorIndex];
 
             DATAFLOW_LINES.push(
