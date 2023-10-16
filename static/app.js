@@ -68,6 +68,11 @@ function onEndSortable(event) {
 
     event.item.classList.remove("grabbing");
 
+    removeDataFlow();
+    if (SETTINGS.dataFlowEnabled) {
+        showDataFlow();
+    }
+
     // Intermediary Map to store the reordered groups
     const newGroups = new Map();
 
@@ -128,6 +133,7 @@ const GROUP_TYPE = {
 const SETTINGS = {
 
     qualityEnabled: false,
+    dataFlowEnabled: false,
 
 }
 
@@ -167,6 +173,8 @@ function init() {
         HAS_HASH_CHANGED_PROGRAMMATICALLY = false;
     });
 
+    const groupsContainer = document.querySelector(".container");
+
     document
         .querySelector(".enter-miniview-btn")
         .addEventListener("click", () => {
@@ -190,7 +198,6 @@ function init() {
 
             MINI_VIEW_BY_BUTTON = false;
 
-            const groupsContainer = document.querySelector(".container");
             groupsContainer.classList.remove("miniview");
 
             const enterMiniviewButton = document.querySelector(".enter-miniview-btn");
@@ -200,6 +207,21 @@ function init() {
             exitMiniviewButton.style.display = 'none';
 
         });
+
+
+    const transitionstartHandler = (event) => {
+        removeDataFlow();
+    }
+
+    const transitionendHandler = (event) => {
+        removeDataFlow();
+        if (SETTINGS.dataFlowEnabled) {
+            showDataFlow();
+        }
+    }
+
+    groupsContainer.addEventListener("transitionstart", transitionstartHandler)
+    groupsContainer.addEventListener("transitionend", transitionendHandler)
 
     document
         .querySelector(".add-break-group-btn")
@@ -240,9 +262,11 @@ function init() {
         console.log(event.target.checked ? 'dataflow-switch checked' : 'dataflow-switch un-checked');
 
         if (event.target.checked) {
+            SETTINGS.dataFlowEnabled = true;
             showDataFlow();
         }
         else {
+            SETTINGS.dataFlowEnabled = false;
             removeDataFlow();
         }
 
