@@ -3,6 +3,9 @@ import Graph from "https://cdn.jsdelivr.net/npm/graph-data-structure@3.3.0/+esm"
 import { getGroupFromName } from "./grouputils.js";
 import { getReferencedGroupNamesFromDataText } from "./referencematching.js";
 
+// edge in this graph means ' is used by -> '
+// this is a reverse reference graph
+// pointing to groups depending on a given group
 
 let PRiVATE_IS_USED_BY_GRAPH = Graph();
 
