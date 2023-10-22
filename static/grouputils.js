@@ -27,14 +27,14 @@ function getGroupElementFromId(groupId) {
 
 function getGroupFromName(name, groups) {
 
-    // will return the first group found by that name, ignore the rest
+    // returns the first group by that name, case insensitive, ignore the rest
 
     for (const group of groups.values()) {
-        if (group.name === name) {
+        if (group.name.toLowerCase() === name.toLowerCase()) {
             return group;
         }
     }
-    console.log("couldn't find a group named ", name)
+    console.log("Case insensitive search couldn't find a group named ", name)
     return undefined
 }
 

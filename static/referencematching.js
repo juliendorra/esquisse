@@ -4,7 +4,7 @@ import { referencesGraph } from "./referencegraphmanagement.js";
 
 export { getReferencedGroupNamesFromDataText, getReferencedResultsAndCombinedDataWithResults };
 
-const REFERENCE_MATCHING_REGEX = /#([\w-.]+)|(?:\[)([^\]]+)(?:\])/g;
+const REFERENCE_MATCHING_REGEX = /#([\w-.]+)|(?:\[)([^\]]+)(?:\])/gi;
 
 function getReferencedGroupNamesFromDataText(data) {
 
