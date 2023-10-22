@@ -21,9 +21,10 @@ You will need [OpenAI](https://platform.openai.com/) and [Stability](https://pla
 
 ## How to create and share mini AI apps?
 
-- Adds text and image generation blocks
+- Adds text generation and image generation blocks
+- You can also add static text blocks and breaks
 - Reference and use the result from a text block in another text or image block top 'Data' cell by using either `#name` (no white space, for example a single word block name) or `[name of the block]` (white space allowed in the name of the block)
-- You can mix and match several text results with static text: `head face [character for head] #style`
+- You can mix and match several text results using a static text block: `head face [character for head] #style`and then use this text in a text or image generation data field
 - ⟳ button refresh a block result by sending a new request
 - The _structure_ of your AI cells is **saved in the URL**: names, data text, transform text. Share the URL to share the structure (not the results). You can go back to reload a previous structure.
 
@@ -35,22 +36,54 @@ You will need [OpenAI](https://platform.openai.com/) and [Stability](https://pla
 These are purely UI/UX hints to help you organize your mini-app, and can be reversed any time.
 These cells keeps updating normally when the results they reference update.
 
-## Examples:
+## ⚙️ Settings
 
-_Building an AI Cadavre Exquis app in 12 minutes (sped up!)_
+You can access additonal settings by clicking on the rightmost button in the footer toolbar, the ⚙️ button.
+
+<img width="25%" alt="Capture d’écran 2023-10-22 à 16 56 08" src="https://github.com/juliendorra/esquisse/assets/109677/4ce7a78f-ae57-4394-b17e-f92213289654">
+
+### Fast & Cheap / Quality
+
+Enabling Quality switch from GPT3.5-turbo and SD2.1 to GPT4 and SDXL in the backend.
+
+The setting is purely temporary in memory and not persisted across different pages or page reloads. Esquisse will for now always load in Fast & Cheap mode, which is a sane default for prototyping.
+
+Initially, Esquisse was using only GPT3.5-turbo and SD2.1. These are fast models, that don't hinder iterations when prototyoping. And so a significant obstacle for replacing all the repetitive promptings with Esquisse apps was the quality of texts and images. But at the same time, switching everything to GPT4 and SDXL is much slower and 6x, 20, 30x more expensive! (image, text input, text output). With the Fast & Cheap / Quality switch, users can prototype quickly and cheaply, and switch to quality mode when it's useful 😃
+
+### Flow view
+
+Enabling the flow view highlight how results from one block flows to another. You can mix and match AI results, the flow view help users check at a glance that they built their AI workflow the way they wanted to.
+
+https://github.com/juliendorra/esquisse/assets/109677/4180b482-dc7d-4fe2-92fc-cdb4e36ef7ab
+
+## Auto naming
+
+Your Esquisse page will automatically be titled using the name of the first group. This make it much easier to find an opened Esquisse page to use again, via tabs, menus or exposé on Mac. It works well when using a Break block at the top of the page as an intro title to the Esquisse page.
+
+<img width="25%" alt="Capture d’écran 2023-10-16 à 17 38 48" src="https://github.com/juliendorra/esquisse/assets/109677/d5e2bb52-1e94-4c28-954a-dea662a3f820">
+
+## Demo examples
+
+### Building an AI Cadavre Exquis app in 12 minutes (sped up!)
 
 https://github.com/juliendorra/esquisse/assets/109677/96162abe-a2eb-42b2-91e2-5df241a6722b
 
+### Prompt augmentation with Esquisse ✍️
+Prompt augmentation is a known trick to create better images with AI models: use an LLM (ex. ChatGPT) to create a very detailed prompt of visual keywords, helping the image diffusion model to find the right spot in its latent space.
 
-_[early version] Screenshot of a simple app that generates three images combining a character and scene as paintings from the the 16th, 17th and 19th century:_
+With Esquisse, you can build a prompt augmentation workflow with for example inputs for a character and landscape, and reuse it at will, without needing to copy/paste prompts.
 
-<img width="50%" alt="screenshot of a simple app that generates three images combining a character and scene as paintings from the the 16th, 17th and 19th century" src="https://github.com/BenthamRealities/visi-llm/assets/109677/2d42c609-91b9-49de-80d2-839322a3faae">
+https://github.com/juliendorra/esquisse/assets/109677/2ba3c590-2768-420f-874b-80df75f6bd06
 
-_Students at Strate in the process of creating apps:_
+### [early version] Screenshot of a simple app that generates three images combining a character and scene as paintings from the the 16th, 17th and 19th century:_
 
-<img width="50%"  src="https://github.com/BenthamRealities/visi-llm/assets/109677/9213c7fc-d86c-47ef-a9ce-a52fa3271394">
+<img width="30%" alt="screenshot of a simple app that generates three images combining a character and scene as paintings from the the 16th, 17th and 19th century" src="https://github.com/BenthamRealities/visi-llm/assets/109677/2d42c609-91b9-49de-80d2-839322a3faae">
 
-<img width="50%"  src="https://github.com/BenthamRealities/visi-llm/assets/109677/9faeded3-d248-4456-81e6-cce76358b28f">
+### Students at Strate in the process of creating apps:_
+
+<img width="30%"  src="https://github.com/BenthamRealities/visi-llm/assets/109677/9213c7fc-d86c-47ef-a9ce-a52fa3271394">
+
+<img width="30%"  src="https://github.com/BenthamRealities/visi-llm/assets/109677/9faeded3-d248-4456-81e6-cce76358b28f">
 
 ## Local dev
 - install Deno locally https://docs.deno.com/runtime/manual/
