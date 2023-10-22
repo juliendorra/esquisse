@@ -41,12 +41,15 @@
             --title-text-color: #929292;
             --footer-btn-color: #363636;
 
-            --group-break-color-code: #fefefe;
+            --slight-passthrough-color: rgba(255, 255, 255, 0.5);
+
+            --group-break-color-code-button: #929292;
+            --group-break-color-code: #e1e1e1;
             --group-static-color-code: rgb(154, 123, 212);
             --group-text-color-code: rgb(186, 226, 127);
             --group-image-color-code: rgb(233, 107, 168);
 
-            --card-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            --card-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
             --primary-font: 'Helvetica Neue', sans-serif;
         }
 
@@ -60,7 +63,15 @@
             margin: 0;
             padding: 0;
             font-weight: normal;
-            background-color: var(--neutral-color);
+            background-color: transparent;
+            background: none;
+        }
+
+        canvas#mesh-background {
+            z-index: -99;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
 
         @media screen and (max-width: 450px) {
@@ -78,6 +89,8 @@
             padding: 0.4rem;
             border-style: solid;
             border-color: #cccccc;
+            background: none;
+            background-color: transparent;
         }
 
         div,
@@ -99,26 +112,63 @@
             margin-bottom: var(--footer-height);
             height: fit-content;
 
-            /* this transitions are used by the miniview styles */
-            transition:
-                transform 0.15s ease-in-out,
-                margin-top 0.15s ease-in-out,
-                margin-bottom 0.15s ease-in-out;
-
-            background-color: var(--neutral-color);
+            background-color: transparent;
+            background: none;
         }
 
         .group {
             border: 2px solid #ccc;
+            border-radius: 0.5rem;
             padding: 0.75rem;
-            margin: 0.75rem;
+            margin: 1.7rem;
             display: flex;
             flex-direction: column;
             max-width: 20rem;
             position: relative;
-            border-radius: 0.5rem;
-            background-color: white;
-            box-shadow: var(--card-shadow);
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+
+        .group::before {
+            transition:
+                top 0.15s ease-in-out,
+                left 0.15s ease-in-out,
+                right 0.15s ease-in-out,
+                bottom 0.15s ease-in-out;
+        }
+
+        .group::before {
+            content: "";
+            position: absolute;
+
+            --pane-overgrowth: -0.9rem;
+            top: var(--pane-overgrowth);
+            left: var(--pane-overgrowth);
+            right: var(--pane-overgrowth);
+            bottom: var(--pane-overgrowth);
+
+            backdrop-filter: blur(10px);
+
+            /* border-radius a little larger than the parent's border-radius to match the appearance */
+            border-radius: 0.7rem;
+
+            z-index: -1;
+            background-color: var(--slight-passthrough-color);
+
+            opacity: 1;
+
+        }
+
+
+        .miniview .group::before {
+            /* hide the glass pane border in miniview
+            as it was popping off and on when sorting 
+            probably a z-index issue but at small scale it's better to streamline the view */
+            --pane-overgrowth: 0rem;
+            top: var(--pane-overgrowth);
+            left: var(--pane-overgrowth);
+            right: var(--pane-overgrowth);
+            bottom: var(--pane-overgrowth);
+
         }
 
         @media screen and (max-width: 450px) {
@@ -126,16 +176,15 @@
                 width: 100%;
                 align-self: center;
                 margin: 0.75rem 0 0.75rem 0;
-
             }
         }
 
         .group.break {
             flex-basis: 100%;
             height: fit-content;
-            background-color: var(--group-break-color-code);
+            background-color: var(--slight-passthrough-color);
             max-width: none;
-            border: none;
+            border-color: var(--group-break-color-code);
         }
 
         .group.break input {
@@ -144,7 +193,7 @@
             border: none;
             font-size: 120%;
             text-align: center;
-            background-color: inherit;
+            background-color: transparent;
             color: var(--title-text-color);
         }
 
@@ -311,6 +360,9 @@
             display: inline-block;
             cursor: pointer;
 
+            -webkit-user-select: none;
+            user-select: none;
+
             font-weight: 500;
 
             color: var(--footer-btn-color);
@@ -357,7 +409,7 @@
         }
 
         .add-break-group-btn {
-            border-color: var(--title-text-color)
+            border-color: var(--group-break-color-code-button)
         }
 
         .add-static-group-btn {
@@ -424,8 +476,10 @@
             background-color: rgba(153, 187, 255, 0.5);
         }
 
-        .sortable-drag {
-            opacity: 0.3;
+        .sortable-drag,
+        .sortable-drag * {
+            opacity: 0;
+            border: none;
         }
 
         .group.break.sortable-ghost {
@@ -434,12 +488,6 @@
         }
 
         @media screen and (max-width: 450px) {
-
-            .sortable-drag,
-            .sortable-drag * {
-                opacity: 0;
-                border: none;
-            }
 
             .group.break.sortable-ghost {
                 flex-basis: 50%;
@@ -483,11 +531,36 @@
             cursor: grabbing !important;
         }
 
-        .miniview.container {
+        .zoomable {
+            /* this transitions are used by the miniview styles */
+            transition:
+                transform 0.15s ease-in-out,
+                margin-top 0.15s ease-in-out,
+                margin-bottom 0.15s ease-in-out;
+        }
+
+        .zoomable::before {
+            content: "";
+            display: block;
+            position: fixed;
+
+            top: -100vh;
+            left: -100vw;
+            right: -100vw;
+            bottom: calc(-100vw/var(--scale));
+
+            backdrop-filter: blur(10vw);
+            -webkit-backdrop-filter: blur(10vw);
+
+            z-index: -2;
+        }
+
+
+        .miniview.zoomable {
             transform: scale(var(--scale));
             transform-origin: top center;
             /* arbitrary small sizing to avoid white space below the container */
-            height: 10vh;
+            height: 20vh;
         }
 
         .miniview .tool-btn {
@@ -502,15 +575,15 @@
         }
 
         .waiting {
-            color: #f8a7ff;
             cursor: wait !important;
-
-            background-image: linear-gradient(270deg, #f8a7ff, #efe4f9, #f8a7ff);
-            animation: scrollingBackground 40s infinite linear;
+            --gradient-first-color: rgba(255, 175, 226, 0.2);
+            --gradient-second-color: rgba(255, 99, 220, 0.2);
+            background-image: linear-gradient(270deg, var(--gradient-first-color), 40%, var(--gradient-second-color), 70%, var(--gradient-first-color));
+            animation: scrollingBackground 20s infinite linear;
         }
 
         .waiting * {
-            opacity: 0.5;
+            opacity: 0.8;
             cursor: wait !important;
         }
 
@@ -633,9 +706,13 @@
 </head>
 
 <body>
+
     <div class="fetching-indicator"></div>
 
-    <div class="container"> </div>
+    <div class="zoomable">
+        <canvas id="mesh-background"></canvas>
+        <div class="container"> </div>
+    </div>
 
     <div class="footer-tools">
         <button class="footer-btn exit-miniview-btn">Back 🗺️</button>

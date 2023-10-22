@@ -1,4 +1,3 @@
-
 export { showDataFlow, removeDataFlow };
 
 let DATAFLOW_LINES = [];
@@ -19,13 +18,13 @@ const DATAFLOW_LINES_PALETTE =
     ];
 
 
-function showDataFlow(IS_USED_BY_GRAPH) {
+function showDataFlow(isUsedByGraph) {
 
-    const nodes = IS_USED_BY_GRAPH.nodes();
+    const nodes = isUsedByGraph.nodes();
 
     for (const node of nodes) {
 
-        const adjacents = IS_USED_BY_GRAPH.adjacent(node)
+        const adjacents = isUsedByGraph.adjacent(node)
 
         for (const adjacent of adjacents) {
 
