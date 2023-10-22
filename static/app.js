@@ -11,6 +11,7 @@ import { groupsMap, createGroupAndAddGroupElement } from "./groupmanagement.js";
 
 import { referencesGraph } from "./referencegraphmanagement.js";
 
+import { initMeshBackground } from "./meshbackground.js";
 
 const SETTINGS = {
 
@@ -121,4 +122,5 @@ function init() {
 
     });
 
+    initMeshBackground();
 }
