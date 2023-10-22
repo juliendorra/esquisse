@@ -4,7 +4,7 @@ import { getReferencedResultsAndCombinedDataWithResults } from "./referencematch
 import { persistGroups } from "./persistence.js";
 import { SETTINGS } from "./app.js";
 
-export { handleInputChange };
+export { handleInputChange, nameChangeHandler };
 
 const DELAY = 5000;
 
@@ -220,6 +220,41 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
         }
     }
 }
+
+function nameChangeHandler(group, groupNameElement, groups) {
+    return () => {
+
+        //Automatically deduplicate block names: add number like in Finder. Starts at 2. 
+        let baseName = groupNameElement.value.trim();
+        let finalName = baseName;
+        let counter = 2;
+
+        // Convert the base name to lowercase for case-insensitive comparison
+        const baseNameLower = baseName.toLowerCase();
+
+        while (Array.from(groups.values()).some(g => g.name.toLowerCase() === finalName.toLowerCase())) {
+            finalName = `${baseName} ${counter}`;
+            counter++;
+        }
+
+        group.name = finalName;
+
+        groupNameElement.value = finalName;
+
+        // if this is the first group, rename the page using its new name
+        if (group.id === groups.keys().next().value) {
+            document.title = `${group.name} · Esquisse AI`;
+        }
+
+        console.log(`Group ${groupNameElement} name now:${group.name}`);
+
+        // update the groups using the new name in their reference
+        updateGroupsReferencingIt(group.id, groups);
+
+        persistGroups(groups);
+    };
+}
+
 
 function randomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);

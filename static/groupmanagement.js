@@ -1,9 +1,11 @@
 import { GROUP_TYPE, INTERACTION_STATE, getGroupIdFromElement, getGroupElementFromId, getGroupFromName, generateUniqueGroupID } from "./grouputils.js";
+
 import { getReferencedResultsAndCombinedDataWithResults } from "./referencematching.js";
-import { persistGroups } from "./persistence.js";
-import { handleInputChange } from "./inputchangehandler.js";
+import { handleInputChange, nameChangeHandler } from "./inputchangehandler.js";
 import { onDragStart, onDragEnd } from "./reordering.js";
 import { referencesGraph } from "./referencegraphmanagement.js";
+
+import { persistGroups } from "./persistence.js";
 
 let PRIVATE_GROUPS = new Map();
 
@@ -15,7 +17,6 @@ const groupsMap = {
         PRIVATE_GROUPS = map;
     }
 };
-
 
 export { groupsMap, addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, setGroupInteractionState, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, rebuildGroupsInNewOrder };
 
@@ -200,18 +201,7 @@ function addEventListenersToGroup(groupElement, groups) {
 
     // Persist and handle change when a group's name, data or transform changes
 
-    groupNameElement?.addEventListener("change", () => {
-
-        group.name = groupNameElement.value.trim();
-
-        // if this is the first group, rename the page using its new name
-        if (group.id === groups.keys().next().value) {
-            document.title = `${group.name} · Esquisse AI`;
-        }
-
-        console.log(`Group ${groupNameElement} name now:${group.name}`)
-        persistGroups(groups);
-    });
+    groupNameElement?.addEventListener("change", nameChangeHandler(group, groupNameElement, groups));
 
     dataElement?.addEventListener('change',
         () => {
@@ -267,6 +257,7 @@ function addEventListenersToGroup(groupElement, groups) {
 
 
 }
+
 
 function deleteGroup(groupElement, groups) {
     const id = getGroupIdFromElement(groupElement);
