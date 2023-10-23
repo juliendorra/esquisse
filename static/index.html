@@ -236,6 +236,10 @@
             user-select: none;
         }
 
+        .group-header small img {
+            height: 1rem;
+        }
+
         .group-header .drag-handle {
             -webkit-touch-callout: none;
             -webkit-user-select: none;
@@ -253,11 +257,15 @@
         }
 
         .delete-btn {
-            padding: 0.1rem 0.3rem;
+            padding: 0rem 0.3rem 0.1rem 0.3rem;
             font-size: 0.8em;
             border: 1px solid #cccccc;
             cursor: pointer;
             background-color: transparent;
+        }
+
+        .group-header button.delete-btn img {
+            height: 0.5rem;
         }
 
         .function-buttons-container {
@@ -385,6 +393,17 @@
         .footer-btn:hover {
             background-color: var(--neutral-color);
         }
+
+        .footer-btn img {
+            padding-left: 0.3rem;
+            height: 0.8rem;
+            vertical-align: text-bottom;
+        }
+
+        .footer-btn.open-settings-menu-btn img {
+            padding-left: 0;
+        }
+
 
         .enter-miniview-btn,
         .exit-miniview-btn {
@@ -715,13 +734,13 @@
     </div>
 
     <div class="footer-tools">
-        <button class="footer-btn exit-miniview-btn">Back 🗺️</button>
-        <button class="footer-btn enter-miniview-btn">Miniview 🗺️</button>
-        <button class="footer-btn add-break-group-btn">Add Break ➗</button>
-        <button class="footer-btn add-static-group-btn">Add Static Text 💠</button>
-        <button class="footer-btn add-group-btn">Add Text Transform 📝</button>
-        <button class="footer-btn add-img-group-btn">Add Image Gen 🎨</button>
-        <button class="footer-btn open-settings-menu-btn">⚙️</button>
+        <button class="footer-btn exit-miniview-btn">Back <span class="icon-btn">🗺️</span></button>
+        <button class="footer-btn enter-miniview-btn">Miniview <span class="icon-btn">🗺️</span></button>
+        <button class="footer-btn add-break-group-btn">Add Break <span class="icon-btn">➗</span></button>
+        <button class="footer-btn add-static-group-btn">Add Static Text <span class="icon-btn"><img src="./icons/text-static.svg"></span></button>
+        <button class="footer-btn add-group-btn">Add Text Transform <span class="icon-btn"><img src="./icons/text-gen.svg"></span></button>
+        <button class="footer-btn add-img-group-btn">Add Image Gen <span class="icon-btn"><img src="./icons/image-gen.svg"></span></button>
+        <button class="footer-btn open-settings-menu-btn"><span class="icon-btn"><img src="./icons/settings.svg"></span></button>
     </div>
 
     <sl-drawer label="Settings" class="settings-menu">

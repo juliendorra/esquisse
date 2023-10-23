@@ -33,7 +33,7 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
                 <div class="group-header">
                     <small>➗</small>
                     <div class="drag-handle">···</div>
-                    <button class="tool-btn delete-btn">&#x2715;</button>
+                    <button class="tool-btn delete-btn"><img src="./icons/delete.svg"></button>
                 </div>
                 <input type="text" class="group-name" placeholder="Name of this block">
             `;
@@ -43,16 +43,17 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
             groupElement.className = "group static";
             groupElement.innerHTML = `
                 <div class="group-header">
-                    <small>💠</small>
+                    <small><img src="./icons/text-static.svg"></small>
                     <div class="drag-handle">···</div>
-                    <button class="tool-btn delete-btn">&#x2715;</button>
+                    <button class="tool-btn delete-btn"><img src="./icons/delete.svg"></button>
                 </div>
                 <input type="text" class="group-name" placeholder="Name of this block">
                 <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
                 <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
+
                 <div class="function-buttons-container">
-                <button class="tool-btn entry-btn">📥</button>
-                <button class="tool-btn lock-btn">🔒</button>
+                    <button class="tool-btn entry-btn">📥</button>
+                    <button class="tool-btn lock-btn">🔒</button>
                 </div>
             `;
             break;
@@ -61,14 +62,16 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
             groupElement.className = "group image";
             groupElement.innerHTML = `
                 <div class="group-header">
-                    <small>🎨</small>
+                    <small><img src="./icons/image-gen.svg"></small>
                     <div class="drag-handle">···</div>
-                    <button class="tool-btn delete-btn">&#x2715;</button>
+                    <button class="tool-btn delete-btn"><img src="./icons/delete.svg"></button>
                 </div>
+
                 <input type="text" class="group-name" placeholder="Name of this Block">
                 <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
                 <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
                 <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
+
                 <div class="function-buttons-container">
                     <button class="tool-btn entry-btn">📥</button>
                     <button class="tool-btn lock-btn">🔒</button>
@@ -83,18 +86,20 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
             groupElement.className = "group text";
             groupElement.innerHTML = `
                 <div class="group-header">
-                    <small>📝</small>
+                    <small><img src="./icons/text-gen.svg"></small>
                     <div class="drag-handle">···</div>
-                    <button class="tool-btn delete-btn">&#x2715</button>
+                    <button class="tool-btn delete-btn"><img src="./icons/delete.svg"></button>
                 </div>
+
                 <input type="text" class="group-name" placeholder="Name of this block">
                 <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
                 <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
                 <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
+
                 <div class="function-buttons-container">
-                <button class="tool-btn entry-btn">📥</button>
-                <button class="tool-btn lock-btn">🔒</button>
-                <button class="tool-btn refresh-btn">🔄</button>
+                    <button class="tool-btn entry-btn">📥</button>
+                    <button class="tool-btn lock-btn">🔒</button>
+                    <button class="tool-btn refresh-btn">🔄</button>
                 </div>
             `;
     }
