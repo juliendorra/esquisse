@@ -52,8 +52,8 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
                 <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
 
                 <div class="function-buttons-container">
-                    <button class="tool-btn entry-btn">📥</button>
-                    <button class="tool-btn lock-btn">🔒</button>
+                    <button class="tool-btn entry-btn"><img src="./icons/entry.svg"></button>
+                    <button class="tool-btn lock-btn"><img src="./icons/lock.svg"></button>
                 </div>
             `;
             break;
@@ -73,12 +73,13 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
                 <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
 
                 <div class="function-buttons-container">
-                    <button class="tool-btn entry-btn">📥</button>
-                    <button class="tool-btn lock-btn">🔒</button>
+                    <button class="tool-btn entry-btn"><img src="./icons/entry.svg"></button>
+                    <button class="tool-btn lock-btn"><img src="./icons/lock.svg"></button>
                     <button class="tool-btn refresh-btn">🔄</button>
                 </div>
+
                 <img class="result">
-                <a class="download-btn">⬇️</a>
+                <a class="download-btn"><img src="./icons/download.svg"></a>
             `;
             break;
 
@@ -97,8 +98,8 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
                 <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
 
                 <div class="function-buttons-container">
-                    <button class="tool-btn entry-btn">📥</button>
-                    <button class="tool-btn lock-btn">🔒</button>
+                    <button class="tool-btn entry-btn"><img src="./icons/entry.svg"></button>
+                    <button class="tool-btn lock-btn"><img src="./icons/lock.svg"></button>
                     <button class="tool-btn refresh-btn">🔄</button>
                 </div>
             `;
