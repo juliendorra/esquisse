@@ -44,6 +44,7 @@
             --slight-passthrough-color: rgba(255, 255, 255, 0.5);
 
             --group-break-color-code-button: #929292;
+            --group-break-color-code-border: #ffffff;
             --group-break-color-code: #e1e1e1;
             --group-static-color-code: rgb(154, 123, 212);
             --group-text-color-code: rgb(186, 226, 127);
@@ -99,8 +100,9 @@
 
         div,
         button,
+        .tool-btn,
         textarea {
-            border-radius: 0.1rem;
+            border-radius: 0.3rem;
         }
 
         ::placeholder {
@@ -120,10 +122,13 @@
             background: none;
         }
 
+        /* Group */
+
         .group {
-            border: 2px solid #ccc;
+            border: 1.5px solid #ccc;
             border-radius: 0.5rem;
             padding: 0.75rem;
+            padding-top: 0;
             margin: 1.7rem;
             display: flex;
             flex-direction: column;
@@ -131,37 +136,6 @@
             position: relative;
             background-color: rgba(255, 255, 255, 0.95);
         }
-
-        .group::before {
-            transition:
-                top 0.15s ease-in-out,
-                left 0.15s ease-in-out,
-                right 0.15s ease-in-out,
-                bottom 0.15s ease-in-out;
-        }
-
-        .group::before {
-            content: "";
-            position: absolute;
-
-            --pane-overgrowth: -0.9rem;
-            top: var(--pane-overgrowth);
-            left: var(--pane-overgrowth);
-            right: var(--pane-overgrowth);
-            bottom: var(--pane-overgrowth);
-
-            backdrop-filter: blur(10px);
-
-            /* border-radius a little larger than the parent's border-radius to match the appearance */
-            border-radius: 0.7rem;
-
-            z-index: -1;
-            background-color: var(--slight-passthrough-color);
-
-            opacity: 1;
-
-        }
-
 
         .miniview .group::before {
             /* hide the glass pane border in miniview
@@ -188,7 +162,7 @@
             height: fit-content;
             background-color: var(--slight-passthrough-color);
             max-width: none;
-            border-color: var(--group-break-color-code);
+            border-color: var(--group-break-color-code-border);
         }
 
         .group.break input {
@@ -240,9 +214,39 @@
             user-select: none;
         }
 
-        .group-header small img {
-            height: 1rem;
+        .group-header small {
+            padding: 0.35rem 0.55rem 0.35rem 0.55rem;
+            border-radius: 0.45rem 0 0.3rem 0;
+            position: relative;
+            top: 0;
+            left: -0.8rem;
         }
+
+        .group.static .group-header small {
+            background-color: var(--group-static-color-code);
+        }
+
+        .group.text .group-header small {
+            background-color: var(--group-text-color-code);
+        }
+
+        .group.image .group-header small {
+            background-color: var(--group-image-color-code);
+        }
+
+        .group.break .group-header small {
+            background-color: var(--group-break-color-code-border);
+        }
+
+        .group-header small img {
+            filter: brightness(0) invert();
+            height: 0.75rem;
+        }
+
+        .group.break .group-header small img {
+            filter: brightness(0) invert() contrast(40%);
+        }
+
 
         .group-header .drag-handle {
             -webkit-touch-callout: none;
@@ -253,7 +257,8 @@
 
             font-size: 200%;
             height: 1ex;
-            margin-top: -2ex;
+            margin-top: -1.5rem;
+
             padding-left: 1em;
             padding-right: 1em;
 
@@ -261,28 +266,30 @@
         }
 
         .delete-btn {
-            padding: 0rem 0.3rem 0.1rem 0.3rem;
-            font-size: 0.8em;
-            border: 1px solid #cccccc;
+            padding: 0.1rem 0.3rem 0.15rem 0.3rem;
+            border: none;
+            background-color: none;
             cursor: pointer;
-            background-color: transparent;
+            position: relative;
+            right: -0.5rem;
         }
 
         .group-header button.delete-btn img {
-            height: 0.5rem;
+            height: 0.75rem;
         }
 
         .function-buttons-container {
             display: flex;
             justify-content: flex-end;
             margin-bottom: 0.5rem;
+            margin-top: 0.5rem;
         }
 
 
         .lock-btn,
         .entry-btn,
         .refresh-btn {
-            padding: 0.4rem 0.5rem;
+            padding: 0.4rem 0.5rem 0.25rem 0.5rem;
             font-size: 0.8em;
             align-self: flex-end;
             border: 1px solid #cccccc;
@@ -296,14 +303,43 @@
         .entry-btn,
         .refresh-btn {
             border-color: var(--light-border);
-            background-color: white;
+            background-color: transparent;
             transition: background-color 0.1s;
+
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .group.static .delete-btn,
+        .group.static .lock-btn,
+        .group.static .entry-btn,
+        .group.static .refresh-btn,
+        .group.static .download-btn {
+            border-color: var(--group-static-color-code);
+        }
+
+        .group.text .delete-btn,
+        .group.text .lock-btn,
+        .group.text .entry-btn,
+        .group.text .refresh-btn,
+        .group.text .download-btn {
+            border-color: var(--group-text-color-code);
+        }
+
+        .group.image .delete-btn,
+        .group.image .lock-btn,
+        .group.image .entry-btn,
+        .group.image .refresh-btn,
+        .group.image .download-btn {
+            border-color: var(--group-image-color-code);
         }
 
         .delete-btn:hover,
         .lock-btn:hover,
         .entry-btn:hover,
-        .refresh-btn:hover {
+        .refresh-btn:hover,
+        .download-btn:hover {
             background-color: var(--neutral-color);
         }
 
@@ -312,6 +348,10 @@
         .refresh-btn img,
         .download-btn img {
             height: 1rem;
+
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         .download-btn {
@@ -323,6 +363,10 @@
             background-color: transparent;
             margin-left: 0.5rem;
             margin-top: 0.5rem;
+
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         .group-name,
@@ -330,6 +374,12 @@
         .transform-text,
         .referenced-result-text {
             margin-bottom: 0.5rem;
+        }
+
+        .group-name {
+            font-size: 0.8rem;
+            border: none;
+            text-align: center;
         }
 
         textarea[readonly],
@@ -351,6 +401,8 @@
         img.result {
             max-width: 0.77.5vw;
         }
+
+        /* Footer Tools Buttons */
 
         .footer-tools {
             position: fixed;
@@ -461,6 +513,8 @@
         .open-settings-menu-btn {
             margin-left: auto;
         }
+
+        /* Settings Menu */
 
         sl-drawer div {
             margin-bottom: 2rem;
@@ -745,9 +799,9 @@
     </div>
 
     <div class="footer-tools">
-        <button class="footer-btn exit-miniview-btn">Back <span class="icon-btn">🗺️</span></button>
-        <button class="footer-btn enter-miniview-btn">Miniview <span class="icon-btn">🗺️</span></button>
-        <button class="footer-btn add-break-group-btn">Add Break <span class="icon-btn">➗</span></button>
+        <button class="footer-btn exit-miniview-btn">Back <span class="icon-btn"><img src="./icons/miniview.svg"></span></button>
+        <button class="footer-btn enter-miniview-btn">Miniview <span class="icon-btn"><img src="./icons/miniview.svg"></span></button>
+        <button class="footer-btn add-break-group-btn">Add Break <span class="icon-btn"><img src="./icons/break.svg"></span></button>
         <button class="footer-btn add-static-group-btn">Add Static Text <span class="icon-btn"><img src="./icons/text-static.svg"></span></button>
         <button class="footer-btn add-group-btn">Add Text Transform <span class="icon-btn"><img src="./icons/text-gen.svg"></span></button>
         <button class="footer-btn add-img-group-btn">Add Image Gen <span class="icon-btn"><img src="./icons/image-gen.svg"></span></button>

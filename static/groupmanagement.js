@@ -31,7 +31,7 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
             groupElement.className = "group break";
             groupElement.innerHTML = `
                 <div class="group-header">
-                    <small>➗</small>
+                    <small><img src="./icons/break.svg"></small>
                     <div class="drag-handle">···</div>
                     <button class="tool-btn delete-btn"><img src="./icons/delete.svg"></button>
                 </div>
@@ -75,11 +75,11 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
                 <div class="function-buttons-container">
                     <button class="tool-btn entry-btn"><img src="./icons/entry.svg"></button>
                     <button class="tool-btn lock-btn"><img src="./icons/lock.svg"></button>
-                    <button class="tool-btn refresh-btn">🔄</button>
+                    <button class="tool-btn refresh-btn"><img src="./icons/refresh.svg"></button>
                 </div>
 
                 <img class="result">
-                <a class="download-btn"><img src="./icons/download.svg"></a>
+                <a class="tool-btn download-btn"><img src="./icons/download.svg"></a>
             `;
             break;
 
@@ -100,7 +100,7 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
                 <div class="function-buttons-container">
                     <button class="tool-btn entry-btn"><img src="./icons/entry.svg"></button>
                     <button class="tool-btn lock-btn"><img src="./icons/lock.svg"></button>
-                    <button class="tool-btn refresh-btn">🔄</button>
+                    <button class="tool-btn refresh-btn"><img src="./icons/refresh.svg"></button>
                 </div>
             `;
     }
