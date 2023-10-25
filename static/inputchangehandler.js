@@ -161,14 +161,14 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
                         downloadButton.download = group.name + "" + randomInt(1, 99999) + ".png";
 
                         delete REQUEST_QUEUE[group.name];
+
+                        groupElement.classList.remove("waiting")
+                        removeGlobalWaitingIndicator();
+
                         resolve(base64data);
                     };
                     reader.onerror = reject;
                     reader.readAsDataURL(blob);
-
-                    groupElement.classList.remove("waiting")
-                    removeGlobalWaitingIndicator();
-
                 });
             } catch (error) {
                 groupElement.classList.remove("waiting")
