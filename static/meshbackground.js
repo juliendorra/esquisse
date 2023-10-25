@@ -296,32 +296,3 @@ function arraysEqual(a, b) {
 
     return true;
 }
-
-
-// Observe entering the miniview
-
-// const zoomableElement = document.querySelector('.zoomable');
-
-// const config = {
-//     attributes: true,
-//     attributeFilter: ['class']
-// };
-
-// const zoomableCallback = (mutationsList) => {
-//     for (let mutation of mutationsList) {
-//         if (mutation.type === 'attributes') {
-//             if (mutation.target.classList.contains('miniview')) {
-//                 console.log('[Mesh Background] Class "miniview" was added');
-//                 animateBackground();
-//             }
-//             else {
-//                 console.log('[Mesh Background] Class "miniview" not present');
-//                 stopBackgroundAnimation();
-//             }
-//         }
-//     }
-// };
-
-// const zoomableObserver = new MutationObserver(zoomableCallback);
-// zoomableObserver.observe(zoomableElement, config);
-
