@@ -1,7 +1,5 @@
 import { Sortable, MultiDrag } from 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/+esm';
-import { showDataFlow, removeDataFlow } from './dataflowvisualization.js';
 import { rebuildGroupsInNewOrder } from './groupmanagement.js';
-import { SETTINGS } from './app.js';
 
 export { onDragStart, onDragEnd, addMiniviewButtonsListeners };
 
@@ -29,6 +27,21 @@ Sortable.create(document.querySelector('.container'), {
 });
 
 function onStartSortable(event) {
+
+    const zoomableElement = document.querySelector(".zoomable");
+
+    const sortstarted = new CustomEvent("sortstart", {
+        detail: "",
+        bubbles: true,
+        cancelable: true
+    });
+
+    zoomableElement.dispatchEvent(sortstarted);
+
+    onEnteringMiniview();
+}
+
+function onEnteringMiniview() {
 
     const windowHeight = window.innerHeight;
 
@@ -66,14 +79,17 @@ function onEndSortable(event) {
 
     const zoomableElement = document.querySelector(".zoomable");
 
+    const sortended = new CustomEvent("sortend", {
+        detail: "",
+        bubbles: true,
+        cancelable: true
+    });
+
+    zoomableElement.dispatchEvent(sortended);
+
     if (!MINI_VIEW_BY_BUTTON) zoomableElement.classList.remove("miniview");
 
     event.item.classList.remove("grabbing");
-
-    removeDataFlow();
-    if (SETTINGS.dataFlowEnabled) {
-        showDataFlow();
-    }
 
     const groupElements = document.querySelectorAll('.container .group');
 
@@ -100,7 +116,7 @@ function addMiniviewButtonsListeners() {
 
             MINI_VIEW_BY_BUTTON = true;
 
-            onStartSortable();
+            onEnteringMiniview();
 
             const enterMiniviewButton = document.querySelector(".enter-miniview-btn");
             enterMiniviewButton.style.display = 'none';

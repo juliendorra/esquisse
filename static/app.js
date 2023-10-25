@@ -57,22 +57,6 @@ function init() {
 
     addMiniviewButtonsListeners();
 
-    const groupsContainer = document.querySelector(".container");
-
-    const transitionstartHandler = (event) => {
-        removeDataFlow();
-    }
-
-    const transitionendHandler = (event) => {
-        removeDataFlow();
-        if (SETTINGS.dataFlowEnabled) {
-            showDataFlow(referencesGraph.IS_USED_BY_GRAPH);
-        }
-    }
-
-    groupsContainer.addEventListener("transitionstart", transitionstartHandler)
-    groupsContainer.addEventListener("transitionend", transitionendHandler)
-
     document
         .querySelector(".add-break-group-btn")
         .addEventListener("click", () => createGroupAndAddGroupElement(GROUP_TYPE.BREAK, groupsMap.GROUPS));

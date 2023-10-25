@@ -1,4 +1,9 @@
+import { SETTINGS } from './app.js';
+import { referencesGraph } from "./referencegraphmanagement.js";
+
 export { showDataFlow, removeDataFlow };
+
+let IS_SORTING = false;
 
 let DATAFLOW_LINES = [];
 
@@ -56,3 +61,53 @@ function removeDataFlow() {
     }
     DATAFLOW_LINES = [];
 }
+
+// Miniview event handling
+
+const zoomableElement = document.querySelector(".zoomable");
+
+
+const transitionStart = (event) => {
+
+    if (event.target === event.currentTarget) {
+        removeDataFlow();
+    }
+}
+
+const transitionEnd = (event) => {
+
+    if (event.target === event.currentTarget) {
+
+        removeDataFlow();
+        if (SETTINGS.dataFlowEnabled && !IS_SORTING) {
+
+            showDataFlow(referencesGraph.IS_USED_BY_GRAPH);
+        }
+    }
+}
+
+const sortStart = (event) => {
+
+    if (event.target === event.currentTarget) {
+        removeDataFlow();
+        IS_SORTING = true;
+    }
+}
+
+const sortEnd = (event) => {
+
+    if (event.target === event.currentTarget) {
+
+        removeDataFlow();
+        if (SETTINGS.dataFlowEnabled) {
+            showDataFlow(referencesGraph.IS_USED_BY_GRAPH);
+        }
+        IS_SORTING = false;
+    }
+}
+
+zoomableElement.addEventListener("transitionstart", transitionStart)
+zoomableElement.addEventListener("transitionend", transitionEnd)
+
+zoomableElement.addEventListener("sortstart", sortStart)
+zoomableElement.addEventListener("sortend", sortEnd)
