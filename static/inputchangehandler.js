@@ -39,10 +39,10 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     let currentData = data;
     let referencedResultsChanged = false;
 
-    const { hasReferences, referencedResults, combinedReferencedResults } = getReferencedResultsAndCombinedDataWithResults(data, group.name, groups);
+    const { hasReferences, invalidReferencedResults, notreadyReferencedResults, availableReferencedResults, combinedReferencedResults } = getReferencedResultsAndCombinedDataWithResults(data, group.name, groups);
 
     // if there's references, display them and use the combination of all references as currentData
-    if (referencedResults.length > 0) {
+    if (availableReferencedResults.length > 0) {
         displayCombinedReferencedResult(groupElement, combinedReferencedResults);
 
         // check if the new combined results from references is different from the previous combination
@@ -57,14 +57,14 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
         && group.transform === transform
         && !referencedResultsChanged
     ) {
-        console.log("No value changed, aborting input change");
+        console.log("[CHANGE HANDLING] No values changed, not a manual refresh, aborting input change");
         return;
     }
 
     if (group.type === GROUP_TYPE.STATIC) {
-        console.log(`[COMBINING] statict text ||| ${currentData}`);
+        console.log(`[CHANGE HANDLING] combining statict text: ${currentData}`);
 
-        group.result = combinedReferencedResults;
+        group.result = currentData;
 
         let resultParagraph = groupElement.querySelector(".result");
 
@@ -84,7 +84,11 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     persistGroups(groups);
 
     const lastTransformValue = transform;
-    const dataReadyToSend = !hasReferences && currentData || referencedResults.length > 0;
+
+    const hasInvalidReferencedResults = notreadyReferencedResults.length > 0 || invalidReferencedResults.length > 0;
+
+    // Ready to send request if: it's just text. Or references exists and are all valid
+    const dataReadyToSend = !hasReferences && currentData || availableReferencedResults.length > 0 && !hasInvalidReferencedResults;
 
     if (dataReadyToSend && lastTransformValue) {
         clearTimeout(REQUEST_QUEUE[group.name]);

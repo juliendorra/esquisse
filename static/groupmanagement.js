@@ -223,8 +223,8 @@ function addEventListenersToGroup(groupElement, groups) {
 
 
     dataElement?.addEventListener("blur", () => {
-        const { hasReferences, referencedResults, combinedReferencedResults } = getReferencedResultsAndCombinedDataWithResults(dataElement.value, group.name, groups);
-        if (referencedResults.length > 0) {
+        const { availableReferencedResults, combinedReferencedResults } = getReferencedResultsAndCombinedDataWithResults(dataElement.value, group.name, groups);
+        if (availableReferencedResults.length > 0) {
             group.combinedReferencedResults = combinedReferencedResults;
             displayCombinedReferencedResult(groupElement, combinedReferencedResults);
         }

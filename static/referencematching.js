@@ -60,19 +60,22 @@ function getReferencedResultsAndCombinedDataWithResults(dataText, currentGroupNa
 
     let hasReferences = namesOfAllGroupsReferencedByThisGroup && namesOfAllGroupsReferencedByThisGroup.length > 0;
 
-    let referencedResults = [];
+    let invalidReferencedResults = []; // [name, ...]
+    let notreadyReferencedResults = []; // [name, ...]
+    let availableReferencedResults = []; //[{ name, result },..} 
+
     let combinedReferencedResults = dataText;
 
     if (hasReferences) {
 
         const currentGroup = getGroupFromName(currentGroupName, groups);
-        const validReferencedResults = [];
 
         for (const name of namesOfAllGroupsReferencedByThisGroup) {
             const referencedGroup = getGroupFromName(name, groups);
 
             if (!referencedGroup) {
                 console.log(`Trying to show reference but no group "${name}" found`);
+                invalidReferencedResults.push(name);
                 continue;
             }
 
@@ -85,22 +88,23 @@ function getReferencedResultsAndCombinedDataWithResults(dataText, currentGroupNa
 
             if (hasDirectCircularReference || isSelfReference) {
                 console.log(`Direct circular reference between ${currentGroupName} and ${name}`);
+                invalidReferencedResults.push(name);
                 continue;
             }
 
             if (!referencedGroup.result) {
-                console.log(`The result for "${name}" is not set and can't be used by group "${currentGroupName}" when trying to get referenced results`);
+                console.log(`The result for "${name}" is not existing, and can't be used by group "${currentGroupName}" when trying to get referenced results`);
+
+                notreadyReferencedResults.push(name);
                 continue;
             }
 
             combinedReferencedResults = replaceThisGroupReferenceWithResult(name, combinedReferencedResults, groups);
 
-            validReferencedResults.push({ name, result: referencedGroup.result });
+            availableReferencedResults.push({ name, result: referencedGroup.result });
         }
-
-        referencedResults = validReferencedResults;
     }
 
 
-    return { hasReferences: hasReferences, referencedResults, combinedReferencedResults };
+    return { hasReferences: hasReferences, invalidReferencedResults, notreadyReferencedResults, availableReferencedResults, combinedReferencedResults };
 }
