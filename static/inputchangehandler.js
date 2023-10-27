@@ -1,6 +1,7 @@
 import { GROUP_TYPE, getGroupIdFromElement, getGroupElementFromId } from "./grouputils.js";
-import { updateGroupsReferencingIt, displayCombinedReferencedResult } from "./groupmanagement.js"
+import { updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText } from "./groupmanagement.js"
 import { getReferencedResultsAndCombinedDataWithResults } from "./referencematching.js";
+import { referencesGraph, updateReferenceGraph } from "./referencegraphmanagement.js";
 import { persistGroups } from "./persistence.js";
 import { SETTINGS } from "./app.js";
 
@@ -41,6 +42,10 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
     const { hasReferences, invalidReferencedResults, notreadyReferencedResults, availableReferencedResults, combinedReferencedResults } = getReferencedResultsAndCombinedDataWithResults(data, group.name, groups);
 
+    // we brute force rebuild the whole graph, in case the user changed the references
+    // wasteful but will make sure we don't miss any added or deleted reference
+    updateReferenceGraph(groups);
+
     // if there's references, display them and use the combination of all references as currentData
     if (availableReferencedResults.length > 0) {
         displayCombinedReferencedResult(groupElement, combinedReferencedResults);
@@ -50,10 +55,13 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
         referencedResultsChanged = currentData !== group.combinedReferencedResults;
         group.combinedReferencedResults = currentData;
     }
+    else {
+        displayDataText(groupElement);
+    }
 
     // we do nothing more if no change and not an explicit refresh request
     if (!isRefresh
-        && group.data === data
+        && group.data === currentData
         && group.transform === transform
         && !referencedResultsChanged
     ) {
@@ -228,6 +236,10 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 function nameChangeHandler(group, groupNameElement, groups) {
     return () => {
 
+        const previousUsersOfThisGroup = referencesGraph.IS_USED_BY_GRAPH.adjacent(group.id);
+
+        console.log("[NAME CHANGED] previousUsersOfThisGroup ", previousUsersOfThisGroup);
+
         //Automatically deduplicate block names: add number like in Finder. Starts at 2. 
         let baseName = groupNameElement.value.trim();
         let counter = 2;
@@ -255,8 +267,15 @@ function nameChangeHandler(group, groupNameElement, groups) {
 
         console.log(`Group ${groupNameElement} name now:${group.name}`);
 
+        // we brute force rebuild the whole graph
+        // wasteful but this make sure of the graph reflecting user-facing structure
+        updateReferenceGraph(groups);
+
         // update the groups using the new name in their reference
         updateGroupsReferencingIt(group.id, groups);
+
+        // update the now orphans groups so they stop showing this group results
+        updateGroups(previousUsersOfThisGroup, groups, false);
 
         persistGroups(groups);
     };

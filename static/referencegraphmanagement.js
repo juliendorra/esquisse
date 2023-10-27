@@ -15,10 +15,14 @@ const referencesGraph = {
     },
     set IS_USED_BY_GRAPH(graph) {
         PRiVATE_IS_USED_BY_GRAPH = graph;
-    }
+    },
 };
 
-export { referencesGraph, buildReverseReferenceGraph }
+export { referencesGraph, updateReferenceGraph, buildReverseReferenceGraph }
+
+function updateReferenceGraph(groups) {
+    referencesGraph.IS_USED_BY_GRAPH = buildReverseReferenceGraph(groups);
+}
 
 function buildReverseReferenceGraph(groups) {
 

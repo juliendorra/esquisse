@@ -18,7 +18,7 @@ const groupsMap = {
     }
 };
 
-export { groupsMap, addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, setGroupInteractionState, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, rebuildGroupsInNewOrder };
+export { groupsMap, addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, setGroupInteractionState, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, rebuildGroupsInNewOrder };
 
 function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
     const groupElement = document.createElement("div");
@@ -386,13 +386,23 @@ function displayCombinedReferencedResult(groupElement, combinedReferencedResults
     const refResultTextarea = groupElement.querySelector(".referenced-result-text");
     const dataText = groupElement.querySelector(".data-text");
 
-    console.log(`Displaying the group referenced result in refResultTextarea`);
+    console.log(`[DISPLAY] Displaying the group referenced result in refResultTextarea`);
 
     refResultTextarea.value = combinedReferencedResults ? combinedReferencedResults : "";
     refResultTextarea.style.display = "block";
     dataText.style.display = "none";
 
     return combinedReferencedResults;
+}
+
+function displayDataText(groupElement) {
+    const refResultTextarea = groupElement.querySelector(".referenced-result-text");
+    const dataText = groupElement.querySelector(".data-text");
+
+    console.log("[DISPLAY] Displaying the group data text, probably because no references exist or match");
+
+    refResultTextarea.style.display = "none";
+    dataText.style.display = "block";
 }
 
 function rebuildGroupsInNewOrder() {
