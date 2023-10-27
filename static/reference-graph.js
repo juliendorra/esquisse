@@ -15,6 +15,8 @@ const referencesGraph = {
     },
     set IS_USED_BY_GRAPH(graph) {
         PRiVATE_IS_USED_BY_GRAPH = graph;
+
+        emitGraphUpdatedEvent();
     },
 };
 
@@ -65,4 +67,14 @@ function buildReverseReferenceGraph(groups) {
     console.log(graph.serialize());
 
     return graph;
+}
+
+function emitGraphUpdatedEvent() {
+    const graphUpdated = new CustomEvent("graphupdated", {
+        detail: "",
+        bubbles: true,
+        cancelable: true
+    });
+
+    document.dispatchEvent(graphUpdated);
 }
