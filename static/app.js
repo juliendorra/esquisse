@@ -1,17 +1,17 @@
 
-import { showDataFlow, removeDataFlow } from "./dataflowvisualization.js";
+import { showDataFlow, removeDataFlow } from "./flow-visualization.js";
 
 import { addMiniviewButtonsListeners } from "./reordering.js";
 
-import { GROUP_TYPE } from "./grouputils.js";
+import { GROUP_TYPE } from "./group-utils.js";
 
 import { urlOrigin, persistGroups, loadGroups } from "./persistence.js";
 
-import { groupsMap, createGroupAndAddGroupElement } from "./groupmanagement.js";
+import { groupsMap, createGroupAndAddGroupElement } from "./group-management.js";
 
-import { referencesGraph } from "./referencegraphmanagement.js";
+import { referencesGraph } from "./reference-graph.js";
 
-import { initMeshBackground } from "./meshbackground.js";
+import { initMeshBackground } from "./mesh-background.js";
 
 const SETTINGS = {
 

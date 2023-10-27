@@ -1,9 +1,9 @@
-import { GROUP_TYPE, INTERACTION_STATE, getGroupIdFromElement, getGroupElementFromId, getGroupFromName, generateUniqueGroupID } from "./grouputils.js";
+import { GROUP_TYPE, INTERACTION_STATE, getGroupIdFromElement, getGroupElementFromId, getGroupFromName, generateUniqueGroupID } from "./group-utils.js";
 
-import { getReferencedResultsAndCombinedDataWithResults } from "./referencematching.js";
-import { handleInputChange, nameChangeHandler } from "./inputchangehandler.js";
+import { getReferencedResultsAndCombinedDataWithResults } from "./reference-matching.js";
+import { handleInputChange, nameChangeHandler } from "./input-change.js";
 import { onDragStart, onDragEnd } from "./reordering.js";
-import { referencesGraph } from "./referencegraphmanagement.js";
+import { referencesGraph } from "./reference-graph.js";
 
 import { persistGroups } from "./persistence.js";
 

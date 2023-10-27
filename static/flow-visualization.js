@@ -1,5 +1,5 @@
 import { SETTINGS } from './app.js';
-import { referencesGraph } from "./referencegraphmanagement.js";
+import { referencesGraph } from "./reference-graph.js";
 
 export { showDataFlow, removeDataFlow };
 

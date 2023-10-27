@@ -1,7 +1,7 @@
-import { GROUP_TYPE, getGroupIdFromElement, getGroupElementFromId } from "./grouputils.js";
-import { updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText } from "./groupmanagement.js"
-import { getReferencedResultsAndCombinedDataWithResults } from "./referencematching.js";
-import { referencesGraph, updateReferenceGraph } from "./referencegraphmanagement.js";
+import { GROUP_TYPE, getGroupIdFromElement, getGroupElementFromId } from "./group-utils.js";
+import { updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText } from "./group-management.js"
+import { getReferencedResultsAndCombinedDataWithResults } from "./reference-matching.js";
+import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 import { persistGroups } from "./persistence.js";
 import { SETTINGS } from "./app.js";
 
@@ -99,21 +99,33 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     const dataReadyToSend = !hasReferences && currentData || availableReferencedResults.length > 0 && !hasInvalidReferencedResults;
 
     if (dataReadyToSend && lastTransformValue) {
-        clearTimeout(REQUEST_QUEUE[group.name]);
+        clearTimeout(REQUEST_QUEUE[group.id]);
 
         const currentTime = Date.now();
 
+        const elapsedTime = currentTime - group.lastRequestTime;
+
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // DEBUG ====  WE SEND **ALL** call to handleInputChanges AS IMMEDIATE REQUESTS, so this is NEVER TRUE //
+
         if (currentTime - group.lastRequestTime < DELAY && !immediate) {
-            const timeout = DELAY - (currentTime - group.lastRequestTime);
+
+            const timeout = DELAY - elapsedTime;
+
             console.log(`Waiting for ${timeout / 1000} seconds`);
-            if (REQUEST_QUEUE[group.name]) {
-                clearTimeout(REQUEST_QUEUE[group.name]);
+
+            if (REQUEST_QUEUE[group.id]) {
+                clearTimeout(REQUEST_QUEUE[group.id]);
             }
-            REQUEST_QUEUE[group.name] = setTimeout(() => {
+
+            REQUEST_QUEUE[group.id] = setTimeout(() => {
                 handleInputChange(groupElement, true, isRefresh);
             }, timeout);
+
             return;
         }
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         group.lastRequestTime = currentTime;
 
@@ -172,7 +184,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
                         downloadButton.href = base64data;
                         downloadButton.download = group.name + "" + randomInt(1, 99999) + ".png";
 
-                        delete REQUEST_QUEUE[group.name];
+                        delete REQUEST_QUEUE[group.id];
 
                         groupElement.classList.remove("waiting")
                         removeGlobalWaitingIndicator();
@@ -219,7 +231,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
                 if (isUndirected) updateGroupsReferencingIt(group.id, groups);
 
 
-                delete REQUEST_QUEUE[group.name];
+                delete REQUEST_QUEUE[group.id];
                 groupElement.classList.remove("waiting");
                 removeGlobalWaitingIndicator();
 

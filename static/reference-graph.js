@@ -1,7 +1,7 @@
 
 import Graph from "https://cdn.jsdelivr.net/npm/graph-data-structure@3.3.0/+esm";
-import { getGroupFromName } from "./grouputils.js";
-import { getReferencedGroupNamesFromDataText } from "./referencematching.js";
+import { getGroupFromName } from "./group-utils.js";
+import { getReferencedGroupNamesFromDataText } from "./reference-matching.js";
 
 // edge in this graph means ' is used by -> '
 // this is a reverse reference graph

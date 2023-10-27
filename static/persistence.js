@@ -1,7 +1,7 @@
-import { GROUP_TYPE, generateUniqueGroupID } from "./grouputils.js";
-import { addGroupElement, createGroupAndAddGroupElement, setGroupInteractionState, updateGroups } from "./groupmanagement.js"
-import { buildReverseReferenceGraph } from "./referencegraphmanagement.js";
-import { handleInputChange } from "./inputchangehandler.js";
+import { GROUP_TYPE, generateUniqueGroupID } from "./group-utils.js";
+import { addGroupElement, createGroupAndAddGroupElement, setGroupInteractionState, updateGroups } from "./group-management.js"
+import { buildReverseReferenceGraph } from "./reference-graph.js";
+import { handleInputChange } from "./input-change.js";
 
 let PRIVATE_HAS_HASH_CHANGED_PROGRAMMATICALLY = false;
 

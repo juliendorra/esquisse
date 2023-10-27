@@ -1,6 +1,6 @@
-import { getGroupFromName } from "./grouputils.js";
+import { getGroupFromName } from "./group-utils.js";
 
-import { referencesGraph } from "./referencegraphmanagement.js";
+import { referencesGraph } from "./reference-graph.js";
 
 export { getReferencedGroupNamesFromDataText, getReferencedResultsAndCombinedDataWithResults };
 
