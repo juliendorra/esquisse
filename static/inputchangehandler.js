@@ -230,19 +230,22 @@ function nameChangeHandler(group, groupNameElement, groups) {
 
         //Automatically deduplicate block names: add number like in Finder. Starts at 2. 
         let baseName = groupNameElement.value.trim();
-        let finalName = baseName;
         let counter = 2;
 
-        // Convert the base name to lowercase for case-insensitive comparison
-        const baseNameLower = baseName.toLowerCase();
+        if (baseName == "") {
+            baseName = group.type + "-" + group.id
+        }
+
+        let finalName = baseName;
+
+        // convert names to lowercase for case-insensitive comparison
 
         while (Array.from(groups.values()).some(g => g.name.toLowerCase() === finalName.toLowerCase())) {
-            finalName = `${baseName} ${counter}`;
+            finalName = `${baseName}-${counter}`;
             counter++;
         }
 
         group.name = finalName;
-
         groupNameElement.value = finalName;
 
         // if this is the first group, rename the page using its new name
