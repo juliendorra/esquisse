@@ -1,6 +1,6 @@
 
 import Graph from "https://cdn.jsdelivr.net/npm/graph-data-structure@3.3.0/+esm";
-import { getGroupFromName } from "./group-utils.js";
+import { GROUP_TYPE, getGroupFromName } from "./group-utils.js";
 import { getReferencedGroupNamesFromDataText } from "./reference-matching.js";
 
 // edge in this graph means ' is used by -> '
@@ -42,6 +42,8 @@ function buildReverseReferenceGraph(groups) {
     const graph = Graph();
 
     for (const [key, group] of groups) {
+
+        if (group.type === GROUP_TYPE.BREAK) { continue; }
 
         graph.addNode(group.id);
 

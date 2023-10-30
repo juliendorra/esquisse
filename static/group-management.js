@@ -3,7 +3,7 @@ import { GROUP_TYPE, INTERACTION_STATE, getGroupIdFromElement, getGroupElementFr
 import { getReferencedResultsAndCombinedDataWithResults } from "./reference-matching.js";
 import { handleInputChange, nameChangeHandler } from "./input-change.js";
 import { onDragStart, onDragEnd } from "./reordering.js";
-import { referencesGraph } from "./reference-graph.js";
+import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 
 import { persistGroups } from "./persistence.js";
 
@@ -168,10 +168,9 @@ function createGroupAndAddGroupElement(groupType = GROUP_TYPE.TEXT, groups) {
 
     groups.set(group.id, group);
 
-    // we are interested in having even the isolated groups in the graph
-    // as we will use them in the updateGroups function
-    // except for the break groups
-    if (!GROUP_TYPE.BREAK) referencesGraph.IS_USED_BY_GRAPH.addNode(group.id);
+    // we need this new isolated group in the graph
+    // as the graph is used by the updateGroups function
+    updateReferenceGraph(groups)
 
     persistGroups(groups);
 
