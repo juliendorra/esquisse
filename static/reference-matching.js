@@ -1,6 +1,6 @@
 import { getGroupFromName } from "./group-utils.js";
 
-import { referencesGraph } from "./reference-graph.js";
+import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 
 export { getReferencedGroupNamesFromDataText, getReferencedResultsAndCombinedDataWithResults };
 
@@ -81,7 +81,7 @@ function getReferencedResultsAndCombinedDataWithResults(dataText, currentGroupNa
 
             // The referenced group exists and is used by the current group
             // We update the inverse reference graph
-            referencesGraph.IS_USED_BY_GRAPH.addEdge(referencedGroup.id, currentGroup.id);
+            updateReferenceGraph(groups)
 
             const hasDirectCircularReference = referencesGraph.IS_USED_BY_GRAPH.hasEdge(referencedGroup.id, currentGroup.id) && referencesGraph.IS_USED_BY_GRAPH.hasEdge(currentGroup.id, referencedGroup.id);
             const isSelfReference = referencedGroup.id === currentGroup.id;
