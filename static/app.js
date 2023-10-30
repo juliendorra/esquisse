@@ -1,5 +1,5 @@
 
-import { showDataFlow, removeDataFlow } from "./flow-visualization.js";
+import { renderDataFlow } from "./flow-visualization.js";
 
 import { addMiniviewButtonsListeners } from "./reordering.js";
 
@@ -10,6 +10,8 @@ import { urlOrigin, persistGroups, loadGroups } from "./persistence.js";
 import { groupsMap, createGroupAndAddGroupElement } from "./group-management.js";
 
 import { referencesGraph } from "./reference-graph.js";
+
+import { initGroupObservation } from "./group-elements-observer.js";
 
 import { initMeshBackground } from "./mesh-background.js";
 
@@ -97,14 +99,15 @@ function init() {
 
         if (event.target.checked) {
             SETTINGS.dataFlowEnabled = true;
-            showDataFlow(referencesGraph.IS_USED_BY_GRAPH);
+            renderDataFlow();
         }
         else {
             SETTINGS.dataFlowEnabled = false;
-            removeDataFlow();
+            renderDataFlow();
         }
 
     });
 
     initMeshBackground();
+    initGroupObservation();
 }

@@ -1,7 +1,7 @@
 import { SETTINGS } from './app.js';
 import { referencesGraph } from "./reference-graph.js";
 
-export { showDataFlow, removeDataFlow };
+export { showDataFlow, removeDataFlow, renderDataFlow };
 
 let IS_SORTING = false;
 
@@ -22,8 +22,15 @@ const DATAFLOW_LINES_PALETTE =
         "rgba(241,104,133,0.5)"
     ];
 
+function renderDataFlow() {
+    removeDataFlow();
+    if (SETTINGS.dataFlowEnabled && !IS_SORTING) {
 
-function showDataFlow(isUsedByGraph) {
+        showDataFlow(referencesGraph.IS_USED_BY_GRAPH);
+    }
+}
+
+function showDataFlow(isUsedByGraph = referencesGraph.IS_USED_BY_GRAPH) {
 
     const nodes = isUsedByGraph.nodes();
 
@@ -77,37 +84,39 @@ const transitionStart = (event) => {
 const transitionEnd = (event) => {
 
     if (event.target === event.currentTarget) {
-
-        removeDataFlow();
-        if (SETTINGS.dataFlowEnabled && !IS_SORTING) {
-
-            showDataFlow(referencesGraph.IS_USED_BY_GRAPH);
-        }
+        renderDataFlow();
     }
 }
 
 const sortStart = (event) => {
 
     if (event.target === event.currentTarget) {
-        removeDataFlow();
         IS_SORTING = true;
+        removeDataFlow();
     }
 }
 
 const sortEnd = (event) => {
 
     if (event.target === event.currentTarget) {
-
-        removeDataFlow();
-        if (SETTINGS.dataFlowEnabled) {
-            showDataFlow(referencesGraph.IS_USED_BY_GRAPH);
-        }
         IS_SORTING = false;
+        renderDataFlow();
     }
 }
 
-zoomableElement.addEventListener("transitionstart", transitionStart)
-zoomableElement.addEventListener("transitionend", transitionEnd)
+const graphUpdated = (event) => {
 
-zoomableElement.addEventListener("sortstart", sortStart)
-zoomableElement.addEventListener("sortend", sortEnd)
+    console.log("[GRAPH UPDATED EVENT HANDLING !!]")
+    console.log("IS_SORTING? ", IS_SORTING)
+
+    console.log("SHOW DATA FLOW AFTER GRAPH UPDATE")
+    renderDataFlow();
+}
+
+zoomableElement.addEventListener("transitionstart", transitionStart);
+zoomableElement.addEventListener("transitionend", transitionEnd);
+
+zoomableElement.addEventListener("sortstart", sortStart);
+zoomableElement.addEventListener("sortend", sortEnd);
+
+document.addEventListener("graphupdated", graphUpdated);
