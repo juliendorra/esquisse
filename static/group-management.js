@@ -279,7 +279,7 @@ function deleteGroup(groupElement, groups) {
     // as updateGroupsReferencingIt() uses the graph to find the groups to update
     // we can only call removeNode() on the graph once all groups have been alerted.
 
-    updateReferenceGraph();
+    updateReferenceGraph(groups);
 
     persistGroups(groups);
 }
