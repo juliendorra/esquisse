@@ -20,6 +20,78 @@ const groupsMap = {
 
 export { groupsMap, addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, setGroupInteractionState, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, rebuildGroupsInNewOrder };
 
+const GROUP_HTML = {
+
+    BREAK: `
+            <div class="group-header">
+                <small><img src="./icons/break.svg"></small>
+                <div class="drag-handle">···</div>
+                <button class="tool-btn delete-btn"><img src="./icons/delete.svg"></button>
+            </div>
+            <input type="text" class="group-name" placeholder="Name of this block">
+            `,
+
+    STATIC: `
+            <div class="group-header">
+                <small><img src="./icons/text-static.svg"></small>
+                <div class="drag-handle">···</div>
+                <button class="tool-btn delete-btn"><img src="./icons/delete.svg"></button>
+            </div>
+            <input type="text" class="group-name" placeholder="Name of this block">
+            <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
+            <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
+
+            <div class="function-buttons-container">
+                <button class="tool-btn entry-btn"><img src="./icons/entry.svg"></button>
+                <button class="tool-btn lock-btn"><img src="./icons/lock.svg"></button>
+            </div>
+            `,
+
+    TEXT: `
+            <div class="group-header">
+                <small><img src="./icons/text-gen.svg"></small>
+                <div class="drag-handle">···</div>
+                <button class="tool-btn delete-btn"><img src="./icons/delete.svg"></button>
+            </div>
+
+            <input type="text" class="group-name" placeholder="Name of this block">
+            <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
+            <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
+            <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
+
+            <div class="function-buttons-container">
+                <button class="tool-btn entry-btn"><img src="./icons/entry.svg"></button>
+                <button class="tool-btn lock-btn"><img src="./icons/lock.svg"></button>
+                <button class="tool-btn refresh-btn"><img src="./icons/refresh.svg"></button>
+            </div>
+            `,
+
+    IMAGE: `
+            <div class="group-header">
+                <small><img src="./icons/image-gen.svg"></small>
+                <div class="drag-handle">···</div>
+                <button class="tool-btn delete-btn"><img src="./icons/delete.svg"></button>
+            </div>
+
+            <input type="text" class="group-name" placeholder="Name of this Block">
+            <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
+            <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
+            <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
+
+            <div class="function-buttons-container">
+                <button class="tool-btn entry-btn"><img src="./icons/entry.svg"></button>
+                <button class="tool-btn lock-btn"><img src="./icons/lock.svg"></button>
+                <button class="tool-btn refresh-btn"><img src="./icons/refresh.svg"></button>
+            </div>
+
+            <img class="result">
+            <a class="tool-btn download-btn"><img src="./icons/download.svg"></a>
+            `,
+
+};
+
+
+
 function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
     const groupElement = document.createElement("div");
 
@@ -29,80 +101,22 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
 
         case GROUP_TYPE.BREAK:
             groupElement.className = "group break";
-            groupElement.innerHTML = `
-                <div class="group-header">
-                    <small><img src="./icons/break.svg"></small>
-                    <div class="drag-handle">···</div>
-                    <button class="tool-btn delete-btn"><img src="./icons/delete.svg"></button>
-                </div>
-                <input type="text" class="group-name" placeholder="Name of this block">
-            `;
+            groupElement.innerHTML = GROUP_HTML.BREAK;
             break;
 
         case GROUP_TYPE.STATIC:
             groupElement.className = "group static";
-            groupElement.innerHTML = `
-                <div class="group-header">
-                    <small><img src="./icons/text-static.svg"></small>
-                    <div class="drag-handle">···</div>
-                    <button class="tool-btn delete-btn"><img src="./icons/delete.svg"></button>
-                </div>
-                <input type="text" class="group-name" placeholder="Name of this block">
-                <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
-                <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
-
-                <div class="function-buttons-container">
-                    <button class="tool-btn entry-btn"><img src="./icons/entry.svg"></button>
-                    <button class="tool-btn lock-btn"><img src="./icons/lock.svg"></button>
-                </div>
-            `;
+            groupElement.innerHTML = GROUP_HTML.STATIC;
             break;
 
         case GROUP_TYPE.IMAGE:
             groupElement.className = "group image";
-            groupElement.innerHTML = `
-                <div class="group-header">
-                    <small><img src="./icons/image-gen.svg"></small>
-                    <div class="drag-handle">···</div>
-                    <button class="tool-btn delete-btn"><img src="./icons/delete.svg"></button>
-                </div>
-
-                <input type="text" class="group-name" placeholder="Name of this Block">
-                <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
-                <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
-                <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
-
-                <div class="function-buttons-container">
-                    <button class="tool-btn entry-btn"><img src="./icons/entry.svg"></button>
-                    <button class="tool-btn lock-btn"><img src="./icons/lock.svg"></button>
-                    <button class="tool-btn refresh-btn"><img src="./icons/refresh.svg"></button>
-                </div>
-
-                <img class="result">
-                <a class="tool-btn download-btn"><img src="./icons/download.svg"></a>
-            `;
+            groupElement.innerHTML = GROUP_HTML.IMAGE;
             break;
 
         default:
             groupElement.className = "group text";
-            groupElement.innerHTML = `
-                <div class="group-header">
-                    <small><img src="./icons/text-gen.svg"></small>
-                    <div class="drag-handle">···</div>
-                    <button class="tool-btn delete-btn"><img src="./icons/delete.svg"></button>
-                </div>
-
-                <input type="text" class="group-name" placeholder="Name of this block">
-                <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
-                <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
-                <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
-
-                <div class="function-buttons-container">
-                    <button class="tool-btn entry-btn"><img src="./icons/entry.svg"></button>
-                    <button class="tool-btn lock-btn"><img src="./icons/lock.svg"></button>
-                    <button class="tool-btn refresh-btn"><img src="./icons/refresh.svg"></button>
-                </div>
-            `;
+            groupElement.innerHTML = GROUP_HTML.TEXT;
     }
 
     // Initially hide the referenced-result-text 
