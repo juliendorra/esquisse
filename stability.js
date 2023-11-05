@@ -3,27 +3,27 @@ import "https://deno.land/x/dotenv/load.ts";
 const apiKey = Deno.env.get("STABILITY_API_KEY");
 
 const FAST_CHEAP_MODEL = {
-    id: "stable-diffusion-512-v2-1",
-    width: 512,
-    height: 512,
-    widthWide: 768,
-    heightWide: 640,
-}
+    id: "stable-diffusion-xl-1024-v1-0",
+    width: 1024,
+    height: 1024,
+    widthWide: 1152,
+    heightWide: 896,
+    steps: 15,
 
+}
 const QUALITY_EXPENSIVE_MODEL = {
     id: "stable-diffusion-xl-1024-v1-0",
     width: 1024,
     height: 1024,
     widthWide: 1152,
     heightWide: 896,
-
+    steps: 45,
 }
 
 if (!apiKey) {
     throw new Error("missing STABILITY_API_KEY environment variable");
 }
 
-const STEP_COUNT = 45;
 const apiHost = "https://api.stability.ai";
 
 export async function tryGenerate(
@@ -108,6 +108,8 @@ export async function generate(prompt, negativeprompt, format, qualityEnabled = 
     const width = format == "wide" ? engine.widthWide : engine.width;
     const height = format == "wide" ? engine.heightWide : engine.height;;
 
+    const step_count = engine.steps;
+
     const url = `${apiHost}/v1alpha/generation/${engine.id}/text-to-image`;
 
     try {
@@ -123,7 +125,7 @@ export async function generate(prompt, negativeprompt, format, qualityEnabled = 
                     // sampler: "K_DPMPP_2M",
                     samples: 1,
                     seed: 0,
-                    steps: STEP_COUNT,
+                    steps: step_count,
                     text_prompts: [
                         {
                             text: prompt,
