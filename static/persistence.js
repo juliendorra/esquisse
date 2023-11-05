@@ -5,6 +5,8 @@ import { handleInputChange } from "./input-change.js";
 
 let PRIVATE_HAS_HASH_CHANGED_PROGRAMMATICALLY = false;
 
+const VERSION = "2023-11-05";
+
 const urlOrigin = {
     get HAS_HASH_CHANGED_PROGRAMMATICALLY() {
         return PRIVATE_HAS_HASH_CHANGED_PROGRAMMATICALLY;
@@ -18,7 +20,13 @@ export { urlOrigin, persistGroups, loadGroups };
 
 function persistGroups(groups) {
 
-    const strippedGroups = Array.from(groups.values()).map(({ name, data, transform, type, interactionState }) => ({
+    let strippedGroups = {};
+
+    strippedGroups.version = VERSION;
+
+    // we store the groups array is in the groups property
+
+    strippedGroups.groups = Array.from(groups.values()).map(({ name, data, transform, type, interactionState }) => ({
         name,
         data,
         transform,
@@ -27,25 +35,24 @@ function persistGroups(groups) {
     }));
 
     console.log("Persisting in URL", strippedGroups);
-    console.log("stringifyied groups", JSON.stringify(strippedGroups));
-    console.log("btoa groups", btoa(JSON.stringify(strippedGroups)));
 
     try {
-        const base64Groups = btoa(JSON.stringify(strippedGroups));
+        const base64Groups = base64UnicodeEncode(strippedGroups);
+        console.log("btoa groups", base64Groups);
+
         urlOrigin.HAS_HASH_CHANGED_PROGRAMMATICALLY = true;
         window.location.hash = base64Groups;
     } catch (error) {
-        console.log("Base64 failed, impossible to persist in URL", error)
-        return;
+        console.error("Base64 encoding failed, impossible to persist in URL", error);
     }
 }
 
 function loadGroups() {
-    const base64Groups = window.location.hash.slice(1);
+    const base64EncodedGroups = window.location.hash.slice(1);
 
     let groups = new Map();
 
-    if (!base64Groups) {
+    if (!base64EncodedGroups) {
         createGroupAndAddGroupElement(GROUP_TYPE.TEXT, groups);
 
         // we are interested in having even this first isolated node in the graph
@@ -56,17 +63,37 @@ function loadGroups() {
         return { groups, isUsedByGraph };
     }
 
-    try {
-        const strippedGroups = JSON.parse(atob(base64Groups));
+    let decodedGroups;
 
-        console.log("loading groups from hash", strippedGroups);
+    try {
+        // try to decode with the old, ASCII-only method
+        try {
+            decodedGroups = JSON.parse(atob(base64EncodedGroups));
+        } catch (e) {
+            // If there's an error, try decode UTF-8 characters
+            decodedGroups = JSON.parse(base64UnicodeDecode(base64EncodedGroups));
+        }
+
+        // If the version field is present, re-decode using proper utf8 handling
+        if (decodedGroups && decodedGroups.version) {
+            // the newest format is an object and not just a raw array. The groups array is in the groups property
+            decodedGroups = JSON.parse(base64UnicodeDecode(base64EncodedGroups)).groups;
+        }
+
+    } catch (error) {
+        console.error("Base64 decoding failed", error);
+    }
+
+    try {
+
+        console.log("loading groups from hash", decodedGroups);
 
         groups.clear();
 
         const groupsContainer = document.querySelector(".container");
         groupsContainer.innerHTML = "";
 
-        strippedGroups.forEach(({ name, data, transform, type, interactionState }) => {
+        decodedGroups.forEach(({ name, data, transform, type, interactionState }) => {
             const group = {
                 id: generateUniqueGroupID(groups),
                 name,
@@ -128,3 +155,32 @@ function loadGroups() {
 
     return { groups, isUsedByGraph };
 }
+
+// Utils
+
+// Function to encode a string as base64 while handling Unicode characters
+function base64UnicodeEncode(obj) {
+    const stringifyied = JSON.stringify(obj);
+    const utf8Encoder = new TextEncoder();
+    const byteArray = utf8Encoder.encode(stringifyied);
+
+    // Convert the Uint8Array to a binary string (each byte as a char code)
+    const base64ReadyString = Array.from(byteArray)
+        .map(byte => String.fromCharCode(byte))
+        .join('');
+
+    return btoa(base64ReadyString);
+}
+
+
+
+// Function to decode a base64 string back while handling Unicode characters
+function base64UnicodeDecode(base64String) {
+    const binaryString = atob(base64String);
+    const charCodeArray = binaryString.split('').map(character => character.charCodeAt(0));
+    const utf8Decoder = new TextDecoder();
+    return utf8Decoder.decode(new Uint8Array(charCodeArray));
+}
+
+
+
