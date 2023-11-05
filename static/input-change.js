@@ -53,11 +53,12 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
         // check if the new combined results from references is different from the previous combination
         currentData = combinedReferencedResults;
         referencedResultsChanged = currentData !== group.combinedReferencedResults;
-        group.combinedReferencedResults = currentData;
     }
     else {
         displayDataText(groupElement);
     }
+
+    group.combinedReferencedResults = currentData;
 
     // we do nothing more if no change and not an explicit refresh request
     if (!isRefresh
@@ -182,7 +183,13 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
                         downloadButton.style.display = "block";
                         downloadButton.href = base64data;
-                        downloadButton.download = group.name + "" + randomInt(1, 99999) + ".png";
+
+                        const fileName =
+                            `${group.name} — ${group.combinedReferencedResults} ${group.transform} — ${randomInt(1, 99999)}.png`
+                                .replace(/\s+/g, ' ')
+                                .trim();
+
+                        downloadButton.download = fileName;
 
                         delete REQUEST_QUEUE[group.id];
 
