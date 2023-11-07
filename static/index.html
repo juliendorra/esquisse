@@ -95,6 +95,7 @@
             border-color: #cccccc;
             background: none;
             background-color: transparent;
+            max-width: calc(100% - 0.75rem);
         }
 
         div,
@@ -397,6 +398,15 @@
             height: 4em;
         }
 
+        p.result {
+            font-size: 0.85em;
+            max-height: 25rem;
+            overflow-y: scroll;
+            white-space: pre-line;
+        }
+
+
+
         img.result {
             max-width: 0.77.5vw;
         }
@@ -617,9 +627,7 @@
         .zoomable {
             /* this transitions are used by the miniview styles */
             transition:
-                transform 0.15s ease-in-out,
-                margin-top 0.15s ease-in-out,
-                margin-bottom 0.15s ease-in-out;
+                /* transform 0.1s ease-in-out; */
         }
 
         .zoomable::before {
