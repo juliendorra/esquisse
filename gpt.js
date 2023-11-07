@@ -10,7 +10,7 @@ const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
 export async function callGPT(data, transform, qualityEnabled = false) {
 
-    let model = qualityEnabled ? "gpt-4" : "gpt-3.5-turbo";
+    let model = qualityEnabled ? "gpt-4-1106-preview" : "gpt-3.5-turbo-1106";
 
     console.log("calling ChatGPT using model: ", model)
 
