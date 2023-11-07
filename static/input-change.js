@@ -177,6 +177,26 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
                         resultImage.style.display = "block";
                         resultImage.src = base64data;
 
+
+                        // Event listener for image click to toggle zoom in and out
+                        resultImage.addEventListener('click', function (event) {
+
+                            event.stopPropagation();
+
+                            let clonedImage = resultImage.cloneNode(true);
+
+                            clonedImage.classList.add('zoomed');
+
+                            clonedImage.addEventListener('click',
+                                function (event) {
+                                    clonedImage.remove();
+                                    clonedImage = null;
+                                });
+
+                            document.body.appendChild(clonedImage);
+
+                        });
+
                         groupElement.querySelector(".refresh-btn").style.display = "block";
 
                         const downloadButton = groupElement.querySelector(".download-btn");
