@@ -167,7 +167,10 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
                 return new Promise((resolve, reject) => {
                     reader.onloadend = async function () {
-                        const base64data = reader.result;
+
+                        const blobUrl = URL.createObjectURL(blob);
+                        console.log("URL for the image ", blobUrl)
+
                         let resultImage = groupElement.querySelector(".result");
                         if (!resultImage) {
                             resultImage = document.createElement("img");
@@ -175,7 +178,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
                             groupElement.appendChild(resultImage);
                         }
                         resultImage.style.display = "block";
-                        resultImage.src = base64data;
+                        resultImage.src = blobUrl;
 
                         // Event listener for image click to toggle zoom in and out
                         resultImage.removeEventListener('click', createZoomedImage);
@@ -186,7 +189,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
                         const downloadButton = groupElement.querySelector(".download-btn");
 
                         downloadButton.style.display = "block";
-                        downloadButton.href = base64data;
+                        downloadButton.href = blobUrl;
 
                         const fileName =
                             `${group.name} — ${group.combinedReferencedResults} ${group.transform} — ${randomInt(1, 99999)}.png`
@@ -197,14 +200,15 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
                         delete REQUEST_QUEUE[group.id];
 
-                        groupElement.classList.remove("waiting")
+                        groupElement.classList.remove("waiting");
                         removeGlobalWaitingIndicator();
 
-                        resolve(base64data);
+                        resolve(blob);
                     };
                     reader.onerror = reject;
-                    reader.readAsDataURL(blob);
+                    reader.readAsArrayBuffer(blob);
                 });
+
             } catch (error) {
                 groupElement.classList.remove("waiting")
                 removeGlobalWaitingIndicator();
