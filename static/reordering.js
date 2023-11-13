@@ -63,7 +63,24 @@ function onEnteringMiniview() {
 
     document.documentElement.style.setProperty('--scale', scale);
 
+    const scroll_y = window.scrollY;
+
     const zoomableElement = document.querySelector(".zoomable");
+
+    const transitionEndHandler = () => {
+
+        if (!zoomableElement.classList.contains("miniview")) {
+            console.log("Scrolling back to ", scroll_y);
+
+            window.scroll({
+                top: scroll_y,
+            });
+
+            zoomableElement.removeEventListener('transitionend', transitionEndHandler);
+        }
+    };
+
+    zoomableElement.addEventListener("transitionend", transitionEndHandler);
 
     zoomableElement.classList.add("miniview");
 }
