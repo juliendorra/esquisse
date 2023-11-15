@@ -71,6 +71,15 @@
             visibility: hidden;
         }
 
+        .no-scroll {
+            overflow: hidden;
+            /* Prevent vertical movement */
+            height: 100%;
+            /* Prevent horizontal movement */
+            width: 100%;
+        }
+
+
         canvas#mesh-background {
             z-index: -99;
             position: absolute;
