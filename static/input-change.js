@@ -266,8 +266,11 @@ function createZoomedImage(event) {
 
     clonedImage.classList.add('zoomed');
 
+    document.body.classList.add('no-scroll');
+
     clonedImage.addEventListener('click',
         function (event) {
+            document.body.classList.remove('no-scroll');
             clonedImage.remove();
             clonedImage = null;
         });
