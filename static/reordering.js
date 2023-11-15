@@ -67,20 +67,29 @@ function onEnteringMiniview() {
 
     const zoomableElement = document.querySelector(".zoomable");
 
-    const transitionEndHandler = () => {
+    const classChangeCallback = (mutationList, observer) => {
+        mutationList.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
 
-        if (!zoomableElement.classList.contains("miniview")) {
-            console.log("Scrolling back to ", scroll_y);
+                if (!zoomableElement.classList.contains("miniview")) {
+                    console.log("Scrolling back to ", scroll_y);
+                    window.scroll({
+                        top: scroll_y
+                    });
 
-            window.scroll({
-                top: scroll_y,
-            });
-
-            zoomableElement.removeEventListener('transitionend', transitionEndHandler);
-        }
+                    observer.disconnect();
+                }
+            }
+        });
     };
 
-    zoomableElement.addEventListener("transitionend", transitionEndHandler);
+    const observerOptions = {
+        attributes: true,
+        attributeFilter: ['class'],
+    };
+
+    const observer = new MutationObserver(classChangeCallback);
+    observer.observe(zoomableElement, observerOptions);
 
     zoomableElement.classList.add("miniview");
 }
