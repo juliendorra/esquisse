@@ -51,33 +51,7 @@ function onEnteringMiniview() {
 
     applyScale();
 
-    const scroll_y = window.scrollY;
-
     const zoomableElement = document.querySelector(".zoomable");
-
-    const classChangeCallback = (mutationList, observer) => {
-        mutationList.forEach((mutation) => {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-
-                if (!zoomableElement.classList.contains("miniview")) {
-                    console.log("Scrolling back to ", scroll_y);
-                    window.scroll({
-                        top: scroll_y
-                    });
-
-                    observer.disconnect();
-                }
-            }
-        });
-    };
-
-    const observerOptions = {
-        attributes: true,
-        attributeFilter: ['class'],
-    };
-
-    const observer = new MutationObserver(classChangeCallback);
-    observer.observe(zoomableElement, observerOptions);
 
     zoomableElement.classList.add("miniview");
 }
@@ -123,7 +97,17 @@ function onEndSortable(event) {
 
     zoomableElement.dispatchEvent(sortended);
 
-    if (!MINI_VIEW_BY_BUTTON) zoomableElement.classList.remove("miniview");
+    if (!MINI_VIEW_BY_BUTTON) {
+        zoomableElement.classList.remove("miniview");
+
+        const sortedElement = event.item;
+
+        setTimeout(() => {
+            sortedElement.scrollIntoView({ behavior: "auto", block: "center", inline: "center" });
+        },
+            100
+        )
+    }
 
     event.item.classList.remove("grabbing");
 
@@ -153,6 +137,39 @@ function addMiniviewButtonsListeners() {
         .addEventListener("click", () => {
 
             MINI_VIEW_BY_BUTTON = true;
+
+            const scroll_y = window.scrollY;
+
+            const zoomableElement = document.querySelector(".zoomable");
+
+            const classChangeCallback = (mutationList, observer) => {
+                mutationList.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+
+                        if (!zoomableElement.classList.contains("miniview")) {
+
+                            setTimeout(() => {
+                                console.log("Scrolling back to ", scroll_y);
+                                window.scroll({
+                                    top: scroll_y
+                                });
+                            },
+                                100
+                            )
+
+                            observer.disconnect();
+                        }
+                    }
+                });
+            };
+
+            const observerOptions = {
+                attributes: true,
+                attributeFilter: ['class'],
+            };
+
+            const observer = new MutationObserver(classChangeCallback);
+            observer.observe(zoomableElement, observerOptions);
 
             onEnteringMiniview();
 
