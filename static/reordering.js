@@ -134,6 +134,8 @@ function onEndSortable(event) {
     });
 
     rebuildGroupsInNewOrder();
+
+    applyScale();
 }
 
 
