@@ -44,7 +44,7 @@ function onStartSortable(event) {
 
     zoomableElement.dispatchEvent(sortstarted);
 
-    onEnteringMiniview();
+    if (!zoomableElement.classList.contains("miniview")) onEnteringMiniview();
 }
 
 function onEnteringMiniview() {
