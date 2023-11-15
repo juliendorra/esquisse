@@ -1,6 +1,7 @@
 import { SETTINGS } from "./app.js";
 import { renderBackground } from "./mesh-background.js";
 import { renderDataFlow } from "./flow-visualization.js";
+import { applyScale } from "./reordering.js";
 
 export { initGroupObservation };
 
@@ -20,8 +21,7 @@ function onGroupChanged(mutationsList) {
             // Observe added nodes
             for (let addedNode of mutation.addedNodes) {
                 if (addedNode.nodeType === Node.ELEMENT_NODE && addedNode.classList.contains('group')) {
-                    renderBackground();
-                    renderDataFlow();
+
                     groupResizeObserver.observe(addedNode);
                 }
             }
@@ -29,8 +29,7 @@ function onGroupChanged(mutationsList) {
             // Unobserve removed nodes and handle their removal
             for (let removedNode of mutation.removedNodes) {
                 if (removedNode.nodeType === Node.ELEMENT_NODE && removedNode.classList.contains('group')) {
-                    renderBackground();
-                    renderDataFlow();
+
                     groupResizeObserver.unobserve(removedNode);
                 }
             }
@@ -40,6 +39,7 @@ function onGroupChanged(mutationsList) {
                 .map(child => child.getAttribute('data-id'));
 
             if (!arraysEqual(previousOrder, currentOrder)) {
+                applyScale();
                 renderBackground();
                 renderDataFlow();
                 previousOrder = currentOrder;
@@ -51,6 +51,8 @@ function onGroupChanged(mutationsList) {
 function onGroupResized(entries) {
     for (let entry of entries) {
         if (entry.target.classList.contains('group')) {
+            applyScale()
+
             renderBackground();
 
             renderDataFlow();

@@ -1,7 +1,7 @@
 import { Sortable, MultiDrag } from 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/+esm';
 import { rebuildGroupsInNewOrder } from './group-management.js';
 
-export { onDragStart, onDragEnd, addMiniviewButtonsListeners };
+export { onDragStart, onDragEnd, addMiniviewButtonsListeners, applyScale };
 
 // mobile agent detection
 const userAgent = navigator.userAgent || navigator.vendor || window.opera;
@@ -26,6 +26,12 @@ Sortable.create(document.querySelector('.container'), {
     fallbackTolerance: 5,
 });
 
+window.addEventListener('resize', () => {
+
+    applyScale();
+
+});
+
 function onStartSortable(event) {
 
     const zoomableElement = document.querySelector(".zoomable");
@@ -43,25 +49,7 @@ function onStartSortable(event) {
 
 function onEnteringMiniview() {
 
-    const windowHeight = window.innerHeight;
-
-    const groupsContainer = document.querySelector(".container");
-    const containerElementFullHeight = groupsContainer.scrollHeight;
-
-    console.log("[miniview] containerElementFullHeight ", containerElementFullHeight)
-
-    const footerTools = document.querySelector(".footer-tools");
-    const footerToolsHeight = footerTools.clientHeight;
-
-    const containerElementVisibleContentHeight = windowHeight - footerToolsHeight;
-
-    console.log("[miniview] containerElementVisibleContentHeight ", containerElementVisibleContentHeight)
-
-    const scale = Math.min(1, containerElementVisibleContentHeight / containerElementFullHeight);
-
-    console.log("[miniview] scale ", scale);
-
-    document.documentElement.style.setProperty('--scale', scale);
+    applyScale();
 
     const scroll_y = window.scrollY;
 
@@ -92,6 +80,28 @@ function onEnteringMiniview() {
     observer.observe(zoomableElement, observerOptions);
 
     zoomableElement.classList.add("miniview");
+}
+
+function applyScale() {
+    const windowHeight = window.innerHeight;
+
+    const groupsContainer = document.querySelector(".container");
+    const containerElementFullHeight = groupsContainer.scrollHeight;
+
+    console.log("[miniview] containerElementFullHeight ", containerElementFullHeight)
+
+    const footerTools = document.querySelector(".footer-tools");
+    const footerToolsHeight = footerTools.clientHeight;
+
+    const containerElementVisibleContentHeight = windowHeight - footerToolsHeight;
+
+    console.log("[miniview] containerElementVisibleContentHeight ", containerElementVisibleContentHeight)
+
+    const scale = Math.min(1, containerElementVisibleContentHeight / containerElementFullHeight);
+
+    console.log("[miniview] scale ", scale);
+
+    document.documentElement.style.setProperty('--scale', scale);
 }
 
 function onDragStart(event) {
