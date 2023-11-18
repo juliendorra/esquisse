@@ -28,17 +28,17 @@ You will need [OpenAI](https://platform.openai.com/) and [Stability](https://pla
 - ⟳ button refresh a block result by sending a new request
 - The _structure_ of your AI cells is **saved in the URL**: names, data text, transform text. Share the URL to share the structure (not the results). You can go back to reload a previous structure.
 
-## Set UI/UX Hints on blocks
+## Set UI/UX Hints on blocks with <img width="2.5%" alt="Entry button" src="static/icons/entry.svg"> and <img width="2.5%" alt="Entry button" src="static/icons/lock.svg">
 
-- 📥 button set the block as an _entry_ block, only the data cell is writable.
-- 🔒 button set the block as an _locked_ block, no cell is writable. 
+- <img width="2%" alt="Entry button" src="static/icons/entry.svg"> button set the block as an _entry_ block, only the data cell is writable.
+- <img width="2%" alt="Lock button" src="static/icons/lock.svg"> button set the block as an _locked_ block, no cell is writable. 
 
 These are purely UI/UX hints to help you organize your mini-app, and can be reversed any time.
 These cells keeps updating normally when the results they reference update.
 
-## ⚙️ Settings
+## <img width="2%" alt="Entry button" src="static/icons/settings.svg"> Settings
 
-You can access additonal settings by clicking on the rightmost button in the footer toolbar, the ⚙️ button.
+You can access additonal settings by clicking on the rightmost button in the footer toolbar, the <img width="1.5%" alt="Entry button" src="static/icons/settings.svg"> button.
 
 <img width="25%" alt="Capture d’écran 2023-10-22 à 16 56 08" src="https://github.com/juliendorra/esquisse/assets/109677/4ce7a78f-ae57-4394-b17e-f92213289654">
 
