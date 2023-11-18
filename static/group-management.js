@@ -18,7 +18,7 @@ const groupsMap = {
     }
 };
 
-export { groupsMap, addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, setGroupInteractionState, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, rebuildGroupsInNewOrder };
+export { groupsMap, addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, setGroupInteractionState, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, rebuildGroupsInNewOrder };
 
 const GROUP_HTML = {
 
@@ -416,6 +416,45 @@ function displayDataText(groupElement) {
 
     refResultTextarea.style.display = "none";
     dataText.style.display = "block";
+}
+
+function displayDataTextReferenceStatus({
+    groupElement,
+    hasReferences,
+    invalidReferencedResults,
+    notreadyReferencedResults,
+    availableReferencedResults }) {
+
+    const dataTextElement = groupElement.querySelector(".data-text");
+    const refResultTextarea = groupElement.querySelector(".referenced-result-text");
+
+    dataTextElement.classList.remove('error', 'warning', 'valid');
+    refResultTextarea.classList.remove('error', 'warning', 'valid');
+
+    if (hasReferences) {
+        if (
+            invalidReferencedResults.length > 0
+            && notreadyReferencedResults.length === 0
+            && availableReferencedResults.length === 0
+        ) {
+            dataTextElement.classList.add('error');
+            refResultTextarea.classList.add('error');
+        }
+        else if (
+            invalidReferencedResults.length > 0
+            && (notreadyReferencedResults.length > 0 || availableReferencedResults.length > 0)
+        ) {
+            dataTextElement.classList.add('warning');
+            refResultTextarea.classList.add('warning');
+        }
+        else if (
+            invalidReferencedResults.length === 0
+            && (notreadyReferencedResults.length > 0 || availableReferencedResults.length > 0)
+        ) {
+            dataTextElement.classList.add('valid');
+            refResultTextarea.classList.add('valid');
+        }
+    }
 }
 
 function rebuildGroupsInNewOrder() {
