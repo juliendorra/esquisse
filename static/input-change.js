@@ -1,5 +1,5 @@
 import { GROUP_TYPE, getGroupIdFromElement, getGroupElementFromId } from "./group-utils.js";
-import { updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText } from "./group-management.js"
+import { updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus } from "./group-management.js"
 import { getReferencedResultsAndCombinedDataWithResults } from "./reference-matching.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 import { persistGroups } from "./persistence.js";
@@ -41,6 +41,8 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     let referencedResultsChanged = false;
 
     const { hasReferences, invalidReferencedResults, notreadyReferencedResults, availableReferencedResults, combinedReferencedResults } = getReferencedResultsAndCombinedDataWithResults(data, group.name, groups);
+
+    displayDataTextReferenceStatus({ groupElement, hasReferences, invalidReferencedResults, notreadyReferencedResults, availableReferencedResults });
 
     // we brute force rebuild the whole graph, in case the user changed the references
     // wasteful but will make sure we don't miss any added or deleted reference
