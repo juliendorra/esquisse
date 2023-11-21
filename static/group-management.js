@@ -1,7 +1,7 @@
 import { GROUP_TYPE, INTERACTION_STATE, getGroupIdFromElement, getGroupElementFromId, getGroupFromName, generateUniqueGroupID } from "./group-utils.js";
 
 import { getReferencedResultsAndCombinedDataWithResults } from "./reference-matching.js";
-import { handleInputChange, nameChangeHandler } from "./input-change.js";
+import { handleInputChange, nameChangeHandler, handleImportedImage, handleDroppedImage } from "./input-change.js";
 import { onDragStart, onDragEnd } from "./reordering.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 
@@ -46,6 +46,21 @@ const GROUP_HTML = {
                 <button class="tool-btn lock-btn"><img src="./icons/lock.svg"></button>
             </div>
             `,
+
+
+    IMPORTED_IMAGE: `
+            <div class="group-header">
+                <small><img src="./icons/imported-image.svg"></small>
+                <div class="drag-handle">···</div>
+                <button class="tool-btn delete-btn"><img src="./icons/delete.svg"></button>
+            </div>
+            <input type="text" class="group-name" placeholder="Name of this block">
+            <div class="image-import-container">
+                <div class="drop-zone">Drop image here<br/>or click to load</div>
+            </div>
+            <img class="result" style="display:none;">
+            `,
+
 
     TEXT: `
             <div class="group-header">
@@ -107,6 +122,11 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
         case GROUP_TYPE.STATIC:
             groupElement.className = "group static";
             groupElement.innerHTML = GROUP_HTML.STATIC;
+            break;
+
+        case GROUP_TYPE.IMPORTED_IMAGE:
+            groupElement.className = "group imported-image";
+            groupElement.innerHTML = GROUP_HTML.IMPORTED_IMAGE;
             break;
 
         case GROUP_TYPE.IMAGE:
@@ -253,6 +273,42 @@ function addEventListenersToGroup(groupElement, groups) {
         refResultTextarea.style.display = "none";
     });
 
+    // Event listeners for imported image 
+    const dropZone = groupElement.querySelector(".drop-zone");
+    const resultImage = groupElement.querySelector(".result");
+
+    dropZone?.addEventListener("dragover", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        dropZone.classList.add("drop-zone-over");
+    });
+
+    dropZone?.addEventListener("dragleave", event => {
+        event.preventDefault();
+        event.stopPropagation()
+        dropZone.classList.remove("drop-zone-over");
+    });
+
+    dropZone?.addEventListener(
+        'click',
+        (event) => { handleImportedImage(event, resultImage, group, groups) }
+    );
+
+    dropZone?.addEventListener(
+        'drop',
+        (event) => {
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            event.currentTarget.classList.remove('drop-zone-over');
+
+            const imageFile = event.dataTransfer.files[0];
+
+            handleDroppedImage(imageFile, groupElement, groups)
+
+        }
+    );
 
 
     /******** Tool buttons *************/

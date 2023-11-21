@@ -5,6 +5,7 @@ const GROUP_TYPE = {
     TEXT: "text",
     IMAGE: "image",
     BREAK: "break",
+    IMPORTED_IMAGE: "imported_image",
     GRID: "grid",
     IMPORT: "import",
 };

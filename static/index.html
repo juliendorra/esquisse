@@ -196,6 +196,10 @@
             border-color: var(--group-static-color-code);
         }
 
+        .group.imported-image {
+            border-color: var(--group-static-color-code);
+        }
+
         .group.text {
             border-color: var(--group-text-color-code);
         }
@@ -232,6 +236,10 @@
         }
 
         .group.static .group-header small {
+            background-color: var(--group-static-color-code);
+        }
+
+        .group.imported-image .group-header small {
             background-color: var(--group-static-color-code);
         }
 
@@ -328,6 +336,14 @@
             border-color: var(--group-static-color-code);
         }
 
+        .group.imported-image .delete-btn,
+        .group.imported-image .lock-btn,
+        .group.imported-image .entry-btn,
+        .group.imported-image .refresh-btn,
+        .group.imported-image .download-btn {
+            border-color: var(--group-static-color-code);
+        }
+
         .group.text .delete-btn,
         .group.text .lock-btn,
         .group.text .entry-btn,
@@ -405,6 +421,20 @@
         .data-text,
         .transform-text {
             height: 4em;
+        .drop-zone {
+            outline: 2px dashed #cccccc;
+            outline-offset: -2px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            color: var(--title-text-color);
+            font-size: 0.9rem;
+        }
+
+        .drop-zone-over {
+            outline: 2px dashed #0000ff;
+            outline-offset: -2px;
         }
 
         p.result {
@@ -543,6 +573,10 @@
         }
 
         .add-static-group-btn {
+            border-color: var(--group-static-color-code);
+        }
+
+        .add-imported-image-group-btn {
             border-color: var(--group-static-color-code);
         }
 
@@ -849,6 +883,7 @@
         <button class="footer-btn enter-miniview-btn">Miniview <span class="icon-btn"><img src="./icons/miniview.svg"></span></button>
         <button class="footer-btn add-break-group-btn">Add Break <span class="icon-btn"><img src="./icons/break.svg"></span></button>
         <button class="footer-btn add-static-group-btn">Add Static Text <span class="icon-btn"><img src="./icons/text-static.svg"></span></button>
+        <button class="footer-btn add-imported-image-group-btn">Add Imported Image <span class="icon-btn"><img src="./icons/imported-image.svg"></span></button>
         <button class="footer-btn add-group-btn">Add Text Transform <span class="icon-btn"><img src="./icons/text-gen.svg"></span></button>
         <button class="footer-btn add-img-group-btn">Add Image Gen <span class="icon-btn"><img src="./icons/image-gen.svg"></span></button>
         <button class="footer-btn open-settings-menu-btn"><span class="icon-btn"><img src="./icons/settings.svg"></span></button>

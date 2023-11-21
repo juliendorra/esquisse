@@ -5,7 +5,7 @@ import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 import { persistGroups } from "./persistence.js";
 import { SETTINGS } from "./app.js";
 
-export { handleInputChange, nameChangeHandler };
+export { handleInputChange, nameChangeHandler, handleImportedImage, handleDroppedImage };
 
 const DELAY = 5000;
 
@@ -32,9 +32,17 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
     if (group.type === GROUP_TYPE.BREAK) return;
 
+    if (group.type === GROUP_TYPE.IMPORTED_IMAGE) return;
+
+    // we brute force rebuild the whole graph, in case the user changed the references
+    // wasteful but will make sure we don't miss any added or deleted reference
+    updateReferenceGraph(groups);
+
+    // Handling references: validity check, combining, displaying
+
     const dataElement = groupElement.querySelector(".data-text");
     const transformElement = groupElement.querySelector(".transform-text");
-    const data = dataElement.value;
+    const data = dataElement?.value || "";
     const transform = transformElement?.value || "";
 
     let currentData = data;
@@ -43,10 +51,6 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     const { hasReferences, invalidReferencedResults, notreadyReferencedResults, availableReferencedResults, combinedReferencedResults } = getReferencedResultsAndCombinedDataWithResults(data, group.name, groups);
 
     displayDataTextReferenceStatus({ groupElement, hasReferences, invalidReferencedResults, notreadyReferencedResults, availableReferencedResults });
-
-    // we brute force rebuild the whole graph, in case the user changed the references
-    // wasteful but will make sure we don't miss any added or deleted reference
-    updateReferenceGraph(groups);
 
     // if there's references, display them and use the combination of all references as currentData
     if (availableReferencedResults.length > 0) {
@@ -92,7 +96,10 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
     group.data = data;
     group.transform = transform;
+
     persistGroups(groups);
+
+    // Sending requests for the groups
 
     const lastTransformValue = transform;
 
@@ -159,62 +166,39 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
                 }
 
                 const resultBuffer = await response.arrayBuffer();
-
                 console.log(`Received image result buffer`);
 
                 const blob = new Blob([resultBuffer]);
                 group.result = blob;
 
-                const reader = new FileReader();
+                const blobUrl = URL.createObjectURL(blob);
+                console.log("URL for the image ", blobUrl);
 
-                return new Promise((resolve, reject) => {
-                    reader.onloadend = async function () {
+                let resultImage = groupElement.querySelector(".result");
 
-                        const blobUrl = URL.createObjectURL(blob);
-                        console.log("URL for the image ", blobUrl)
+                resultImage.style.display = "block";
+                resultImage.src = blobUrl;
 
-                        let resultImage = groupElement.querySelector(".result");
-                        if (!resultImage) {
-                            resultImage = document.createElement("img");
-                            resultImage.className = "result";
-                            groupElement.appendChild(resultImage);
-                        }
-                        resultImage.style.display = "block";
-                        resultImage.src = blobUrl;
+                // Event listener for image click to toggle zoom in and out
+                resultImage.removeEventListener('click', createZoomedImage);
+                resultImage.addEventListener('click', createZoomedImage);
 
-                        // Event listener for image click to toggle zoom in and out
-                        resultImage.removeEventListener('click', createZoomedImage);
-                        resultImage.addEventListener('click', createZoomedImage);
+                groupElement.querySelector(".refresh-btn").style.display = "block";
 
-                        groupElement.querySelector(".refresh-btn").style.display = "block";
+                const downloadButton = groupElement.querySelector(".download-btn");
+                downloadButton.style.display = "block";
+                downloadButton.href = blobUrl;
+                const fileName = `${group.name} — ${group.combinedReferencedResults} ${group.transform} — ${randomInt(1, 99999)}.png`.replace(/\s+/g, ' ').trim();
+                downloadButton.download = fileName;
 
-                        const downloadButton = groupElement.querySelector(".download-btn");
-
-                        downloadButton.style.display = "block";
-                        downloadButton.href = blobUrl;
-
-                        const fileName =
-                            `${group.name} — ${group.combinedReferencedResults} ${group.transform} — ${randomInt(1, 99999)}.png`
-                                .replace(/\s+/g, ' ')
-                                .trim();
-
-                        downloadButton.download = fileName;
-
-                        delete REQUEST_QUEUE[group.id];
-
-                        groupElement.classList.remove("waiting");
-                        removeGlobalWaitingIndicator();
-
-                        resolve(blob);
-                    };
-                    reader.onerror = reject;
-                    reader.readAsArrayBuffer(blob);
-                });
+                delete REQUEST_QUEUE[group.id];
+                groupElement.classList.remove("waiting");
+                removeGlobalWaitingIndicator();
 
             } catch (error) {
-                groupElement.classList.remove("waiting")
+                groupElement.classList.remove("waiting");
                 removeGlobalWaitingIndicator();
-                groupElement.classList.add("error")
+                groupElement.classList.add("error");
                 console.error(`Fetch failed: ${error}`);
             }
         } else if (group.type === GROUP_TYPE.TEXT) {
@@ -261,6 +245,53 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
         }
     }
 }
+
+function handleImportedImage(event, resultImage, group, groups) {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+
+    fileInput.onchange = e => {
+        const file = e.currentTarget.files[0];
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            const blobUrl = URL.createObjectURL(file);
+            resultImage.src = blobUrl;
+            resultImage.style.display = 'block';
+
+            // Event listener for image click to toggle zoom in and out
+            resultImage.removeEventListener('click', createZoomedImage);
+            resultImage.addEventListener('click', createZoomedImage);
+
+            group.result = file; // Set the file as the result of the block
+            persistGroups(groups); // Persist the groups with the new image result
+        };
+        reader.readAsDataURL(file);
+    };
+    fileInput.click();
+}
+
+function handleDroppedImage(imageFile, groupElement, groups) {
+
+    const group = groups.get(getGroupIdFromElement(groupElement));
+
+    const resultElement = groupElement.querySelector(".result");
+
+    const blobUrl = URL.createObjectURL(imageFile);
+
+    console.log("TEST DISPLAYING IMAGE")
+
+    resultElement.src = blobUrl;
+    resultElement.style.display = 'block';
+
+    // Event listener for image click to toggle zoom in and out
+    resultElement.removeEventListener('click', createZoomedImage);
+    resultElement.addEventListener('click', createZoomedImage);
+
+    group.result = imageFile;
+    persistGroups(groups);
+}
+
 
 function createZoomedImage(event) {
 
