@@ -7,16 +7,7 @@ let PRIVATE_HAS_HASH_CHANGED_PROGRAMMATICALLY = false;
 
 const VERSION = "2023-11-05";
 
-const urlOrigin = {
-    get HAS_HASH_CHANGED_PROGRAMMATICALLY() {
-        return PRIVATE_HAS_HASH_CHANGED_PROGRAMMATICALLY;
-    },
-    set HAS_HASH_CHANGED_PROGRAMMATICALLY(value) {
-        PRIVATE_HAS_HASH_CHANGED_PROGRAMMATICALLY = value;
-    }
-}
-
-export { urlOrigin, persistGroups, loadGroups };
+export { persistGroups, loadGroups };
 
 function persistGroups(groups) {
 
@@ -40,7 +31,6 @@ function persistGroups(groups) {
         const base64Groups = base64UnicodeEncode(strippedGroups);
         console.log("btoa groups", base64Groups);
 
-        urlOrigin.HAS_HASH_CHANGED_PROGRAMMATICALLY = true;
         window.location.hash = base64Groups;
     } catch (error) {
         console.error("Base64 encoding failed, impossible to persist in URL", error);

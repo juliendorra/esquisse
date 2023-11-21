@@ -5,7 +5,7 @@ import { addMiniviewButtonsListeners } from "./reordering.js";
 
 import { GROUP_TYPE } from "./group-utils.js";
 
-import { urlOrigin, persistGroups, loadGroups } from "./persistence.js";
+import { loadGroups } from "./persistence.js";
 
 import { groupsMap, createGroupAndAddGroupElement } from "./group-management.js";
 
@@ -43,17 +43,10 @@ function init() {
     groupsMap.GROUPS = groups;
     referencesGraph.IS_USED_BY_GRAPH = isUsedByGraph;
 
-    window.addEventListener("hashchange", () => {
-        console.log("Hash changed! Programmatically? ", urlOrigin.HAS_HASH_CHANGED_PROGRAMMATICALLY);
-        if (!urlOrigin.HAS_HASH_CHANGED_PROGRAMMATICALLY) {
 
-            const { groups, isUsedByGraph } = loadGroups();
 
-            groupsMap.GROUPS = groups;
-            referencesGraph.IS_USED_BY_GRAPH = isUsedByGraph;
 
         }
-        urlOrigin.HAS_HASH_CHANGED_PROGRAMMATICALLY = false;
     });
 
 
