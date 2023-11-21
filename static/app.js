@@ -48,7 +48,7 @@ function init() {
 
     // Dropping an image on the page will create an imported image block and group with the image
 
-    document.querySelector('.container')
+    document.querySelector('.window-drop-zone')
         .addEventListener(
             "dragover",
             (event) => {
@@ -57,7 +57,7 @@ function init() {
             });
 
 
-    document.querySelector('.container')
+    document.querySelector('.window-drop-zone')
         .addEventListener(
             "dragleave",
             event => {
@@ -65,7 +65,7 @@ function init() {
                 event.currentTarget.classList.remove('drop-zone-over');
             });
 
-    document.querySelector('.container').addEventListener("drop", (event) => {
+    document.querySelector('.window-drop-zone').addEventListener("drop", (event) => {
 
         event.preventDefault();
         event.stopPropagation();

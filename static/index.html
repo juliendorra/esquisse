@@ -421,6 +421,12 @@
         .data-text,
         .transform-text {
             height: 4em;
+        .window-drop-zone {
+            min-height: 95vh;
+            min-width: 100vw;
+        }
+
+
         .drop-zone {
             outline: 2px dashed #cccccc;
             outline-offset: -2px;
@@ -432,7 +438,7 @@
             font-size: 0.9rem;
         }
 
-        .drop-zone-over {
+        .drop-zone .drop-zone-over {
             outline: 2px dashed #0000ff;
             outline-offset: -2px;
         }
@@ -873,9 +879,11 @@
 
     <div class="fetching-indicator"></div>
 
-    <div class="zoomable">
-        <canvas id="mesh-background"></canvas>
-        <div class="container"> </div>
+    <div class="window-drop-zone">
+        <div class="zoomable">
+            <canvas id="mesh-background"></canvas>
+            <div class="container"> </div>
+        </div>
     </div>
 
     <div class="footer-tools">
