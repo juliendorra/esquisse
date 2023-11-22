@@ -24,35 +24,35 @@ const GROUP_HTML = {
 
     BREAK: `
             <div class="group-header">
-                <small><img src="./icons/break.svg"></small>
+                <small><img src="/icons/break.svg"></small>
                 <div class="drag-handle">···</div>
-                <button class="tool-btn delete-btn"><img src="./icons/delete.svg"></button>
+                <button class="tool-btn delete-btn"><img src="/icons/delete.svg"></button>
             </div>
             <input type="text" class="group-name" placeholder="Name of this block">
             `,
 
     STATIC: `
             <div class="group-header">
-                <small><img src="./icons/text-static.svg"></small>
+                <small><img src="/icons/text-static.svg"></small>
                 <div class="drag-handle">···</div>
-                <button class="tool-btn delete-btn"><img src="./icons/delete.svg"></button>
+                <button class="tool-btn delete-btn"><img src="/icons/delete.svg"></button>
             </div>
             <input type="text" class="group-name" placeholder="Name of this block">
             <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
 
             <div class="function-buttons-container">
-                <button class="tool-btn entry-btn"><img src="./icons/entry.svg"></button>
-                <button class="tool-btn lock-btn"><img src="./icons/lock.svg"></button>
+                <button class="tool-btn entry-btn"><img src="/icons/entry.svg"></button>
+                <button class="tool-btn lock-btn"><img src="/icons/lock.svg"></button>
             </div>
             `,
 
 
     IMPORTED_IMAGE: `
             <div class="group-header">
-                <small><img src="./icons/imported-image.svg"></small>
+                <small><img src="/icons/imported-image.svg"></small>
                 <div class="drag-handle">···</div>
-                <button class="tool-btn delete-btn"><img src="./icons/delete.svg"></button>
+                <button class="tool-btn delete-btn"><img src="/icons/delete.svg"></button>
             </div>
             <input type="text" class="group-name" placeholder="Name of this block">
             <div class="image-import-container">
@@ -64,9 +64,9 @@ const GROUP_HTML = {
 
     TEXT: `
             <div class="group-header">
-                <small><img src="./icons/text-gen.svg"></small>
+                <small><img src="/icons/text-gen.svg"></small>
                 <div class="drag-handle">···</div>
-                <button class="tool-btn delete-btn"><img src="./icons/delete.svg"></button>
+                <button class="tool-btn delete-btn"><img src="/icons/delete.svg"></button>
             </div>
 
             <input type="text" class="group-name" placeholder="Name of this block">
@@ -75,17 +75,17 @@ const GROUP_HTML = {
             <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
 
             <div class="function-buttons-container">
-                <button class="tool-btn entry-btn"><img src="./icons/entry.svg"></button>
-                <button class="tool-btn lock-btn"><img src="./icons/lock.svg"></button>
-                <button class="tool-btn refresh-btn"><img src="./icons/refresh.svg"></button>
+                <button class="tool-btn entry-btn"><img src="/icons/entry.svg"></button>
+                <button class="tool-btn lock-btn"><img src="/icons/lock.svg"></button>
+                <button class="tool-btn refresh-btn"><img src="/icons/refresh.svg"></button>
             </div>
             `,
 
     IMAGE: `
             <div class="group-header">
-                <small><img src="./icons/image-gen.svg"></small>
+                <small><img src="/icons/image-gen.svg"></small>
                 <div class="drag-handle">···</div>
-                <button class="tool-btn delete-btn"><img src="./icons/delete.svg"></button>
+                <button class="tool-btn delete-btn"><img src="/icons/delete.svg"></button>
             </div>
 
             <input type="text" class="group-name" placeholder="Name of this Block">
@@ -94,13 +94,13 @@ const GROUP_HTML = {
             <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
 
             <div class="function-buttons-container">
-                <button class="tool-btn entry-btn"><img src="./icons/entry.svg"></button>
-                <button class="tool-btn lock-btn"><img src="./icons/lock.svg"></button>
-                <button class="tool-btn refresh-btn"><img src="./icons/refresh.svg"></button>
+                <button class="tool-btn entry-btn"><img src="/icons/entry.svg"></button>
+                <button class="tool-btn lock-btn"><img src="/icons/lock.svg"></button>
+                <button class="tool-btn refresh-btn"><img src="/icons/refresh.svg"></button>
             </div>
 
             <img class="result">
-            <a class="tool-btn download-btn"><img src="./icons/download.svg"></a>
+            <a class="tool-btn download-btn"><img src="/icons/download.svg"></a>
             `,
 
 };
