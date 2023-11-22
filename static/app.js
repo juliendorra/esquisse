@@ -34,9 +34,9 @@ if (document.readyState === "loading") {
     init();
 }
 
-function init() {
+async function init() {
 
-    const loadingResult = loadGroups();
+    const loadingResult = await loadGroups();
 
     console.log(loadingResult);
 

@@ -3,6 +3,12 @@ import { basicAuth } from "./auth.ts";
 import { contentType } from "https://deno.land/std/media_types/mod.ts";
 import { tryGenerate as callStability } from "./stability.js";
 import { callGPT } from "./gpt.js";
+import { storeGroups, retrieveGroups, checkIdExists } from "./kv-storage.ts";
+import { customAlphabet } from 'npm:nanoid';
+
+// 2 Billions IDs needed in order to have a 1% probability of at least one collision.
+const alphabet = "123456789bcdfghjkmnpqrstvwxyz";
+const nanoid = customAlphabet(alphabet, 14);
 
 const handler = async (request: Request): Promise<Response> => {
 
@@ -11,6 +17,8 @@ const handler = async (request: Request): Promise<Response> => {
 
   const isAuthenticated = await basicAuth(request);
 
+  const nanoidRegex = /^\/app\/[123456789bcdfghjkmnpqrstvwxyz]{14}$/;
+
   if (!pathname.startsWith("/public/")) {
 
     if (!isAuthenticated) {
@@ -18,11 +26,35 @@ const handler = async (request: Request): Promise<Response> => {
     }
   }
 
-  if (pathname.startsWith("/stability") || pathname.startsWith("/chatgpt")) {
+  // triage calls that returns JSON
+  if (pathname.startsWith("/stability") || pathname.startsWith("/chatgpt") || url.pathname.startsWith("/load")) {
     return await handleJsonEndpoints(request);
   }
 
-  if (pathname === "/") {
+  else if (pathname === '/persist' && request.method === 'POST') {
+    const body = await request.json();
+    let id = body.id;
+
+    if (!id) {
+      id = nanoid(); //=> "f1q6jhnnvfmgxx"
+    } else if (!await checkIdExists(id)) {
+      return new Response('Not Found, wrong ID', { status: 404 });
+    }
+
+    await storeGroups(id, body.groups);
+    return new Response(JSON.stringify({ id }), { headers: { 'Content-Type': 'application/json' } });
+  }
+
+
+  else if (nanoidRegex.test(pathname) && request.method === 'GET') {
+    const file = await Deno.readFile(`./static/index.html`);
+    const type = contentType("html") || "text/plain";
+    return new Response(file, {
+      headers: { "content-type": type },
+    });
+  }
+
+  else if (pathname === "/") {
     const file = await Deno.readFile(`./static/index.html`);
     const type = contentType("html") || "text/plain";
     return new Response(file, {
@@ -51,6 +83,22 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
 
   console.log(body);
 
+  if (pathname === '/load' && request.method === 'POST') {
+
+    console.log("Loading groups from KV");
+
+    const id = body.id;
+    const groups = await retrieveGroups(id);
+
+    if (groups) {
+      return new Response(
+        JSON.stringify(groups),
+        { headers: { 'Content-Type': 'application/json' } });
+    } else {
+      return new Response('Not Found', { status: 404 });
+    }
+  }
+
   if (pathname.startsWith("/stability")) {
     response = await callStability(
       body.data + " " + body.transform,
@@ -59,9 +107,9 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
       body.qualityEnabled,
       3);
 
-    return new Response(response, {
-      headers: { "content-type": "image/png" },
-    });
+    return new Response(
+      response,
+      { headers: { "content-type": "image/png" }, });
   }
 
   if (pathname.startsWith("/chatgpt")) {
@@ -70,9 +118,9 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
       body.transform,
       body.qualityEnabled);
 
-    return new Response(JSON.stringify(response), {
-      headers: { "content-type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify(response),
+      { headers: { "content-type": "application/json" }, });
   }
 
 }

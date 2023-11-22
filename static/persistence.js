@@ -3,21 +3,21 @@ import { addGroupElement, createGroupAndAddGroupElement, setGroupInteractionStat
 import { buildReverseReferenceGraph } from "./reference-graph.js";
 import { handleInputChange } from "./input-change.js";
 
-let PRIVATE_HAS_HASH_CHANGED_PROGRAMMATICALLY = false;
+let ID = null;
 
 const VERSION = "2023-11-05";
 
 export { persistGroups, loadGroups };
 
-function persistGroups(groups) {
+async function persistGroups(groups) {
 
-    let strippedGroups = {};
+    let packagedGroups = {};
 
-    strippedGroups.version = VERSION;
+    packagedGroups.version = VERSION;
 
     // we store the groups array is in the groups property
 
-    strippedGroups.groups = Array.from(groups.values()).map(({ name, data, transform, type, interactionState }) => ({
+    packagedGroups.groups = Array.from(groups.values()).map(({ name, data, transform, type, interactionState }) => ({
         name,
         data,
         transform,
@@ -25,24 +25,101 @@ function persistGroups(groups) {
         interactionState,
     }));
 
-    console.log("Persisting in URL", strippedGroups);
+    console.log("Persisting in URL", packagedGroups);
 
     try {
-        const base64Groups = base64UnicodeEncode(strippedGroups);
+        const base64Groups = base64UnicodeEncode(packagedGroups);
         console.log("btoa groups", base64Groups);
 
         window.location.hash = base64Groups;
     } catch (error) {
         console.error("Base64 encoding failed, impossible to persist in URL", error);
     }
+
+    await persistOnServer(packagedGroups, ID);
 }
 
-function loadGroups() {
-    const base64EncodedGroups = window.location.hash.slice(1);
+async function persistOnServer(packagedGroups, existingId = null) {
+    try {
+        const response = await fetch('/persist', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ groups: packagedGroups, id: existingId }),
+        });
 
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        ID = data.id;
+        console.log(`Persisted with ID: ${ID}`);
+        // Use the uniqueId as needed, for example, to create a short URL
+    } catch (error) {
+        console.error("Error in persisting groups", error);
+    }
+}
+
+async function loadGroups() {
+
+    const urlPath = window.location.pathname;
+
+    let decodedGroups = new Map();
     let groups = new Map();
 
-    if (!base64EncodedGroups) {
+    // Check if the URL path is of the form /app/[NANOID]
+    if (urlPath.startsWith('/app/')) {
+
+        ID = urlPath.split('/')[2];
+
+        try {
+            const response = await fetch('/load', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ id: ID }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            decodedGroups = await response.json();
+
+        } catch (error) {
+            console.error("Error loading groups from server", error);
+        }
+    }
+    else if (window.location.hash) {
+
+        const base64EncodedGroups = window.location.hash.slice(1);
+
+        ID = null;
+
+        try {
+            // try to decode with the old, ASCII-only method
+            try {
+                decodedGroups = JSON.parse(atob(base64EncodedGroups));
+            } catch (e) {
+                // If there's an error, try decode UTF-8 characters
+                decodedGroups = JSON.parse(base64UnicodeDecode(base64EncodedGroups));
+            }
+
+            // If the version field is present, re-decode using proper utf8 handling
+            if (decodedGroups && decodedGroups.version) {
+                // the newest format is an object and not just a raw array. The groups array is in the groups property
+                decodedGroups = JSON.parse(base64UnicodeDecode(base64EncodedGroups));
+            }
+
+        } catch (error) {
+            console.error("Base64 decoding failed", error);
+        }
+    }
+    else {
+
         createGroupAndAddGroupElement(GROUP_TYPE.TEXT, groups);
 
         // we are interested in having even this first isolated node in the graph
@@ -50,40 +127,20 @@ function loadGroups() {
 
         const isUsedByGraph = buildReverseReferenceGraph(groups);
 
+        ID = null;
+
         return { groups, isUsedByGraph };
     }
 
-    let decodedGroups;
+    // using the decoded group data to create each group
 
     try {
-        // try to decode with the old, ASCII-only method
-        try {
-            decodedGroups = JSON.parse(atob(base64EncodedGroups));
-        } catch (e) {
-            // If there's an error, try decode UTF-8 characters
-            decodedGroups = JSON.parse(base64UnicodeDecode(base64EncodedGroups));
-        }
-
-        // If the version field is present, re-decode using proper utf8 handling
-        if (decodedGroups && decodedGroups.version) {
-            // the newest format is an object and not just a raw array. The groups array is in the groups property
-            decodedGroups = JSON.parse(base64UnicodeDecode(base64EncodedGroups)).groups;
-        }
-
-    } catch (error) {
-        console.error("Base64 decoding failed", error);
-    }
-
-    try {
-
-        console.log("loading groups from hash", decodedGroups);
-
-        groups.clear();
+        console.log("loading groups", decodedGroups);
 
         const groupsContainer = document.querySelector(".container");
         groupsContainer.innerHTML = "";
 
-        decodedGroups.forEach(({ name, data, transform, type, interactionState }) => {
+        decodedGroups.groups.forEach(({ name, data, transform, type, interactionState }) => {
             const group = {
                 id: generateUniqueGroupID(groups),
                 name,
@@ -130,6 +187,9 @@ function loadGroups() {
 
         });
     } catch (error) {
+
+        ID = null;
+
         console.error("Error loading groups", error);
     }
 
