@@ -99,12 +99,19 @@
         input,
         textarea {
             border: 1px;
-            padding: 0.4rem;
             border-style: solid;
             border-color: #cccccc;
+
             background: none;
             background-color: transparent;
+
+            padding: 0.4rem;
             max-width: calc(100% - 0.75rem);
+        }
+
+        input:focus-visible,
+        textarea:focus-visible {
+            outline: none;
         }
 
         div,
@@ -409,18 +416,52 @@
 
         textarea[readonly],
         input[readonly] {
-            background: linear-gradient(0.25turn, #cfd8e5, #dedede);
-            border-color: transparent;
+            background: linear-gradient(0.25turn, #e8ecf1, #e2e6ec);
             outline: none;
         }
 
-        textarea.referenced-result-text[readonly] {
-            background-color: rgb(207, 239, 243);
+        textarea.referenced-result-text {
+            background-color: rgba(118, 0, 255, 0.11);
+            height: 4em;
         }
 
         .data-text,
         .transform-text {
             height: 4em;
+            border: 1px;
+            border-style: solid;
+            border-color: #cccccc;
+        }
+
+        .data-text.error,
+        .referenced-result-text.error {
+            border-color: red;
+        }
+
+        .data-text.warning,
+        .referenced-result-text.warning {
+            border-color: orange;
+        }
+
+        .data-text.valid,
+        .referenced-result-text.valid {
+            border-color: blue;
+        }
+
+        .data-text.error:focus {
+            border-color: red;
+
+        }
+
+        .data-text.warning:focus {
+            border-color: orange;
+
+        }
+
+        .data-text.valid:focus {
+            border-color: blue;
+        }
+
         .window-drop-zone {
             min-height: 95vh;
             min-width: 100vw;
