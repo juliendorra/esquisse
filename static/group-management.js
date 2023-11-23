@@ -150,11 +150,6 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
         resultElement.style.display = 'none';
     }
 
-    // Initially hide the refresh button
-    const refreshButton = groupElement.querySelector(".refresh-btn");
-    if (refreshButton) {
-        refreshButton.style.display = 'none';
-    }
     // Initially hide the download button
     const downloadButton = groupElement.querySelector(".download-btn");
     if (downloadButton) {
