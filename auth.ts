@@ -12,18 +12,18 @@ const userEntries = Object.entries(env)
 console.log('Loaded user data from environment variables ', userEntries);
 
 // A helper function to perform Basic Auth check
-export async function basicAuth(request: Request): Promise<boolean> {
+export async function basicAuth(request: Request): Promise<{ isAuthenticated: boolean, username: string | null }> {
     const authorization = request.headers.get("Authorization");
 
     if (!authorization) {
         console.log('Authorization header missing');
-        return false;
+        return { isAuthenticated: false, username: null };
     }
 
     const encodedCreds = authorization.split(" ")[1];
     if (!encodedCreds) {
         console.log('Credentials not provided in Authorization header');
-        return false;
+        return { isAuthenticated: false, username: null };
     }
 
     const decodedCreds = atob(encodedCreds);
@@ -36,14 +36,14 @@ export async function basicAuth(request: Request): Promise<boolean> {
         if (envUser === username) {
             if (await compare(password, envHash)) {
                 console.log(`Authentication successful for user: ${username}`);
-                return true;
+                return { isAuthenticated: true, username: username };
             } else {
                 console.log(`Invalid password for user: ${username}`);
-                return false;
+                return { isAuthenticated: false, username: username };
             }
         }
     }
 
     console.log(`User not found: ${username}`);
-    return false;
+    return { isAuthenticated: false, username: null };
 }

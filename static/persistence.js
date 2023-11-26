@@ -15,7 +15,7 @@ async function persistGroups(groups) {
 
     packagedGroups.version = VERSION;
 
-    // we store the groups array is in the groups property
+    // we store the groups array in the groups property
 
     packagedGroups.groups = Array.from(groups.values()).map(({ name, data, transform, type, interactionState }) => ({
         name,
@@ -25,21 +25,34 @@ async function persistGroups(groups) {
         interactionState,
     }));
 
-    console.log("Persisting in URL", packagedGroups);
+    await persistOnServer(packagedGroups, ID);
+
+    console.log("[PERSIST] Rewriting URL with ID")
+
+    const url = "/app/" + ID;
+
+    history.pushState(groups, "", url);
+
+}
+
+function persistInHash(packagedGroups) {
+
+    console.log("[PERSIST] Persisting in URL", packagedGroups);
 
     try {
         const base64Groups = base64UnicodeEncode(packagedGroups);
-        console.log("btoa groups", base64Groups);
+        console.log("[PERSIST] btoa groups", base64Groups);
 
         window.location.hash = base64Groups;
     } catch (error) {
-        console.error("Base64 encoding failed, impossible to persist in URL", error);
+        console.error("[PERSIST] Base64 encoding failed, impossible to persist in URL", error);
     }
-
-    await persistOnServer(packagedGroups, ID);
 }
 
 async function persistOnServer(packagedGroups, existingId = null) {
+
+    console.log("[PERSIST] Persisting on server", packagedGroups);
+
     try {
         const response = await fetch('/persist', {
             method: 'POST',
@@ -53,10 +66,10 @@ async function persistOnServer(packagedGroups, existingId = null) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
-        ID = data.id;
-        console.log(`Persisted with ID: ${ID}`);
-        // Use the uniqueId as needed, for example, to create a short URL
+        ({ id: ID } = await response.json());
+
+        console.log("[PERSIST] Id sent by server", ID)
+
     } catch (error) {
         console.error("Error in persisting groups", error);
     }
@@ -66,7 +79,7 @@ async function loadGroups() {
 
     const urlPath = window.location.pathname;
 
-    let decodedGroups = new Map();
+    let decodedGroups = [];
     let groups = new Map();
 
     // Check if the URL path is of the form /app/[NANOID]
@@ -87,15 +100,21 @@ async function loadGroups() {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            decodedGroups = await response.json();
+            const json = await response.json();
+
+            console.log(json)
+
+            decodedGroups = json;
 
         } catch (error) {
-            console.error("Error loading groups from server", error);
+            console.error("[LOADING] Error loading groups from server", error);
         }
     }
     else if (window.location.hash) {
 
         const base64EncodedGroups = window.location.hash.slice(1);
+
+        console.log("[LOADING] hash based loading");
 
         ID = null;
 
@@ -115,10 +134,12 @@ async function loadGroups() {
             }
 
         } catch (error) {
-            console.error("Base64 decoding failed", error);
+            console.error("[LOADING] Base64 decoding failed", error);
         }
     }
     else {
+
+        console.log("[LOADING] new Esquisse, creating a group");
 
         createGroupAndAddGroupElement(GROUP_TYPE.TEXT, groups);
 
@@ -135,7 +156,7 @@ async function loadGroups() {
     // using the decoded group data to create each group
 
     try {
-        console.log("loading groups", decodedGroups);
+        console.log("[LOADING] loading groups", decodedGroups);
 
         const groupsContainer = document.querySelector(".container");
         groupsContainer.innerHTML = "";
@@ -163,26 +184,9 @@ async function loadGroups() {
             // Break groups elements don't have name and data elements
             if (groupNameElement) groupNameElement.value = group.name;
             if (dataElement) dataElement.value = group.data;
-
-            if (type === GROUP_TYPE.STATIC) {
-                // If data is present, call handleInput to combine data and references into a referenceable result
-                if (dataElement.value) {
-                    handleInputChange(groupElement, true, false, true, groups);
-                }
-            }
-
-            if (group.type === GROUP_TYPE.TEXT || group.type === GROUP_TYPE.IMAGE) {
-
-                transformElement.value = transform;
-
-                // If data is present and transform value is present, call handleInput to try to send an immediate API request
-                if (dataElement.value && transformElement.value) {
-                    handleInputChange(groupElement, true, false, true, groups);
-                }
-            }
+            if (transformElement) transformElement.value = transform;
 
             // setGroupInteractionState set the right UI state, 
-            // using optional chaining to ignore absent inputs
             setGroupInteractionState(groupElement, group.interactionState);
 
         });
@@ -190,10 +194,12 @@ async function loadGroups() {
 
         ID = null;
 
-        console.error("Error loading groups", error);
+        console.error("[LOADING] Error loading groups", error);
     }
 
-    console.log("groups loaded: ", groups);
+    if (!ID) { persistGroups(groups); }
+
+    console.log("[LOADING] groups loaded: ", groups);
 
     document.title = `${groups.values().next().value.name} · Esquisse AI`
 

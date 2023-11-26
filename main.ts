@@ -3,7 +3,7 @@ import { basicAuth } from "./auth.ts";
 import { contentType } from "https://deno.land/std/media_types/mod.ts";
 import { tryGenerate as callStability } from "./stability.js";
 import { callGPT } from "./gpt.js";
-import { storeGroups, retrieveGroups, checkIdExists } from "./kv-storage.ts";
+import { storeGroups, retrieveLatestGroups, checkIdExists } from "./kv-storage.ts";
 import { customAlphabet } from 'npm:nanoid';
 
 // 2 Billions IDs needed in order to have a 1% probability of at least one collision.
@@ -15,7 +15,7 @@ const handler = async (request: Request): Promise<Response> => {
   const url = new URL(request.url);
   const { pathname } = url;
 
-  const isAuthenticated = await basicAuth(request);
+  const { isAuthenticated, username } = await basicAuth(request);
 
   const nanoidRegex = /^\/app\/[123456789bcdfghjkmnpqrstvwxyz]{14}$/;
 
@@ -32,17 +32,27 @@ const handler = async (request: Request): Promise<Response> => {
   }
 
   else if (pathname === '/persist' && request.method === 'POST') {
-    const body = await request.json();
-    let id = body.id;
 
-    if (!id) {
-      id = nanoid(); //=> "f1q6jhnnvfmgxx"
-    } else if (!await checkIdExists(id)) {
+    const body = await request.json();
+    let urlid = body.id;
+    const timestamp = new Date().toISOString();
+
+    if (!urlid) {
+      urlid = nanoid(); //=> "f1q6jhnnvfmgxx"
+    } else if (!await checkIdExists(urlid)) {
       return new Response('Not Found, wrong ID', { status: 404 });
     }
 
-    await storeGroups(id, body.groups);
-    return new Response(JSON.stringify({ id }), { headers: { 'Content-Type': 'application/json' } });
+    let groups = body.groups;
+    groups.urlid = urlid;
+    groups.timestamp = timestamp;
+    groups.username = username;
+
+    console.log(groups);
+
+    await storeGroups(groups);
+
+    return new Response(JSON.stringify({ id: urlid }), { headers: { 'Content-Type': 'application/json' } });
   }
 
 
@@ -88,7 +98,7 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
     console.log("Loading groups from KV");
 
     const id = body.id;
-    const groups = await retrieveGroups(id);
+    const groups = await retrieveLatestGroups(id);
 
     if (groups) {
       return new Response(
