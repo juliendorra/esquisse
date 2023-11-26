@@ -70,6 +70,17 @@
     "https://deno.land/x/superserial@0.3.4/serialize.ts": "d06b863ee27dadb56e9e67e6a72bf3e1ba8be146c46c59f3a95b88e725182b2b",
     "https://deno.land/x/superserial@0.3.4/serializer.ts": "92fc99459d7daf2d6dce1d0b320fc63eb379d93023bd9f1720ebd310699c4a72",
     "https://deno.land/x/superserial@0.3.4/symbol.ts": "1b2d5edbe4876716ca75ec37be691bc217cdda702f39c4d7541aec604e01abac",
-    "https://deno.land/x/superserial@0.3.4/types.ts": "ff18d7a3a52b549928392c2de8c12193abf184f0ecf8ec259de3a8f87cd3ffe3"
+    "https://deno.land/x/superserial@0.3.4/types.ts": "ff18d7a3a52b549928392c2de8c12193abf184f0ecf8ec259de3a8f87cd3ffe3",
+    "https://raw.githubusercontent.com/oliver-oloughlin/kvdex/patch/deploy-compatible-serialize/mod.ts": "159bae11224b0cbe723af1560eb05d92e5ada450b7a9372968b084b96b427f48",
+    "https://raw.githubusercontent.com/oliver-oloughlin/kvdex/patch/deploy-compatible-serialize/src/atomic_builder.ts": "a15fb58990571675061219b6d76c461373a50014943ebb3dbf730efaa3203350",
+    "https://raw.githubusercontent.com/oliver-oloughlin/kvdex/patch/deploy-compatible-serialize/src/atomic_wrapper.ts": "2e0efced307ddbe5f64fee9a9a358733676847081354fecfb1922e081ae518a6",
+    "https://raw.githubusercontent.com/oliver-oloughlin/kvdex/patch/deploy-compatible-serialize/src/collection.ts": "0f3d976cf2e72e8aa4a52f4d0ae7178cb91ffd462d8d7ef537c1a1bd69796e11",
+    "https://raw.githubusercontent.com/oliver-oloughlin/kvdex/patch/deploy-compatible-serialize/src/constants.ts": "034a8b67bc315c5f74f79c8fe83ef92f703aa373f246c7a17b7576e86b353f13",
+    "https://raw.githubusercontent.com/oliver-oloughlin/kvdex/patch/deploy-compatible-serialize/src/document.ts": "23e77ae168861eefaa099592ed9f1d3ec5f704d71ab2ed130d96bbf0197ab326",
+    "https://raw.githubusercontent.com/oliver-oloughlin/kvdex/patch/deploy-compatible-serialize/src/errors.ts": "1b69c58207c7a150a5212dd1b059726ec502ae1e4c081797209c2b0efbcbd832",
+    "https://raw.githubusercontent.com/oliver-oloughlin/kvdex/patch/deploy-compatible-serialize/src/kvdex.ts": "e79e2581379beb1b85373c7c3d6b258a28dfbdd64f41a285252d783e8be32497",
+    "https://raw.githubusercontent.com/oliver-oloughlin/kvdex/patch/deploy-compatible-serialize/src/model.ts": "6112ce1a911a3bc2fb8e2422e8a5e8c27804b059e22dbbdc86240ac1b295a311",
+    "https://raw.githubusercontent.com/oliver-oloughlin/kvdex/patch/deploy-compatible-serialize/src/types.ts": "6da7849e313cfc43ac26511e169dd870b6e037d61a80d54f90f8c446b0652a14",
+    "https://raw.githubusercontent.com/oliver-oloughlin/kvdex/patch/deploy-compatible-serialize/src/utils.ts": "5671537ae15c6bbe01125c46a106c7e46b05c84a1af030dbf67a686db8b08cec"
   }
 }
