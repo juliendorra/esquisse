@@ -1,4 +1,5 @@
 import { kvdex, model, collection } from "https://deno.land/x/kvdex/mod.ts";
+import { Serializer } from "https://deno.land/x/superserial/mod.ts";
 import { ulid } from "https://deno.land/std/ulid/mod.ts";
 
 // Defining the Group type
@@ -22,6 +23,8 @@ const GroupsModel = model<Groups>();
 // Open the KV database
 const kv = await Deno.openKv();
 
+const serializer = new Serializer();
+
 // Setting up the database with collections
 const db = kvdex(kv, {
     apps: collection(GroupsModel, {
@@ -29,7 +32,10 @@ const db = kvdex(kv, {
             urlid: "secondary",
             timestamp: "secondary",
         },
-        serialized: true,
+        serialized: {
+            serialize: serializer.serialize,
+            deserialize: serializer.deserialize,
+        },
         // ulids can be ordered by insertion time, contrary to  default kvdex crypto.randomUUID(). 
         // https://github.com/oliver-oloughlin/kvdex/issues/126#issuecomment-1826809952 
         idGenerator: () => ulid()
