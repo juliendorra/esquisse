@@ -1,4 +1,3 @@
-import { SETTINGS } from "./app.js";
 import { renderBackground } from "./mesh-background.js";
 import { renderDataFlow } from "./flow-visualization.js";
 import { applyScale } from "./reordering.js";
