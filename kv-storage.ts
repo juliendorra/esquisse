@@ -1,4 +1,4 @@
-import { kvdex, collection, model } from "https://raw.githubusercontent.com/oliver-oloughlin/kvdex/patch/deploy-compatible-serialize/mod.ts"
+import { kvdex, model, collection } from "https://deno.land/x/kvdex/mod.ts";
 import { ulid } from "https://deno.land/std/ulid/mod.ts";
 
 // Defining the Group type
