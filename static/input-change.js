@@ -169,7 +169,9 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
                 const resultBuffer = await response.arrayBuffer();
                 console.log(`Received image result buffer`);
 
-                const blob = new Blob([resultBuffer]);
+                const contentType = response.headers.get('Content-Type');
+
+                const blob = new Blob([resultBuffer], { type: contentType });
                 group.result = blob;
 
                 const blobUrl = URL.createObjectURL(blob);
@@ -189,7 +191,16 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
                 const downloadButton = groupElement.querySelector(".download-btn");
                 downloadButton.style.display = "block";
                 downloadButton.href = blobUrl;
-                const fileName = `${group.name} — ${group.combinedReferencedResults} ${group.transform} — ${randomInt(1, 99999)}.png`.replace(/\s+/g, ' ').trim();
+
+                let fileExtension = 'png';
+                if (contentType === 'image/jpeg') {
+                    fileExtension = 'jpeg';
+                } else if (contentType === 'image/png') {
+                    fileExtension = 'png';
+                }
+
+                const fileName = `${group.name} — ${group.combinedReferencedResults} ${group.transform} — ${randomInt(1, 99999)}.${fileExtension}`.replace(/\s+/g, ' ').trim();
+
                 downloadButton.download = fileName;
 
                 delete REQUEST_QUEUE[group.id];
