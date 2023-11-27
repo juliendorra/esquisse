@@ -5,14 +5,7 @@ import { tryGenerate as callStability } from "./stability.js";
 import { callGPT } from "./gpt.js";
 import { storeGroups, retrieveLatestGroups, checkIdExists } from "./kv-storage.ts";
 import { customAlphabet } from 'npm:nanoid';
-import {
-  ImageMagick,
-  IMagickImage,
-  initialize,
-  MagickFormat,
-} from "https://deno.land/x/imagemagick_deno/mod.ts";
-
-await initialize(); //imagemagick
+import { Image, decode, encode } from "https://deno.land/x/imagescript/mod.ts"
 
 // 2 Billions IDs needed in order to have a 1% probability of at least one collision.
 const alphabet = "123456789bcdfghjkmnpqrstvwxyz";
@@ -129,21 +122,16 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
     if (PNGimage) {
 
       // compressing the PNG received from stability into a HQ JPEG to limit bandwidth
-      let jpegData;
+      // the PNG is an ArrayBuffer, we create an Uint8Array for manipulation
+      let image = await decode(new Uint8Array(PNGimage));
 
-      await ImageMagick.read(
-        new Uint8Array(PNGimage),
-        async (img: IMagickImage) => {
-          img.format = MagickFormat.Jpeg;
-          img.quality = 90;
-          await img.write((data: Uint8Array) => {
-            jpegData = data;
-          });
+      let jpegData = await image.encodeJPEG(90);
+
+      const jpegResponse = new Response(
+        jpegData,
+        {
+          headers: { "content-type": "image/jpeg" }
         });
-
-      const jpegResponse = new Response(jpegData, {
-        headers: { "content-type": "image/jpeg" }
-      });
 
       return jpegResponse;
     }
