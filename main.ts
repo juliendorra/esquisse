@@ -3,7 +3,7 @@ import { basicAuth } from "./auth.ts";
 import { contentType } from "https://deno.land/std/media_types/mod.ts";
 import { tryGenerate as callStability } from "./stability.js";
 import { callGPT } from "./gpt.js";
-import { storeGroups, retrieveLatestGroups, checkIdExists, storeResults, retrieveResults } from "./kv-storage.ts";
+import { storeGroups, retrieveLatestGroups, checkAppIdExists, storeResults, retrieveResults } from "./kv-storage.ts";
 import { customAlphabet } from 'npm:nanoid';
 import { decode } from "https://deno.land/x/imagescript/mod.ts"
 
@@ -28,7 +28,7 @@ const handler = async (request: Request): Promise<Response> => {
   }
 
   // triage calls that returns JSON
-  if (pathname.startsWith("/stability") || pathname.startsWith("/chatgpt") || url.pathname.startsWith("/load")) {
+  if (pathname.startsWith("/stability") || pathname.startsWith("/chatgpt") || url.pathname.startsWith("/load") || url.pathname === "/load-result") {
     return await handleJsonEndpoints(request);
   }
 
@@ -40,7 +40,7 @@ const handler = async (request: Request): Promise<Response> => {
 
     if (!appid) {
       appid = nanoid(); //=> "f1q6jhnnvfmgxx"
-    } else if (!await checkIdExists(appid)) {
+    } else if (!await checkAppIdExists(appid)) {
       return new Response('Not Found, wrong ID', { status: 404 });
     }
 
@@ -54,6 +54,19 @@ const handler = async (request: Request): Promise<Response> => {
     await storeGroups(groups);
 
     return new Response(JSON.stringify({ id: appid }), { headers: { 'Content-Type': 'application/json' } });
+  }
+
+  else if (request.url === "/persist-results" && request.method === "POST") {
+
+    const body = await request.json();
+    const resultid = nanoid();
+    const timestamp = new Date().toISOString();
+
+    const resultsData = { ...body, timestamp, resultid };
+
+    await storeResults(resultsData);
+
+    return new Response("Results stored successfully", { status: 200 });
   }
 
 
@@ -110,7 +123,22 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
     }
   }
 
-  if (pathname.startsWith("/stability")) {
+  else if (url.pathname === "/load-result" && request.method === 'POST') {
+    const resultid = body.resultid;
+
+    if (!resultid) {
+      return new Response("resultid is required", { status: 400 });
+    }
+
+    const results = await retrieveResults(resultid);
+
+    return new Response(JSON.stringify(results), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  else if (pathname.startsWith("/stability") && request.method === 'POST') {
     // may return undefined
     let PNGimage = await callStability(
       body.data + " " + body.transform,
@@ -135,11 +163,9 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
 
       return jpegResponse;
     }
-
-
   }
 
-  if (pathname.startsWith("/chatgpt")) {
+  else if (pathname.startsWith("/chatgpt") && request.method === 'POST') {
     response = await callGPT(
       body.data,
       body.transform,
@@ -149,7 +175,6 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
       JSON.stringify(response),
       { headers: { "content-type": "application/json" }, });
   }
-
 }
 
 const port = 8080;

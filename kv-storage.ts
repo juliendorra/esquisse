@@ -1,7 +1,8 @@
 import { kvdex, model, collection } from "https://deno.land/x/kvdex/mod.ts";
 import { ulid } from "https://deno.land/std/ulid/mod.ts";
 
-// Defining the Group type
+export { storeGroups, retrieveLatestGroups, checkAppIdExists, storeResults, retrieveResults }
+
 type Groups = {
     appid: string,
     timestamp: string,
@@ -16,13 +17,27 @@ type Groups = {
     }>;
 }
 
-// Creating a standard model for Group
+type Result = {
+    resultid: string;
+    appid: string;
+    timestamp: string;
+    username: string;
+    items: Array<{
+        name: string;
+        data?: string;
+        transform?: string;
+        result: string;
+        type: string;
+        interactionState: string;
+    }>;
+}
+
+const ResultModel = model<Result>();
+
 const GroupsModel = model<Groups>();
 
-// Open the KV database
 const kv = await Deno.openKv();
 
-// Setting up the database with collections
 const db = kvdex(kv, {
     apps: collection(GroupsModel, {
         indices: {
@@ -36,10 +51,23 @@ const db = kvdex(kv, {
         // ulids can be ordered by insertion time, contrary to  default kvdex crypto.randomUUID(). 
         // https://github.com/oliver-oloughlin/kvdex/issues/126#issuecomment-1826809952 
         idGenerator: () => ulid()
+    }),
+
+    results: collection(ResultModel, {
+        indices: {
+            resultid: "primary",
+            appid: "secondary",
+            timestamp: "secondary",
+        },
+        serialized: {
+            serialize: (obj) => new TextEncoder().encode(JSON.stringify(obj)),
+            deserialize: (data) => JSON.parse(new TextDecoder().decode(data)),
+        },
+        idGenerator: () => ulid()
     })
 });
 
-export async function storeGroups(groups: Groups): Promise<any> {
+async function storeGroups(groups: Groups): Promise<any> {
 
     const result = await db.apps.add(groups);
 
@@ -48,7 +76,7 @@ export async function storeGroups(groups: Groups): Promise<any> {
     return result;
 }
 
-export async function retrieveAllGroupsVersions(appid: string): Promise<Groups | null> {
+async function retrieveAllGroupsVersions(appid: string): Promise<Groups | null> {
     try {
         const allGroups = await db.apps.findBySecondaryIndex(
             'appid',
@@ -67,7 +95,7 @@ export async function retrieveAllGroupsVersions(appid: string): Promise<Groups |
     }
 }
 
-export async function retrieveLatestGroups(appid: string): Promise<Groups | null> {
+async function retrieveLatestGroups(appid: string): Promise<Groups | null> {
     try {
         const allGroups = await db.apps.findBySecondaryIndex(
             'appid',
@@ -91,7 +119,7 @@ export async function retrieveLatestGroups(appid: string): Promise<Groups | null
     }
 }
 
-export async function checkIdExists(appid: string): Promise<boolean> {
+async function checkAppIdExists(appid: string): Promise<boolean> {
     try {
         const allGroups = await db.apps.findBySecondaryIndex(
             'appid',
@@ -110,3 +138,25 @@ export async function checkIdExists(appid: string): Promise<boolean> {
         return false;
     }
 }
+
+async function storeResults(result: Result): Promise<void> {
+    const addOperationResult = await db.results.add(result);
+
+    console.log("Result added to kv store: ", addOperationResult.id, addOperationResult);
+
+    return addOperationResult;
+}
+
+async function retrieveResults(resultid: string): Promise<Results | null> {
+
+    try {
+        const resultByResultid = await db.results.findByPrimaryIndex("resultid", resultid)
+
+        return resultByResultid;
+    }
+    catch (error) {
+        console.error("Error retrieving result of ID: ", resultid, "Error: ", error);
+        return null;
+    }
+}
+
