@@ -5,7 +5,8 @@ import { tryGenerate as callStability } from "./stability.js";
 import { callGPT } from "./gpt.js";
 import { storeGroups, retrieveLatestAppVersion, retrieveMultipleLastAppVersions, checkAppIdExists, storeResults, retrieveResults } from "./kv-storage.ts";
 import { customAlphabet } from 'npm:nanoid';
-import { decode } from "https://deno.land/x/imagescript/mod.ts"
+import { decode } from "https://deno.land/x/imagescript/mod.ts";
+import { bulkCreateUsers, listUsers } from "./users.ts";
 
 // 2 Billions IDs needed in order to have a 1% probability of at least one collision.
 const alphabet = "123456789bcdfghjkmnpqrstvwxyz";
@@ -16,7 +17,7 @@ const handler = async (request: Request): Promise<Response> => {
   const url = new URL(request.url);
   const { pathname } = url;
 
-  const { isAuthenticated, username } = await basicAuth(request);
+  const { isAuthenticated, isAdmin, username } = await basicAuth(request);
 
   const nanoidRegex = /^\/app\/[123456789bcdfghjkmnpqrstvwxyz]{14}$/;
 
@@ -28,7 +29,7 @@ const handler = async (request: Request): Promise<Response> => {
   }
 
   // triage calls that returns JSON
-  if (pathname.startsWith("/stability") || pathname.startsWith("/chatgpt") || url.pathname.startsWith("/load") || url.pathname === "/load-result") {
+  if (pathname === ("/stability") || pathname === ("/chatgpt") || pathname === ("/load") || pathname === ("/load-result")) {
     return await handleJsonEndpoints(request);
   }
 
@@ -56,7 +57,7 @@ const handler = async (request: Request): Promise<Response> => {
     return new Response(JSON.stringify({ id: appid }), { headers: { 'Content-Type': 'application/json' } });
   }
 
-  else if (request.url === "/persist-results" && request.method === "POST") {
+  else if (pathname === "/persist-results" && request.method === "POST") {
 
     const body = await request.json();
     const resultid = nanoid();
@@ -68,6 +69,42 @@ const handler = async (request: Request): Promise<Response> => {
 
     return new Response("Results stored successfully", { status: 200 });
   }
+
+  // Admin endpoints
+
+  else if (pathname === "/list-users" && request.method === "GET") {
+
+    if (!isAdmin) {
+      return new Response('Unauthorized', { status: 401, headers: { 'WWW-Authenticate': 'Basic realm="Esquisse"', } });
+    }
+
+    console.log("Listing users");
+
+    const userList = await listUsers();
+
+    return new Response(
+      JSON.stringify(userList),
+      { headers: { "content-type": "application/json" }, });
+  }
+
+  else if (pathname === "/bulk-create-users" && request.method === "POST") {
+
+    if (!isAdmin) {
+      return new Response('Unauthorized', { status: 401, headers: { 'WWW-Authenticate': 'Basic realm="Esquisse"', } });
+    }
+
+    const body = await request.json();
+
+    console.log("Bulk creating users");
+
+    const userList = await bulkCreateUsers(body);
+
+    return new Response(
+      JSON.stringify(userList),
+      { headers: { "content-type": "application/json" }, });
+  }
+
+  // End admin endpoints
 
 
   else if (nanoidRegex.test(pathname) && request.method === 'GET') {
@@ -96,6 +133,7 @@ const handler = async (request: Request): Promise<Response> => {
   } catch (e) {
     return new Response('Not Found', { status: 404 });
   }
+
 };
 
 async function handleJsonEndpoints(request: Request): Promise<Response> {
@@ -123,7 +161,7 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
     }
   }
 
-  else if (url.pathname === "/load-result" && request.method === 'POST') {
+  else if (pathname === "/load-result" && request.method === 'POST') {
     const resultid = body.resultid;
 
     if (!resultid) {
