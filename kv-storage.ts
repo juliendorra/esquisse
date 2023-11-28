@@ -170,7 +170,7 @@ async function storeResults(result: Result): Promise<void> {
     return addOperationResult;
 }
 
-async function retrieveResults(resultid: string): Promise<Results | null> {
+async function retrieveResults(resultid: string): Promise<Result | null> {
 
     try {
         const resultByResultid = await db.results.findByPrimaryIndex("resultid", resultid)
