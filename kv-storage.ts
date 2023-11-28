@@ -3,7 +3,7 @@ import { ulid } from "https://deno.land/std/ulid/mod.ts";
 
 // Defining the Group type
 type Groups = {
-    urlid: string,
+    appid: string,
     timestamp: string,
     version: string;
     username: string;
@@ -26,7 +26,7 @@ const kv = await Deno.openKv();
 const db = kvdex(kv, {
     apps: collection(GroupsModel, {
         indices: {
-            urlid: "secondary",
+            appid: "secondary",
             timestamp: "secondary",
         },
         serialized: {
@@ -48,36 +48,36 @@ export async function storeGroups(groups: Groups): Promise<any> {
     return result;
 }
 
-export async function retrieveAllGroupsVersions(urlid: string): Promise<Groups | null> {
+export async function retrieveAllGroupsVersions(appid: string): Promise<Groups | null> {
     try {
         const allGroups = await db.apps.findBySecondaryIndex(
-            'urlid',
-            urlid,
+            'appid',
+            appid,
             {
                 reverse: true // Sorting in descending order
             });
 
-        console.log("All versions: ", allGroups.result);  // [ { id, versionstamp, value: { version, urlid, timestamp, username, groups:[...] } }, ... ]
+        console.log("All versions: ", allGroups.result);  // [ { id, versionstamp, value: { version, appid, timestamp, username, groups:[...] } }, ... ]
 
         return allGroups.result;
 
     } catch (error) {
-        console.error("Error retrieving all versions for url ID: ", urlid, "Error: ", error);
+        console.error("Error retrieving all versions for url ID: ", appid, "Error: ", error);
         return null;
     }
 }
 
-export async function retrieveLatestGroups(urlid: string): Promise<Groups | null> {
+export async function retrieveLatestGroups(appid: string): Promise<Groups | null> {
     try {
         const allGroups = await db.apps.findBySecondaryIndex(
-            'urlid',
-            urlid,
+            'appid',
+            appid,
             {
                 limit: 1,
                 reverse: true // Sorting in descending order
             });
 
-        console.log("Latest version: ", allGroups.result); // [ { id, versionstamp, value: { version, urlid, timestamp, username, groups:[...] } }, ... ]
+        console.log("Latest version: ", allGroups.result); // [ { id, versionstamp, value: { version, appid, timestamp, username, groups:[...] } }, ... ]
 
         const latestGroups = allGroups.result.length > 0 ? allGroups.result[0].value : null
 
@@ -86,22 +86,22 @@ export async function retrieveLatestGroups(urlid: string): Promise<Groups | null
         return latestGroups;
 
     } catch (error) {
-        console.error("Error retrieving latest version for url ID: ", urlid, "Error: ", error);
+        console.error("Error retrieving latest version for url ID: ", appid, "Error: ", error);
         return null;
     }
 }
 
-export async function checkIdExists(urlid: string): Promise<boolean> {
+export async function checkIdExists(appid: string): Promise<boolean> {
     try {
         const allGroups = await db.apps.findBySecondaryIndex(
-            'urlid',
-            urlid,
+            'appid',
+            appid,
             {
                 limit: 1,
                 reverse: true // Sorting in descending order
             });
 
-        console.log("checked if ", urlid, " exists");
+        console.log("checked if ", appid, " exists");
 
         return allGroups.result.length > 0;
 

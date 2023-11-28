@@ -3,9 +3,9 @@ import { basicAuth } from "./auth.ts";
 import { contentType } from "https://deno.land/std/media_types/mod.ts";
 import { tryGenerate as callStability } from "./stability.js";
 import { callGPT } from "./gpt.js";
-import { storeGroups, retrieveLatestGroups, checkIdExists } from "./kv-storage.ts";
+import { storeGroups, retrieveLatestGroups, checkIdExists, storeResults, retrieveResults } from "./kv-storage.ts";
 import { customAlphabet } from 'npm:nanoid';
-import { Image, decode, encode } from "https://deno.land/x/imagescript/mod.ts"
+import { decode } from "https://deno.land/x/imagescript/mod.ts"
 
 // 2 Billions IDs needed in order to have a 1% probability of at least one collision.
 const alphabet = "123456789bcdfghjkmnpqrstvwxyz";
@@ -35,17 +35,17 @@ const handler = async (request: Request): Promise<Response> => {
   else if (pathname === '/persist' && request.method === 'POST') {
 
     const body = await request.json();
-    let urlid = body.id;
+    let appid = body.id;
     const timestamp = new Date().toISOString();
 
-    if (!urlid) {
-      urlid = nanoid(); //=> "f1q6jhnnvfmgxx"
-    } else if (!await checkIdExists(urlid)) {
+    if (!appid) {
+      appid = nanoid(); //=> "f1q6jhnnvfmgxx"
+    } else if (!await checkIdExists(appid)) {
       return new Response('Not Found, wrong ID', { status: 404 });
     }
 
     let groups = body.groups;
-    groups.urlid = urlid;
+    groups.appid = appid;
     groups.timestamp = timestamp;
     groups.username = username;
 
@@ -53,7 +53,7 @@ const handler = async (request: Request): Promise<Response> => {
 
     await storeGroups(groups);
 
-    return new Response(JSON.stringify({ id: urlid }), { headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ id: appid }), { headers: { 'Content-Type': 'application/json' } });
   }
 
 
