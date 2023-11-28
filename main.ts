@@ -3,7 +3,7 @@ import { basicAuth } from "./auth.ts";
 import { contentType } from "https://deno.land/std/media_types/mod.ts";
 import { tryGenerate as callStability } from "./stability.js";
 import { callGPT } from "./gpt.js";
-import { storeGroups, retrieveLatestGroups, checkAppIdExists, storeResults, retrieveResults } from "./kv-storage.ts";
+import { storeGroups, retrieveLatestAppVersion, retrieveMultipleLastAppVersions, checkAppIdExists, storeResults, retrieveResults } from "./kv-storage.ts";
 import { customAlphabet } from 'npm:nanoid';
 import { decode } from "https://deno.land/x/imagescript/mod.ts"
 
@@ -112,7 +112,7 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
     console.log("Loading groups from KV");
 
     const id = body.id;
-    const groups = await retrieveLatestGroups(id);
+    const groups = await retrieveLatestAppVersion(id);
 
     if (groups) {
       return new Response(

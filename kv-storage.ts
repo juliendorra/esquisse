@@ -1,7 +1,7 @@
 import { kvdex, model, collection } from "https://deno.land/x/kvdex/mod.ts";
 import { ulid } from "https://deno.land/std/ulid/mod.ts";
 
-export { storeGroups, retrieveLatestGroups, checkAppIdExists, storeResults, retrieveResults }
+export { storeGroups, retrieveLatestAppVersion, retrieveMultipleLastAppVersions, retrieveAppVersion, checkAppIdExists, storeResults, retrieveResults }
 
 type Groups = {
     appid: string,
@@ -76,12 +76,13 @@ async function storeGroups(groups: Groups): Promise<any> {
     return result;
 }
 
-async function retrieveAllGroupsVersions(appid: string): Promise<Groups | null> {
+async function retrieveMultipleLastAppVersions(appid: string, limit: Number = 5): Promise<Groups | null> {
     try {
         const allGroups = await db.apps.findBySecondaryIndex(
             'appid',
             appid,
             {
+                limit: limit,
                 reverse: true // Sorting in descending order
             });
 
@@ -95,7 +96,7 @@ async function retrieveAllGroupsVersions(appid: string): Promise<Groups | null> 
     }
 }
 
-async function retrieveLatestGroups(appid: string): Promise<Groups | null> {
+async function retrieveLatestAppVersion(appid: string): Promise<Groups | null> {
     try {
         const allGroups = await db.apps.findBySecondaryIndex(
             'appid',
@@ -112,6 +113,28 @@ async function retrieveLatestGroups(appid: string): Promise<Groups | null> {
         console.log("Most Recent Group Version: ", latestGroups);
 
         return latestGroups;
+
+    } catch (error) {
+        console.error("Error retrieving latest version for url ID: ", appid, "Error: ", error);
+        return null;
+    }
+}
+
+async function retrieveAppVersion(appid: string, timestamp: string): Promise<Groups | null> {
+    try {
+        const appVersionOperationResult = await db.apps.findBySecondaryIndex(
+            'appid',
+            appid,
+            {
+                filter: (doc) => doc.value.timestamp = timestamp,
+            });
+
+
+        const appVersion = appVersionOperationResult.result.length > 0 ? appVersionOperationResult.result[0].value : null
+
+        console.log("App Version: ", appVersionOperationResult);
+
+        return appVersion;
 
     } catch (error) {
         console.error("Error retrieving latest version for url ID: ", appid, "Error: ", error);
