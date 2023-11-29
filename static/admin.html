@@ -31,7 +31,6 @@
 
         <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.9.0/cdn/shoelace-autoloader.js"></script>
 
-
         <title>Esquisse AI. Quick AI Workflow Prototyping</title>
     </head>
 
@@ -45,7 +44,13 @@
     <sl-button id="bulkCreateBtn">Bulk Create Users</sl-button>
     <sl-button id="downloadResponseBtn" style="display:none;">Download Response</sl-button>
 
-    <script src="admin.js"></script>
+    <h3 id="usersCreatedTitle" style="display:none;">Users Created</h3>
+    <ul id="usersCreatedList"></ul>
+
+    <h3 id="usersRejectedTitle" style="display:none;">Users Rejected</h3>
+    <ul id="usersRejectedList"></ul>
+
+    <script type="module" src="admin.js"></script>
 </body>
 
 </html>

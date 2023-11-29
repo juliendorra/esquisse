@@ -1,8 +1,23 @@
 import { kvdex, model, collection } from "https://deno.land/x/kvdex/mod.ts";
 import { ulid } from "https://deno.land/std/ulid/mod.ts";
 import { hash } from "./bcrypt.ts";
+import { Validator } from "npm:jsonschema";
 
 export { createUser, getUserPasswordHash, bulkCreateUsers, listUsers }
+
+const userSchema = {
+    type: "array",
+    items: {
+        type: "object",
+        properties: {
+            username: { type: "string" },
+            userdisplayname: { type: "string" },
+            password: { type: "string" }
+        },
+        required: ["username", "userdisplayname", "password"],
+        additionalProperties: false
+    }
+};
 
 type User = {
     username: string,
@@ -33,6 +48,8 @@ const db = kvdex(kv, {
 });
 
 async function createUser(userInfos: UserInfos): Promise<any> {
+
+    if (!userInfos.username || !userInfos.userdisplayname || !userInfos.password) { return null };
 
     if (!await checkUserExists(userInfos.username)) {
 
@@ -89,11 +106,21 @@ type ListOfUsersInfos = Array<UserInfos>
 
 async function bulkCreateUsers(listOfUsersInfos: ListOfUsersInfos) {
 
+    const validator = new Validator();
+
+    const validationResult = validator.validate(listOfUsersInfos, userSchema);
+    if (!validationResult.valid) {
+        console.error("Validation error: ", validationResult.errors);
+        return { userscreated: [], usersrejected: [] };
+    }
+    else {
+        console.log("Validation of bulk list of users successful")
+    }
+
     let results = {
         userscreated: [],
         usersrejected: [],
     };
-
 
 
     for (const userInfos of listOfUsersInfos) {
