@@ -5,7 +5,7 @@ import { addMiniviewButtonsListeners } from "./reordering.js";
 
 import { GROUP_TYPE, getGroupIdFromElement } from "./group-utils.js";
 
-import { loadGroups } from "./persistence.js";
+import { loadGroups, downloadEsquisseJson, handleEsquisseJsonUpload } from "./persistence.js";
 
 import { groupsMap, createGroupAndAddGroupElement } from "./group-management.js";
 
@@ -154,6 +154,41 @@ async function init() {
         }
 
     });
+
+    document.getElementById('download-json-btn').addEventListener('click', () => {
+        downloadEsquisseJson(groupsMap.GROUPS);
+    });
+
+    const uploadJsonZone = document.getElementById('upload-json-zone');
+
+    uploadJsonZone.addEventListener('drop', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        event.currentTarget.classList.remove('drop-zone-over');
+
+        const files = Array.from(event.dataTransfer.files);
+        const jsonFiles = files.filter(file => file.type === 'application/json');
+        console.log("JSON FILES: ", jsonFiles)
+
+        handleEsquisseJsonUpload(jsonFiles[0]);
+    });
+
+    uploadJsonZone.addEventListener(
+        "dragover",
+        (event) => {
+            event.preventDefault();
+            event.currentTarget.classList.add('drop-zone-over');
+        });
+
+
+    uploadJsonZone.addEventListener(
+        "dragleave",
+        event => {
+            event.preventDefault();
+            event.currentTarget.classList.remove('drop-zone-over');
+        });
+
+
 
     initMeshBackground();
     initGroupObservation();

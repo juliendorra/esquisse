@@ -1,29 +1,58 @@
-import { GROUP_TYPE, generateUniqueGroupID } from "./group-utils.js";
+import { GROUP_TYPE, INTERACTION_STATE, generateUniqueGroupID } from "./group-utils.js";
 import { addGroupElement, createGroupAndAddGroupElement, setGroupInteractionState, updateGroups } from "./group-management.js"
 import { buildReverseReferenceGraph } from "./reference-graph.js";
-import { handleInputChange } from "./input-change.js";
+import Validator from 'https://esm.run/jsonschema';
 
 let ID = null;
 
 const VERSION = "2023-11-05";
 
-export { persistGroups, loadGroups };
+const PACKAGED_GROUPS_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "version": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" // pattern YYYY-MM-DD date
+        },
+        "groups": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "string"
+                    },
+                    "transform": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": Object.values(GROUP_TYPE)
+                    },
+                    "interactionState": {
+                        "type": "string",
+                        "enum": Object.values(INTERACTION_STATE)
+                    }
+                },
+                "required": ["name", "data", "transform", "type", "interactionState"],
+                "additionalProperties": false
+            }
+        }
+    },
+    "required": ["version", "groups"],
+    "additionalProperties": false
+}
+
+
+export { persistGroups, loadGroups, downloadEsquisseJson, handleEsquisseJsonUpload };
 
 async function persistGroups(groups) {
 
-    let packagedGroups = {};
-
-    packagedGroups.version = VERSION;
-
-    // we store the groups array in the groups property
-
-    packagedGroups.groups = Array.from(groups.values()).map(({ name, data, transform, type, interactionState }) => ({
-        name,
-        data,
-        transform,
-        type,
-        interactionState,
-    }));
+    const packagedGroups = packageGroups(groups);
 
     await persistOnServer(packagedGroups, ID);
 
@@ -33,6 +62,22 @@ async function persistGroups(groups) {
 
     history.pushState(groups, "", url);
 
+}
+
+function packageGroups(groups) {
+    let packagedGroups = {};
+
+    packagedGroups.version = VERSION;
+
+    // we store the groups array in the groups property
+    packagedGroups.groups = Array.from(groups.values()).map(({ name, data, transform, type, interactionState }) => ({
+        name,
+        data,
+        transform,
+        type,
+        interactionState,
+    }));
+    return packagedGroups;
 }
 
 function persistInHash(packagedGroups) {
@@ -75,15 +120,19 @@ async function persistOnServer(packagedGroups, existingId = null) {
     }
 }
 
-async function loadGroups() {
+async function loadGroups(importedGroups) {
 
     const urlPath = window.location.pathname;
 
     let decodedGroups = [];
     let groups = new Map();
 
+    if (importedGroups) {
+        decodedGroups = importedGroups;
+        ID = null;
+    }
     // Check if the URL path is of the form /app/[NANOID]
-    if (urlPath.startsWith('/app/')) {
+    else if (urlPath.startsWith('/app/')) {
 
         ID = urlPath.split('/')[2];
 
@@ -210,6 +259,48 @@ async function loadGroups() {
     updateGroups(isUsedByGraph.nodes(), groups, true);
 
     return { groups, isUsedByGraph };
+}
+
+function downloadEsquisseJson(groups) {
+
+    const packagedGroups = packageGroups(groups);
+
+    const jsonData = JSON.stringify(packagedGroups);
+
+    const blob = new Blob([jsonData], { type: 'application/json' });
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+
+    a.download = `${groups.values().next().value.name}.esquisse.json`;
+    a.click();
+
+    URL.revokeObjectURL(url);
+}
+
+async function handleEsquisseJsonUpload(file) {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const text = e.target.result;
+        try {
+            const jsonData = JSON.parse(text);
+
+            const validator = new Validator.Validator();
+            const validationResult = validator.validate(jsonData, PACKAGED_GROUPS_SCHEMA);
+            if (!validationResult.valid) {
+                alert('Files is not a valid .esquisse.json');
+                return;
+            }
+
+            loadGroups(jsonData);
+
+        } catch (error) {
+            console.error("Error parsing JSON file", error);
+        }
+    };
+    reader.readAsText(file);
 }
 
 // Utils
