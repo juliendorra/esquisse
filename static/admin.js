@@ -33,7 +33,13 @@ document.getElementById('bulkCreateBtn').addEventListener('click', async () => {
 
     // Check if data is CSV and convert if necessary
     if (isCSV(data)) {
-        data = convertCsvToObject(data);
+        try {
+            data = convertCsvToObject(data);
+        }
+        catch {
+            alert('Impossible to convert CSV to data');
+            return;
+        }
     } else {
         try {
             data = JSON.parse(data);
@@ -65,7 +71,14 @@ document.getElementById('bulkCreateBtn').addEventListener('click', async () => {
 });
 
 function isCSV(text) {
-    return text.includes(',') && /^[^\r\n]+(?:[\r\n]+[^\r\n]+)*$/.test(text);
+    const result = Papa.parse(text, {
+        dynamicTyping: true,
+        skipEmptyLines: true,
+        comments: true
+    });
+
+    // Check if the parsing was successful and the data is non-trivial
+    return result.data.length > 0 && result.errors.length === 0;
 }
 
 function convertCsvToObject(csv) {
