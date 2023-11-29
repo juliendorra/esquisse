@@ -49,6 +49,8 @@ const db = kvdex(kv, {
 
 async function createUser(userInfos: UserInfos): Promise<any> {
 
+    userInfos.username = userInfos.username.toLowerCase().trim();
+
     if (!userInfos.username || !userInfos.userdisplayname || !userInfos.password) { return null };
 
     if (!await checkUserExists(userInfos.username)) {
@@ -74,12 +76,10 @@ async function createUser(userInfos: UserInfos): Promise<any> {
 
 async function checkUserExists(username: string): Promise<boolean> {
     try {
+        username = username.toLowerCase().trim();
+
         const user = await db.users.findByPrimaryIndex('username', username);
         console.log("checked if ", username, " exists: ", user);
-
-        const userExist = user ? true : false;
-
-        console
 
         return user ? true : false;
 

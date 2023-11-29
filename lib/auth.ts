@@ -30,7 +30,8 @@ export async function basicAuth(request: Request): Promise<{ isAuthenticated: bo
     }
 
     const decodedCreds = atob(encodedCreds);
-    const [username, password] = decodedCreds.split(":");
+    const [usernameRaw, password] = decodedCreds.split(":");
+    const username = usernameRaw.toLowerCase().trim();
 
     console.log(`Received authorization request for user: ${username}`);
 
