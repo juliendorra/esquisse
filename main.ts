@@ -1,12 +1,12 @@
 import { serve } from "https://deno.land/std/http/server.ts";
-import { basicAuth } from "./auth.ts";
+import { basicAuth } from "./lib/auth.ts";
 import { contentType } from "https://deno.land/std/media_types/mod.ts";
-import { tryGenerate as callStability } from "./stability.js";
-import { callGPT } from "./gpt.js";
-import { storeGroups, retrieveLatestAppVersion, retrieveMultipleLastAppVersions, checkAppIdExists, storeResults, retrieveResults } from "./kv-storage.ts";
+import { tryGenerate as callStability } from "./lib/stability.js";
+import { callGPT } from "./lib/gpt.js";
+import { storeGroups, retrieveLatestAppVersion, retrieveMultipleLastAppVersions, checkAppIdExists, storeResults, retrieveResults } from "./lib/kv-storage.ts";
 import { customAlphabet } from 'npm:nanoid';
 import { decode } from "https://deno.land/x/imagescript/mod.ts";
-import { bulkCreateUsers, listUsers } from "./users.ts";
+import { bulkCreateUsers, listUsers } from "./lib/users.ts";
 
 // 2 Billions IDs needed in order to have a 1% probability of at least one collision.
 const alphabet = "123456789bcdfghjkmnpqrstvwxyz";
