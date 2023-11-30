@@ -2,6 +2,7 @@ import { GROUP_TYPE, INTERACTION_STATE, generateUniqueGroupID } from "./group-ut
 import { addGroupElement, createGroupAndAddGroupElement, setGroupInteractionState, updateGroups } from "./group-management.js"
 import { buildReverseReferenceGraph } from "./reference-graph.js";
 import Validator from 'https://esm.run/jsonschema';
+import { displayAlert } from "./ui-utils.js";
 
 let ID = null;
 
@@ -290,7 +291,12 @@ async function handleEsquisseJsonUpload(file) {
             const validator = new Validator.Validator();
             const validationResult = validator.validate(jsonData, PACKAGED_GROUPS_SCHEMA);
             if (!validationResult.valid) {
-                alert('Files is not a valid .esquisse.json');
+
+                displayAlert(
+                    "Files is not a valid .esquisse.json",
+                    "Use a file downloaded from an Esquisse",
+                    "warning");
+
                 return;
             }
 
