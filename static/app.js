@@ -161,17 +161,19 @@ async function init() {
 
     const uploadJsonZone = document.getElementById('upload-json-zone');
 
-    uploadJsonZone.addEventListener('drop', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        event.currentTarget.classList.remove('drop-zone-over');
+    uploadJsonZone.addEventListener(
+        'drop',
+        (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            event.currentTarget.classList.remove('drop-zone-over');
 
-        const files = Array.from(event.dataTransfer.files);
-        const jsonFiles = files.filter(file => file.type === 'application/json');
-        console.log("JSON FILES: ", jsonFiles)
+            const files = Array.from(event.dataTransfer.files);
+            const jsonFiles = files.filter(file => file.type === 'application/json');
+            console.log("JSON FILES: ", jsonFiles)
 
-        handleEsquisseJsonUpload(jsonFiles[0]);
-    });
+            handleEsquisseJsonUpload(jsonFiles[0]);
+        });
 
     uploadJsonZone.addEventListener(
         "dragover",
@@ -188,7 +190,20 @@ async function init() {
             event.currentTarget.classList.remove('drop-zone-over');
         });
 
+    uploadJsonZone.addEventListener(
+        'click',
+        (event) => {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'application/json';
 
+            fileInput.onchange = e => {
+                const file = e.currentTarget.files[0];
+                handleEsquisseJsonUpload(file);
+            };
+            fileInput.click();
+        }
+    );
 
     initMeshBackground();
     initGroupObservation();
