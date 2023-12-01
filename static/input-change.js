@@ -66,13 +66,20 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
     group.combinedReferencedResults = currentData;
 
-    const groups_havent_changed =
-        group.data === currentData
-        && group.transform === transform
-        && !referencedResultsChanged;
+    const groups_structure_has_changed =
+        group.data !== data
+        || group.transform !== transform;
+
+    const groups_have_changed =
+        group.data !== currentData
+        || group.transform !== transform
+        || referencedResultsChanged;
+
+    console.log("groups_have_changed: ", groups_have_changed)
+    console.log("groups_structure_has_changed: ", groups_structure_has_changed)
 
     // we do nothing more if no change and not an explicit refresh request
-    if (!isRefresh && groups_havent_changed) {
+    if (!isRefresh && !groups_have_changed) {
         console.log("[CHANGE HANDLING] No values changed, not a manual refresh, aborting input change");
         return;
     }
@@ -98,7 +105,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     group.data = data;
     group.transform = transform;
 
-    if (!groups_havent_changed) persistGroups(groups);
+    if (groups_structure_has_changed) persistGroups(groups);
 
     // Sending requests for the groups
 
