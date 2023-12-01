@@ -1,7 +1,7 @@
 import { kvdex, model, collection } from "https://deno.land/x/kvdex/mod.ts";
 import { ulid } from "https://deno.land/std/ulid/mod.ts";
 
-export { storeGroups, retrieveLatestAppVersion, retrieveMultipleLastAppVersions, retrieveAppVersion, checkAppIdExists, storeResults, retrieveResults }
+export { storeGroups, retrieveLatestAppVersion, retrieveMultipleLastAppVersions, retrieveAppVersion, checkAppIdExists, storeResults, retrieveResults, checkAppIsByUser }
 
 type Groups = {
     appid: string,
@@ -43,6 +43,7 @@ const db = kvdex(kv, {
         indices: {
             appid: "secondary",
             timestamp: "secondary",
+            username: "secondary",
         },
         serialized: {
             serialize: (obj) => new TextEncoder().encode(JSON.stringify(obj)),
@@ -58,6 +59,7 @@ const db = kvdex(kv, {
             resultid: "primary",
             appid: "secondary",
             timestamp: "secondary",
+            username: "secondary",
         },
         serialized: {
             serialize: (obj) => new TextEncoder().encode(JSON.stringify(obj)),
@@ -161,6 +163,28 @@ async function checkAppIdExists(appid: string): Promise<boolean> {
         return false;
     }
 }
+async function checkAppIsByUser(appid: string, username: string | null): Promise<boolean> {
+
+    if (!appid || !username) { return false }
+
+    try {
+        const latestGroups = await retrieveLatestAppVersion(appid);
+
+        let isByUser = false
+
+        if (latestGroups) {
+
+            isByUser = (latestGroups.username === username)
+        }
+
+        return isByUser;
+
+    } catch (error) {
+        console.error("Error checking for url ID:", error);
+        return false;
+    }
+}
+
 
 async function storeResults(result: Result): Promise<void> {
     const addOperationResult = await db.results.add(result);

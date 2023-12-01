@@ -5,6 +5,7 @@ import Validator from 'https://esm.run/jsonschema';
 import { displayAlert } from "./ui-utils.js";
 
 let ID = null;
+let CREATOR = null;
 
 const VERSION = "2023-11-05";
 
@@ -55,7 +56,25 @@ async function persistGroups(groups) {
 
     const packagedGroups = packageGroups(groups);
 
-    await persistOnServer(packagedGroups, ID);
+    const previousId = ID;
+    const previousCreator = CREATOR;
+
+    await persistOnServer(packagedGroups, ID); // side-effect mutate ID and CREATOR
+
+    const isFreshApp = previousId === null;
+    const isNewByDifferentUser = previousId !== ID && previousCreator !== CREATOR;
+
+    if (!isFreshApp && isNewByDifferentUser) {
+        displayAlert(
+            {
+                issue: `Remix of ${previousCreator}'s app saved to your apps`,
+                action: `You can modify it and come back to it anytime using this page url. ${previousCreator}'s app won't be modified`,
+                variant: "success",
+                icon: "copy",
+                duration: 5000
+            }
+        );
+    }
 
     console.log("[PERSIST] Rewriting URL with ID")
 
@@ -112,9 +131,12 @@ async function persistOnServer(packagedGroups, existingId = null) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        ({ id: ID } = await response.json());
+        ({ id: ID, username: CREATOR } = await response.json());
 
-        console.log("[PERSIST] Id sent by server", ID)
+        console.log("[PERSIST] Id sent by server", ID);
+        console.log("[PERSIST] Username sent back by server", CREATOR);
+
+        return { ID, CREATOR };
 
     } catch (error) {
         console.error("Error in persisting groups", error);
@@ -155,6 +177,8 @@ async function loadGroups(importedGroups) {
             console.log(json)
 
             decodedGroups = json;
+
+            CREATOR = decodedGroups.username;
 
         } catch (error) {
             console.error("[LOADING] Error loading groups from server", error);
@@ -293,9 +317,12 @@ async function handleEsquisseJsonUpload(file) {
             if (!validationResult.valid) {
 
                 displayAlert(
-                    "Files is not a valid .esquisse.json",
-                    "Use a file downloaded from an Esquisse",
-                    "warning");
+                    {
+                        issue: "Files is not a valid .esquisse.json",
+                        action: "Use a file downloaded from an Esquisse",
+                        variant: "warning"
+                    }
+                );
 
                 return;
             }

@@ -3,7 +3,7 @@ import { basicAuth } from "./lib/auth.ts";
 import { contentType } from "https://deno.land/std/media_types/mod.ts";
 import { tryGenerate as callStability } from "./lib/stability.js";
 import { callGPT } from "./lib/gpt.js";
-import { storeGroups, retrieveLatestAppVersion, retrieveMultipleLastAppVersions, checkAppIdExists, storeResults, retrieveResults } from "./lib/kv-storage.ts";
+import { storeGroups, retrieveLatestAppVersion, retrieveMultipleLastAppVersions, checkAppIdExists, storeResults, retrieveResults, checkAppIsByUser } from "./lib/kv-storage.ts";
 import { customAlphabet } from 'npm:nanoid';
 import { decode } from "https://deno.land/x/imagescript/mod.ts";
 import { bulkCreateUsers, listUsers } from "./lib/users.ts";
@@ -23,7 +23,7 @@ const handler = async (request: Request): Promise<Response> => {
 
   if (!pathname.startsWith("/public/")) {
 
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !username) {
       return new Response('Unauthorized', { status: 401, headers: { 'WWW-Authenticate': 'Basic realm="Esquisse"', } });
     }
   }
@@ -41,8 +41,13 @@ const handler = async (request: Request): Promise<Response> => {
 
     if (!appid) {
       appid = nanoid(); //=> "f1q6jhnnvfmgxx"
-    } else if (!await checkAppIdExists(appid)) {
+    }
+    else if (!await checkAppIdExists(appid)) {
       return new Response('Not Found, wrong ID', { status: 404 });
+    }
+
+    if (!(await checkAppIsByUser(appid, username))) {
+      appid = nanoid(); // Generate new ID if the existing ID belongs to another user
     }
 
     let groups = body.groups;
@@ -54,7 +59,7 @@ const handler = async (request: Request): Promise<Response> => {
 
     await storeGroups(groups);
 
-    return new Response(JSON.stringify({ id: appid }), { headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ id: appid, username: username }), { headers: { 'Content-Type': 'application/json' } });
   }
 
   else if (pathname === "/persist-results" && request.method === "POST") {

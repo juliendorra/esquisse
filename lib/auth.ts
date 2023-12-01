@@ -20,13 +20,13 @@ export async function basicAuth(request: Request): Promise<{ isAuthenticated: bo
 
     if (!authorization) {
         console.log('Authorization header missing');
-        return { isAuthenticated: false, username: null };
+        return { isAuthenticated: false, isAdmin: false, username: null };
     }
 
     const encodedCreds = authorization.split(" ")[1];
     if (!encodedCreds) {
         console.log('Credentials not provided in Authorization header');
-        return { isAuthenticated: false, username: null };
+        return { isAuthenticated: false, isAdmin: false, username: null };
     }
 
     const decodedCreds = atob(encodedCreds);
@@ -68,5 +68,5 @@ export async function basicAuth(request: Request): Promise<{ isAuthenticated: bo
     }
 
     console.log(`User not found: ${username}`);
-    return { isAuthenticated: false, username: null };
+    return { isAuthenticated: false, isAdmin: false, username: null };
 }
