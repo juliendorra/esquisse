@@ -23,7 +23,7 @@ function getReferencedGroupNamesFromDataText(data) {
 function replaceThisGroupReferenceWithResult(name, data, groups) {
     // Validate the name to ensure it conforms to the allowed format
     if (!/^[\w\s-.]+$/.test(name)) {
-        console.error('Invalid name format');
+        console.error('[REFERENCE MATCHING] Invalid name format');
         return data; // return the original data if the name format is invalid
     }
 
@@ -33,7 +33,7 @@ function replaceThisGroupReferenceWithResult(name, data, groups) {
     // Fetch the group using the given name and check its validity
     const referencedGroup = getGroupFromName(name, groups);
     if (!referencedGroup || referencedGroup.result === undefined) {
-        console.error('Invalid group or result');
+        console.error('[REFERENCE MATCHING] Invalid group or result');
         return data; // return the original data if the group or result is invalid
     }
 
@@ -74,7 +74,7 @@ function getReferencedResultsAndCombinedDataWithResults(dataText, currentGroupNa
             const referencedGroup = getGroupFromName(name, groups);
 
             if (!referencedGroup) {
-                console.log(`Trying to show reference but no group "${name}" found`);
+                console.log(`[REFERENCE MATCHING] Trying to show reference but no group "${name}" found`);
                 invalidReferencedResults.push(name);
                 continue;
             }
@@ -87,13 +87,13 @@ function getReferencedResultsAndCombinedDataWithResults(dataText, currentGroupNa
             const isSelfReference = referencedGroup.id === currentGroup.id;
 
             if (hasDirectCircularReference || isSelfReference) {
-                console.log(`Direct circular reference between ${currentGroupName} and ${name}`);
+                console.log(`[REFERENCE MATCHING] Direct circular reference between ${currentGroupName} and ${name}`);
                 invalidReferencedResults.push(name);
                 continue;
             }
 
             if (!referencedGroup.result) {
-                console.log(`The result for "${name}" is not existing, and can't be used by group "${currentGroupName}" when trying to get referenced results`);
+                console.log(`[REFERENCE MATCHING] The result for "${name}" is not existing, and can't be used by group "${currentGroupName}" when trying to get referenced results`);
 
                 notreadyReferencedResults.push(name);
                 continue;

@@ -183,7 +183,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
         group.lastRequestTime = currentTime;
 
-        sendRequestsForGroup({
+        await sendRequestsForGroup({
             currentData,
             lastTransformValue,
             isUndirected,

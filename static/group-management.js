@@ -390,22 +390,23 @@ async function updateGroups(idsOfGroupsToUpdate, groups, forceRefresh = false) {
     // filter out the independent nodes from the dependent updates
     let dependentUpdates = idsOfGroupsToUpdate.filter(id => !independentUpdates.includes(id));
 
-    console.log("[UpdateGroups] Dependent updates Sorted: ", dependentUpdates);
+    console.log("[UPDATE GROUPS] Dependent updates filtered: ", dependentUpdates);
 
-    console.log("[UpdateGroups] Independent Updates", independentUpdates);
+    console.log("[UPDATE GROUPS] Independent Updates", independentUpdates);
 
     // The sort raise a CycleError if a cycle is found 
     try {
-        dependentUpdates = referencesGraph.IS_USED_BY_GRAPH.topologicalSort(idsOfGroupsToUpdate)
+        dependentUpdates = referencesGraph.IS_USED_BY_GRAPH.topologicalSort(dependentUpdates);
+        console.log("[UPDATE GROUPS] Dependent updates Sorted: ", dependentUpdates);
 
     } catch (error) {
-        console.log("[CycleError] Circular dependency between these groups:", idsOfGroupsToUpdate)
+        console.log("[UPDATE GROUPS] [CycleError] Circular dependency between these groups:", idsOfGroupsToUpdate)
         return;
     }
 
     for (const id of independentUpdates) {
 
-        console.log("Independent group, updating without awaiting", id)
+        console.log("[UPDATE GROUPS] Independent group, updating without awaiting", id)
 
         handleInputChange(
             getGroupElementFromId(id),
@@ -418,7 +419,7 @@ async function updateGroups(idsOfGroupsToUpdate, groups, forceRefresh = false) {
 
     for (const id of dependentUpdates) {
 
-        console.log("Dependent group, awaiting update", id)
+        console.log("[UPDATE GROUPS] Dependent group, awaiting update", id)
 
         // if we don't await, a further group might launch a request when it actually depends on the previous group results
         // we stop being fully reactive and fully async here

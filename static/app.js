@@ -11,8 +11,6 @@ import { groupsMap, createGroupAndAddGroupElement } from "./group-management.js"
 
 import { handleDroppedImage, handleInputChange } from "./input-change.js";
 
-import { referencesGraph } from "./reference-graph.js";
-
 import { initGroupObservation } from "./group-elements-observer.js";
 
 import { initMeshBackground } from "./mesh-background.js";
@@ -39,12 +37,6 @@ async function init() {
     const loadingResult = await loadGroups();
 
     console.log(loadingResult);
-
-    const { groups, isUsedByGraph } = loadingResult;
-
-    groupsMap.GROUPS = groups;
-    referencesGraph.IS_USED_BY_GRAPH = isUsedByGraph;
-
 
     // Dropping an image on the page will create an imported image block and group with the image
 

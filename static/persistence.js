@@ -1,6 +1,6 @@
 import { GROUP_TYPE, INTERACTION_STATE, generateUniqueGroupID } from "./group-utils.js";
-import { addGroupElement, createGroupAndAddGroupElement, setGroupInteractionState, updateGroups } from "./group-management.js"
-import { buildReverseReferenceGraph } from "./reference-graph.js";
+import { groupsMap, addGroupElement, createGroupAndAddGroupElement, setGroupInteractionState, updateGroups } from "./group-management.js"
+import { referencesGraph, buildReverseReferenceGraph } from "./reference-graph.js";
 import Validator from 'https://esm.run/jsonschema';
 import { displayAlert } from "./ui-utils.js";
 
@@ -278,6 +278,9 @@ async function loadGroups(importedGroups) {
     document.title = `${groups.values().next().value.name} · Esquisse AI`
 
     const isUsedByGraph = buildReverseReferenceGraph(groups);
+
+    groupsMap.GROUPS = groups;
+    referencesGraph.IS_USED_BY_GRAPH = isUsedByGraph;
 
     // update all nodes, in topological order
     // this will fail if a cycle is detected
