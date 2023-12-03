@@ -147,122 +147,146 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
         group.lastRequestTime = currentTime;
 
-        const fetchOptions = {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                data: currentData,
-                transform: lastTransformValue,
-                qualityEnabled: SETTINGS.qualityEnabled,
-            }),
-        };
+        sendRequestsForGroup({
+            currentData,
+            lastTransformValue,
+            isUndirected,
+            groupElement,
+            group,
+            groups
+        });
 
-        if (group.type === GROUP_TYPE.IMAGE) {
+    }
+}
 
-            console.log(`[REQUEST] image ||| ${currentData} ||| ${lastTransformValue}`);
+async function sendRequestsForGroup({
+    currentData,
+    lastTransformValue,
+    isUndirected,
+    groupElement,
+    group,
+    groups
+}
+) {
 
-            groupElement.classList.remove("error");
-            groupElement.classList.add("waiting");
-            const fetchingIndicatorElement = document.querySelector(".fetching-indicator");
-            fetchingIndicatorElement.classList.add("waiting");
+    const fetchOptions = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            data: currentData,
+            transform: lastTransformValue,
+            qualityEnabled: SETTINGS.qualityEnabled,
+        }),
+    };
 
-            try {
-                const response = await fetch("/stability", fetchOptions);
+    if (group.type === GROUP_TYPE.IMAGE) {
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+        console.log(`[REQUEST] image ||| ${currentData} ||| ${lastTransformValue}`);
 
-                const resultBuffer = await response.arrayBuffer();
-                console.log(`Received image result buffer`);
+        groupElement.classList.remove("error");
+        groupElement.classList.add("waiting");
+        const fetchingIndicatorElement = document.querySelector(".fetching-indicator");
+        fetchingIndicatorElement.classList.add("waiting");
 
-                const contentType = response.headers.get('Content-Type');
+        try {
+            const response = await fetch("/stability", fetchOptions);
 
-                const blob = new Blob([resultBuffer], { type: contentType });
-                group.result = blob;
-
-                const blobUrl = URL.createObjectURL(blob);
-                console.log("URL for the image ", blobUrl);
-
-                let resultImage = groupElement.querySelector(".result");
-
-                resultImage.style.display = "block";
-                resultImage.src = blobUrl;
-
-                // Event listener for image click to toggle zoom in and out
-                resultImage.removeEventListener('click', createZoomedImage);
-                resultImage.addEventListener('click', createZoomedImage);
-
-                groupElement.querySelector(".refresh-btn").style.display = "block";
-
-                const downloadButton = groupElement.querySelector(".download-btn");
-                downloadButton.style.display = "block";
-                downloadButton.href = blobUrl;
-
-                let fileExtension = 'png';
-                if (contentType === 'image/jpeg') {
-                    fileExtension = 'jpeg';
-                } else if (contentType === 'image/png') {
-                    fileExtension = 'png';
-                }
-
-                const fileName = `${group.name} — ${group.combinedReferencedResults} ${group.transform} — ${randomInt(1, 99999)}.${fileExtension}`.replace(/\s+/g, ' ').trim();
-
-                downloadButton.download = fileName;
-
-                delete REQUEST_QUEUE[group.id];
-                groupElement.classList.remove("waiting");
-                removeGlobalWaitingIndicator();
-
-            } catch (error) {
-                groupElement.classList.remove("waiting");
-                removeGlobalWaitingIndicator();
-                groupElement.classList.add("error");
-                console.error(`Fetch failed: ${error}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-        } else if (group.type === GROUP_TYPE.TEXT) {
-            console.log(`[REQUEST] text ||| ${currentData} ||| ${lastTransformValue}`);
 
-            groupElement.classList.remove("error");
-            groupElement.classList.add("waiting");
-            const fetchingIndicatorElement = document.querySelector(".fetching-indicator");
-            fetchingIndicatorElement.classList.add("waiting");
+            const resultBuffer = await response.arrayBuffer();
+            console.log(`Received image result buffer`);
 
-            try {
-                const response = await fetch("/chatgpt", fetchOptions);
+            const contentType = response.headers.get('Content-Type');
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+            const blob = new Blob([resultBuffer], { type: contentType });
+            group.result = blob;
 
-                const result = await response.json();
-                console.log(`Received result: ${result}`);
+            const blobUrl = URL.createObjectURL(blob);
+            console.log("URL for the image ", blobUrl);
 
-                group.result = result;
-                let resultParagraph = groupElement.querySelector(".result");
-                if (!resultParagraph) {
-                    resultParagraph = document.createElement("p");
-                    resultParagraph.className = "result";
-                    groupElement.appendChild(resultParagraph);
-                }
-                resultParagraph.textContent = group.result;
-                groupElement.querySelector(".refresh-btn").style.display = "block";
+            let resultImage = groupElement.querySelector(".result");
 
-                if (isUndirected) updateGroupsReferencingIt(group.id, groups);
+            resultImage.style.display = "block";
+            resultImage.src = blobUrl;
 
+            // Event listener for image click to toggle zoom in and out
+            resultImage.removeEventListener('click', createZoomedImage);
+            resultImage.addEventListener('click', createZoomedImage);
 
-                delete REQUEST_QUEUE[group.id];
-                groupElement.classList.remove("waiting");
-                removeGlobalWaitingIndicator();
+            groupElement.querySelector(".refresh-btn").style.display = "block";
 
-            } catch (error) {
-                groupElement.classList.remove("waiting");
-                removeGlobalWaitingIndicator();
-                groupElement.classList.add("error");
-                console.error(`Fetch failed: ${error}`);
+            const downloadButton = groupElement.querySelector(".download-btn");
+            downloadButton.style.display = "block";
+            downloadButton.href = blobUrl;
+
+            let fileExtension = 'png';
+            if (contentType === 'image/jpeg') {
+                fileExtension = 'jpeg';
+            } else if (contentType === 'image/png') {
+                fileExtension = 'png';
             }
+
+            const fileName = `${group.name} — ${group.combinedReferencedResults} ${group.transform} — ${randomInt(1, 99999)}.${fileExtension}`.replace(/\s+/g, ' ').trim();
+
+            downloadButton.download = fileName;
+
+            delete REQUEST_QUEUE[group.id];
+            groupElement.classList.remove("waiting");
+            removeGlobalWaitingIndicator();
+
+        } catch (error) {
+            groupElement.classList.remove("waiting");
+            removeGlobalWaitingIndicator();
+            groupElement.classList.add("error");
+            console.error(`Fetch failed: ${error}`);
+        }
+    } else if (group.type === GROUP_TYPE.TEXT) {
+        console.log(`[REQUEST] text ||| ${currentData} ||| ${lastTransformValue}`);
+
+        groupElement.classList.remove("error");
+        groupElement.classList.add("waiting");
+        const fetchingIndicatorElement = document.querySelector(".fetching-indicator");
+        fetchingIndicatorElement.classList.add("waiting");
+
+        try {
+            const response = await fetch("/chatgpt", fetchOptions);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log(`Received result: ${result}`);
+
+            group.result = result;
+            let resultParagraph = groupElement.querySelector(".result");
+            if (!resultParagraph) {
+                resultParagraph = document.createElement("p");
+                resultParagraph.className = "result";
+                groupElement.appendChild(resultParagraph);
+            }
+            resultParagraph.textContent = group.result;
+            groupElement.querySelector(".refresh-btn").style.display = "block";
+
+            if (isUndirected) {
+                console.log("[FETCH] Undirected update, Now updating dataText of groups referencing results from: ", group.name)
+                updateGroupsReferencingIt(group.id, groups);
+            }
+
+            delete REQUEST_QUEUE[group.id];
+            groupElement.classList.remove("waiting");
+            removeGlobalWaitingIndicator();
+
+        } catch (error) {
+            groupElement.classList.remove("waiting");
+            removeGlobalWaitingIndicator();
+            groupElement.classList.add("error");
+            console.error(`Fetch failed: ${error}`);
         }
     }
+
 }
 
 function handleImportedImage(event, resultImage, group, groups) {
