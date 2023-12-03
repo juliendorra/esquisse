@@ -4,6 +4,8 @@ import { getReferencedResultsAndCombinedDataWithResults } from "./reference-matc
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 import { persistGroups } from "./persistence.js";
 import { SETTINGS } from "./app.js";
+import { displayAlert } from "./ui-utils.js";
+
 
 export { handleInputChange, nameChangeHandler, handleImportedImage, handleDroppedImage };
 
@@ -228,11 +230,41 @@ async function sendRequestsForGroup({
             const response = await fetch("/stability", fetchOptions);
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+
+                const errorData = await response.json();
+
+                if (response.status === 400) {
+
+                    displayAlert(
+                        {
+                            issue: `Error generating image ${group.name}`,
+                            action: `Error is: ${errorData.error}`,
+                            variant: "warning",
+                            icon: "exclamation-octagon",
+                            duration: 5000
+                        }
+                    );
+                }
+
+                throw new Error(`HTTP status ${response.status}, ${errorData.error}`);
             }
 
             const resultBuffer = await response.arrayBuffer();
             console.log(`Received image result buffer`);
+
+            // Check for banned word
+            const bannedWord = response.headers.get('x-banned-word');
+            if (bannedWord) {
+                displayAlert(
+                    {
+                        issue: `Word "${bannedWord}" removed for ${group.name}`,
+                        action: `Banned by the generator, avoid it if possible`,
+                        variant: "warning",
+                        icon: "exclamation-octagon",
+                        duration: 5000
+                    }
+                );
+            }
 
             const contentType = response.headers.get('Content-Type');
 
@@ -264,7 +296,7 @@ async function sendRequestsForGroup({
                 fileExtension = 'png';
             }
 
-            const fileName = `${group.name} — ${group.combinedReferencedResults} ${group.transform} — ${randomInt(1, 99999)}.${fileExtension}`.replace(/\s+/g, ' ').trim();
+            const fileName = `${group.name} — ${group.combinedReferencedResults} ${group.transform} — ${randomInt(1, 99999)}.${fileExtension} `.replace(/\s+/g, ' ').trim();
 
             downloadButton.download = fileName;
 
@@ -276,10 +308,10 @@ async function sendRequestsForGroup({
             groupElement.classList.remove("waiting");
             removeGlobalWaitingIndicator();
             groupElement.classList.add("error");
-            console.error(`Fetch failed: ${error}`);
+            console.error(`Fetch failed: ${error} `);
         }
     } else if (group.type === GROUP_TYPE.TEXT) {
-        console.log(`[REQUEST] text ||| ${currentData} ||| ${lastTransformValue}`);
+        console.log(`[REQUEST] text ||| ${currentData} ||| ${lastTransformValue} `);
 
         groupElement.classList.remove("error");
         groupElement.classList.add("waiting");
@@ -290,11 +322,11 @@ async function sendRequestsForGroup({
             const response = await fetch("/chatgpt", fetchOptions);
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`HTTP error! status: ${response.status} `);
             }
 
             const result = await response.json();
-            console.log(`Received result: ${result}`);
+            console.log(`Received result: ${result} `);
 
             group.result = result;
             let resultParagraph = groupElement.querySelector(".result");
@@ -319,7 +351,7 @@ async function sendRequestsForGroup({
             groupElement.classList.remove("waiting");
             removeGlobalWaitingIndicator();
             groupElement.classList.add("error");
-            console.error(`Fetch failed: ${error}`);
+            console.error(`Fetch failed: ${error} `);
         }
     }
 

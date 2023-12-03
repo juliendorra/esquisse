@@ -182,29 +182,43 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
   }
 
   else if (pathname.startsWith("/stability") && request.method === 'POST') {
-    // may return undefined
-    let PNGimage = await callStability(
+    // return either {error} or {image}
+
+    let generated = await callStability(
       body.data + " " + body.transform,
       "",
       "",
       body.qualityEnabled,
       3);
 
-    if (PNGimage) {
+    if (generated.image) {
 
       // compressing the PNG received from stability into a HQ JPEG to limit bandwidth
       // the PNG is an ArrayBuffer, we create an Uint8Array for manipulation
-      let image = await decode(new Uint8Array(PNGimage));
+      let image = await decode(new Uint8Array(generated.image));
 
       let jpegData = await image.encodeJPEG(90);
 
+      let headers = {
+        "content-type": "image/jpeg",
+      }
+
+      if (generated.bannedword) {
+        headers["X-Banned-Word"] = generated.bannedword;
+      }
+
       const jpegResponse = new Response(
         jpegData,
-        {
-          headers: { "content-type": "image/jpeg" }
-        });
+        { headers: headers }
+      );
 
       return jpegResponse;
+    }
+    else {
+      return new Response(JSON.stringify({ error: generated.error }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
   }
 
