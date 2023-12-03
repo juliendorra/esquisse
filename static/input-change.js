@@ -11,17 +11,53 @@ const DELAY = 5000;
 
 let REQUEST_QUEUE = {};
 
-function removeGlobalWaitingIndicator() {
+function nameChangeHandler(group, groupNameElement, groups) {
+    return () => {
 
-    const waitingGroups = document.querySelector(".group.waiting");
+        const previousUsersOfThisGroup = referencesGraph.IS_USED_BY_GRAPH.adjacent(group.id);
 
-    if (!waitingGroups) {
-        const fetchingIndicatorElement = document.querySelector(".fetching-indicator");
+        console.log("[NAME CHANGED] previousUsersOfThisGroup ", previousUsersOfThisGroup);
 
-        fetchingIndicatorElement.classList.remove("waiting");
-    }
+        //Automatically deduplicate block names: add number like in Finder. Starts at 2. 
+        let baseName = groupNameElement.value.trim();
+        let counter = 2;
+
+        if (baseName == "") {
+            baseName = group.type + "-" + group.id
+        }
+
+        let finalName = baseName;
+
+        // convert names to lowercase for case-insensitive comparison
+
+        while (Array.from(groups.values()).some(g => g.name.toLowerCase() === finalName.toLowerCase())) {
+            finalName = `${baseName}-${counter}`;
+            counter++;
+        }
+
+        group.name = finalName;
+        groupNameElement.value = finalName;
+
+        // if this is the first group, rename the page using its new name
+        if (group.id === groups.keys().next().value) {
+            document.title = `${group.name} · Esquisse AI`;
+        }
+
+        console.log(`Group ${groupNameElement} name now:${group.name}`);
+
+        // we brute force rebuild the whole graph
+        // wasteful but this make sure of the graph reflecting user-facing structure
+        updateReferenceGraph(groups);
+
+        // update the groups using the new name in their reference
+        updateGroupsReferencingIt(group.id, groups);
+
+        // update the now orphans groups so they stop showing this group results
+        updateGroups(previousUsersOfThisGroup, groups, false);
+
+        persistGroups(groups);
+    };
 }
-
 
 async function handleInputChange(groupElement, immediate = false, isRefresh = false, isUndirected = true, groups) {
 
@@ -289,6 +325,8 @@ async function sendRequestsForGroup({
 
 }
 
+// Imported image groups
+
 function handleImportedImage(event, resultImage, group, groups) {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
@@ -335,6 +373,7 @@ function handleDroppedImage(imageFile, groupElement, groups) {
     persistGroups(groups);
 }
 
+// UI 
 
 function createZoomedImage(event) {
 
@@ -355,54 +394,18 @@ function createZoomedImage(event) {
 
 }
 
-function nameChangeHandler(group, groupNameElement, groups) {
-    return () => {
+function removeGlobalWaitingIndicator() {
 
-        const previousUsersOfThisGroup = referencesGraph.IS_USED_BY_GRAPH.adjacent(group.id);
+    const waitingGroups = document.querySelector(".group.waiting");
 
-        console.log("[NAME CHANGED] previousUsersOfThisGroup ", previousUsersOfThisGroup);
+    if (!waitingGroups) {
+        const fetchingIndicatorElement = document.querySelector(".fetching-indicator");
 
-        //Automatically deduplicate block names: add number like in Finder. Starts at 2. 
-        let baseName = groupNameElement.value.trim();
-        let counter = 2;
-
-        if (baseName == "") {
-            baseName = group.type + "-" + group.id
-        }
-
-        let finalName = baseName;
-
-        // convert names to lowercase for case-insensitive comparison
-
-        while (Array.from(groups.values()).some(g => g.name.toLowerCase() === finalName.toLowerCase())) {
-            finalName = `${baseName}-${counter}`;
-            counter++;
-        }
-
-        group.name = finalName;
-        groupNameElement.value = finalName;
-
-        // if this is the first group, rename the page using its new name
-        if (group.id === groups.keys().next().value) {
-            document.title = `${group.name} · Esquisse AI`;
-        }
-
-        console.log(`Group ${groupNameElement} name now:${group.name}`);
-
-        // we brute force rebuild the whole graph
-        // wasteful but this make sure of the graph reflecting user-facing structure
-        updateReferenceGraph(groups);
-
-        // update the groups using the new name in their reference
-        updateGroupsReferencingIt(group.id, groups);
-
-        // update the now orphans groups so they stop showing this group results
-        updateGroups(previousUsersOfThisGroup, groups, false);
-
-        persistGroups(groups);
-    };
+        fetchingIndicatorElement.classList.remove("waiting");
+    }
 }
 
+// Utils
 
 function randomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
