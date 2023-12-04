@@ -1,11 +1,10 @@
 import { kvdex, model, collection } from "https://deno.land/x/kvdex/mod.ts";
-import { ulid } from "https://deno.land/std/ulid/mod.ts";
 import { hash } from "./bcrypt.ts";
 import { Validator } from "npm:jsonschema";
 
 export { createUser, getUserPasswordHash, bulkCreateUsers, listUsers }
 
-const userSchema = {
+const userListSchema = {
     type: "array",
     items: {
         type: "object",
@@ -42,8 +41,7 @@ const db = kvdex(kv, {
         indices: {
             username: "primary",
             userdisplayname: "secondary",
-        },
-        idGenerator: () => ulid()
+        }
     })
 });
 
@@ -108,7 +106,7 @@ async function bulkCreateUsers(listOfUsersInfos: ListOfUsersInfos) {
 
     const validator = new Validator();
 
-    const validationResult = validator.validate(listOfUsersInfos, userSchema);
+    const validationResult = validator.validate(listOfUsersInfos, userListSchema);
     if (!validationResult.valid) {
         console.error("Validation error: ", validationResult.errors);
         return { userscreated: [], usersrejected: [] };
