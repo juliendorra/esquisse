@@ -1,18 +1,6 @@
 import Validator from 'https://esm.run/jsonschema';
 import Papa from 'https://esm.run/papaparse';
 
-document.getElementById('listUsersBtn').addEventListener('click', async () => {
-    const response = await fetch('/list-users');
-    const users = await response.json();
-    const usersList = document.getElementById('usersList');
-    usersList.innerHTML = '';
-    users.forEach(user => {
-        let listItem = document.createElement('li');
-        listItem.textContent = `${user.value.username}, ${user.value.userdisplayname}, ${user.value.created}`;
-        usersList.appendChild(listItem);
-    });
-});
-
 const userSchema = {
     "type": "array",
     "items": {
@@ -27,48 +15,68 @@ const userSchema = {
     }
 };
 
-document.getElementById('bulkCreateBtn').addEventListener('click', async () => {
+if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", init);
+} else {
+    init();
+}
+function init() {
 
-    let data = document.getElementById('bulkCreateInput').value;
-
-    // Check if data is CSV and convert if necessary
-    if (isCSV(data)) {
-        try {
-            data = convertCsvToObject(data);
-        }
-        catch {
-            alert('Impossible to convert CSV to data');
-            return;
-        }
-    } else {
-        try {
-            data = JSON.parse(data);
-        } catch (e) {
-            alert('Invalid JSON format');
-            return;
-        }
-    }
-
-    // Validate the JSON against the schema
-    const validator = new Validator.Validator();
-    const validationResult = validator.validate(data, userSchema);
-    if (!validationResult.valid) {
-        alert('Data does not match the required schema');
-        return;
-    }
-
-    const response = await fetch('/bulk-create-users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+    document.getElementById('listUsersBtn').addEventListener('click', async () => {
+        const response = await fetch('/list-users');
+        const users = await response.json();
+        const usersList = document.getElementById('usersList');
+        usersList.innerHTML = '';
+        users.forEach(user => {
+            let listItem = document.createElement('li');
+            listItem.textContent = `${user.value.username}, ${user.value.userdisplayname}, ${user.value.created}`;
+            usersList.appendChild(listItem);
+        });
     });
-    const responseData = await response.json();
-    displayUserResults(responseData);
-    const downloadButton = document.getElementById('downloadResponseBtn');
-    downloadButton.style.display = 'block';
-    downloadButton.href = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(responseData))}`;
-    downloadButton.download = 'response.json';
-});
+
+    document.getElementById('bulkCreateBtn').addEventListener('click', async () => {
+
+        let data = document.getElementById('bulkCreateInput').value;
+
+        // Check if data is CSV and convert if necessary
+        if (isCSV(data)) {
+            try {
+                data = convertCsvToObject(data);
+            }
+            catch {
+                alert('Impossible to convert CSV to data');
+                return;
+            }
+        } else {
+            try {
+                data = JSON.parse(data);
+            } catch (e) {
+                alert('Invalid JSON format');
+                return;
+            }
+        }
+
+        // Validate the JSON against the schema
+        const validator = new Validator.Validator();
+        const validationResult = validator.validate(data, userSchema);
+        if (!validationResult.valid) {
+            alert('Data does not match the required schema');
+            return;
+        }
+
+        const response = await fetch('/bulk-create-users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const responseData = await response.json();
+        displayUserResults(responseData);
+        const downloadButton = document.getElementById('downloadResponseBtn');
+        downloadButton.style.display = 'block';
+        downloadButton.href = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(responseData))}`;
+        downloadButton.download = 'response.json';
+    });
+}
 
 function isCSV(text) {
     const result = Papa.parse(text, {

@@ -92,7 +92,7 @@ const handler = async (request: Request): Promise<Response> => {
 
   else if (pathname === '/list-apps' && request.method === "POST") {
     const body = await request.json();
-    let targetUsername = body.username.toLowerCase().trim();
+    let targetUsername = body.username?.toLowerCase().trim();
 
     if (!targetUsername) {
       targetUsername = username;
@@ -149,7 +149,7 @@ const handler = async (request: Request): Promise<Response> => {
 
   // User facing URLs endpoints
 
-  else if (nanoidRegex.test(pathname) && request.method === 'GET') {
+  else if (pathname.startsWith("/app/") && nanoidRegex.test(pathname) && request.method === 'GET') {
     const file = await Deno.readFile(`./static/index.html`);
     const type = contentType("html") || "text/plain";
     return new Response(file, {
@@ -164,6 +164,23 @@ const handler = async (request: Request): Promise<Response> => {
       headers: { "content-type": type },
     });
   }
+
+  else if (pathname.startsWith("/apps") && request.method === 'GET') {
+    const file = await Deno.readFile(`./static/apps.html`);
+    const type = contentType("html") || "text/plain";
+    return new Response(file, {
+      headers: { "content-type": type },
+    });
+  }
+
+  else if (pathname === "/admin" && request.method === 'GET') {
+    const file = await Deno.readFile(`./static/admin.html`);
+    const type = contentType("html") || "text/plain";
+    return new Response(file, {
+      headers: { "content-type": type },
+    });
+  }
+
 
   // Fall back to serving static files
   try {
