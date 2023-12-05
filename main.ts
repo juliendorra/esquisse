@@ -100,10 +100,21 @@ const handler = async (request: Request): Promise<Response> => {
 
     const apps = await retrieveAppsByUser(targetUsername);
 
-    const appsInformations = apps.map(app => ({
-      name: app.groups[0]?.name || 'Unnamed App', // Name from the first group's name
-      link: `/app/${app.appid}`
-    }));
+    const appsInformations = apps.map(
+      (app) => {
+
+        const groupstypes = app.groups.map(group => group.type);
+
+        console.log(groupstypes);
+
+        return {
+          name: app.groups[0]?.name || 'Unnamed App', // Name from the first group's name
+          appid: app.appid,
+          link: `/app/${app.appid}`,
+          groupstypes: groupstypes,
+        };
+      }
+    );
 
     return new Response(JSON.stringify(appsInformations), {
       headers: { 'Content-Type': 'application/json' }
@@ -193,7 +204,7 @@ const handler = async (request: Request): Promise<Response> => {
     return new Response('Not Found', { status: 404 });
   }
 
-  // User facing URLs endpoints
+  // END User facing URLs endpoints
 
 };
 
