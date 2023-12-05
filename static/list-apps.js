@@ -61,31 +61,34 @@ function createAppsList(apps, username) {
 
         const groupIconImgElements = app.groupstypes.map(type => {
 
-            let icon
+            let icon;
+
+            let brElement;
 
             switch (type) {
 
                 case GROUP_TYPE.BREAK:
-                    icon = "break.svg"
+                    icon = "break.svg";
+                    brElement = document.createElement("br");
                     break;
 
                 case GROUP_TYPE.STATIC:
-                    icon = "text-static.svg"
+                    icon = "text-static.svg";
                     break;
 
                 case GROUP_TYPE.IMPORTED_IMAGE:
-                    icon = "imported-image.svg"
+                    icon = "imported-image.svg";
                     break;
                 case GROUP_TYPE.IMAGE:
-                    icon = "image-gen.svg"
+                    icon = "image-gen.svg";
                     break;
 
                 case GROUP_TYPE.TEXT:
-                    icon = "text-gen.svg"
+                    icon = "text-gen.svg";
                     break;
 
                 default:
-                    icon = "text-gen.svg"
+                    icon = "text-gen.svg";
             };
 
             const iconpath = "/icons/"
@@ -94,7 +97,7 @@ function createAppsList(apps, username) {
             iconElement.src = iconpath + icon;
             iconElement.classList.add("group-type-icon");
 
-            return iconElement;
+            return brElement ? { iconElement, brElement } : { iconElement };
 
         });
 
@@ -104,8 +107,10 @@ function createAppsList(apps, username) {
         link.href = app.link;
         link.textContent = app.name;
         listItem.appendChild(link);
-        groupIconImgElements.forEach(element => {
-            link.appendChild(element)
+        groupIconImgElements.forEach(elements => {
+            if (elements.brElement) { link.appendChild(elements.brElement) }
+            link.appendChild(elements.iconElement)
+            if (elements.brElement) { link.appendChild(elements.brElement.cloneNode()) }
         });
         list.appendChild(listItem);
     }
