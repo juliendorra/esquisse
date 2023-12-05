@@ -146,7 +146,7 @@ function createAppsList(apps, username) {
 
     Macy({
         container: '.apps-list',
-        trueOrder: false,
+        trueOrder: true,
         waitForImages: false,
         margin: 24,
         columns: 4,
