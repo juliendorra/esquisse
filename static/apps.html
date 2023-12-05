@@ -26,7 +26,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.9.0/cdn/themes/light.css" />
 
     <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.9.0/cdn/shoelace-autoloader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/leader-line@1.0.7"></script>
+
 
     <title>Esquisse AI. Quick AI Workflow Prototyping</title>
     <style>
@@ -46,11 +46,16 @@
             --group-break-color-code-border: #ffffff;
 
             --group-static-color-code: rgb(154, 123, 212);
+
             --group-text-color-code: rgb(186, 226, 127);
             --group-image-color-code: rgb(233, 107, 168);
 
             --card-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
             --primary-font: 'Helvetica Neue', sans-serif;
+
+            --apps-app-title-link-color: rgb(93, 64, 147);
+            --apps-background-color: rgb(223, 167, 253);
+
         }
 
         html {
@@ -63,8 +68,7 @@
             margin: 0;
             padding: 0;
             font-weight: normal;
-            --background-color: rgb(202, 105, 255);
-            background-color: var(--background-color);
+            background-color: var(--apps-background-color);
         }
 
         :not(:defined) {
@@ -80,25 +84,29 @@
         }
 
         .apps-list-container {
-            margin-top: 3em;
-            margin-left: 10vw;
-        }
-
-        .apps-page-title {
-            color: white;
+            padding: 3em 10vw;
         }
 
         .apps-list {
-            line-height: 220%;
             list-style-type: none;
         }
 
         .apps-list li {
-            width: fit-content;
             background-color: white;
             border-radius: 2em;
             padding: 2em;
-            margin-bottom: 1rem;
+            box-sizing: border-box;
+            margin-bottom: 1em;
+        }
+
+        @media (max-width: 600px) {
+            .apps-list-container {
+                padding: 1em;
+            }
+
+            .apps-list li {
+                padding: 1em;
+            }
         }
 
         .apps-list .group-type-icon {
@@ -107,12 +115,9 @@
             vertical-align: text-bottom;
         }
 
-        .apps-list .group-type-icon:first-of-type {
-            margin-left: 0.5rem
-        }
-
         .apps-list a {
-            text-decoration-line: none;
+            text-decoration: none;
+            color: var(--apps-app-title-link-color);
         }
     </style>
 </head>

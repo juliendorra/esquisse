@@ -1,4 +1,5 @@
 import { GROUP_TYPE } from "./group-utils.js";
+import Macy from 'https://cdn.jsdelivr.net/npm/macy@2.5.1/+esm';
 
 if (document.readyState === "loading") {
     window.addEventListener("DOMContentLoaded", init);
@@ -59,62 +60,102 @@ function createAppsList(apps, username) {
 
         console.log(app);
 
-        const groupIconImgElements = app.groupstypes.map(type => {
+        const groupIconImgElements = app.groupstypes.map(
+            (type, index) => {
 
-            let icon;
+                let icon;
 
-            let brElement;
+                let brElement;
 
-            switch (type) {
+                switch (type) {
 
-                case GROUP_TYPE.BREAK:
-                    icon = "break.svg";
-                    brElement = document.createElement("br");
-                    break;
+                    case GROUP_TYPE.BREAK:
+                        icon = "break.svg";
+                        break;
 
-                case GROUP_TYPE.STATIC:
-                    icon = "text-static.svg";
-                    break;
+                    case GROUP_TYPE.STATIC:
+                        icon = "text-static.svg";
+                        break;
 
-                case GROUP_TYPE.IMPORTED_IMAGE:
-                    icon = "imported-image.svg";
-                    break;
-                case GROUP_TYPE.IMAGE:
-                    icon = "image-gen.svg";
-                    break;
+                    case GROUP_TYPE.IMPORTED_IMAGE:
+                        icon = "imported-image.svg";
+                        break;
+                    case GROUP_TYPE.IMAGE:
+                        icon = "image-gen.svg";
+                        break;
 
-                case GROUP_TYPE.TEXT:
-                    icon = "text-gen.svg";
-                    break;
+                    case GROUP_TYPE.TEXT:
+                        icon = "text-gen.svg";
+                        break;
 
-                default:
-                    icon = "text-gen.svg";
-            };
+                    default:
+                        icon = "text-gen.svg";
+                };
 
-            const iconpath = "/icons/"
+                const iconpath = "/icons/"
 
-            const iconElement = document.createElement("img");
-            iconElement.src = iconpath + icon;
-            iconElement.classList.add("group-type-icon");
+                const iconElement = document.createElement("img");
+                iconElement.src = iconpath + icon;
+                iconElement.classList.add("group-type-icon");
 
-            return brElement ? { iconElement, brElement } : { iconElement };
+                let wrapper = document.createElement("span");
 
-        });
+                if (index === 0 && type === GROUP_TYPE.BREAK) {
+
+                    wrapper.appendChild(iconElement)
+                    wrapper.appendChild(document.createElement("br"))
+
+                }
+                else if (index !== 0 && type === GROUP_TYPE.BREAK) {
+
+                    wrapper.appendChild(document.createElement("br"))
+                    wrapper.appendChild(iconElement)
+                    wrapper.appendChild(document.createElement("br"))
+
+                }
+                else {
+
+                    wrapper.appendChild(iconElement)
+
+                }
+
+                return wrapper;
+            });
 
 
         const listItem = document.createElement('li');
         const link = document.createElement('a');
+        const appName = document.createElement('div');
+
+        appName.textContent = app.name;
+
         link.href = app.link;
-        link.textContent = app.name;
-        listItem.appendChild(link);
-        groupIconImgElements.forEach(elements => {
-            if (elements.brElement) { link.appendChild(elements.brElement) }
-            link.appendChild(elements.iconElement)
-            if (elements.brElement) { link.appendChild(elements.brElement.cloneNode()) }
+        link.appendChild(appName);
+
+        groupIconImgElements.forEach(element => {
+            link.appendChild(element)
         });
+
+        listItem.appendChild(link);
+
         list.appendChild(listItem);
     }
 
     container.appendChild(list);
     document.body.appendChild(container);
+
+    Macy({
+        container: '.apps-list',
+        trueOrder: false,
+        waitForImages: false,
+        margin: 24,
+        columns: 4,
+        breakAt: {
+            1400: 4,
+            1000: 3,
+            940: 2,
+            520: 1
+        }
+    });
+
 }
