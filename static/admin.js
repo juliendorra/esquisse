@@ -28,8 +28,14 @@ function init() {
         const usersList = document.getElementById('usersList');
         usersList.innerHTML = '';
         users.forEach(user => {
-            let listItem = document.createElement('li');
-            listItem.textContent = `${user.value.username}, ${user.value.userdisplayname}, ${user.value.created}`;
+            const listItem = document.createElement('li');
+
+            const userAppsLink = document.createElement('a');
+            userAppsLink.href = "/apps/" + user.value.username;
+            userAppsLink.textContent = `${user.value.username}, ${user.value.userdisplayname}, ${user.value.created}`;
+
+            listItem.appendChild(userAppsLink);
+
             usersList.appendChild(listItem);
         });
     });
