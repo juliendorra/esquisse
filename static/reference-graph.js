@@ -24,6 +24,8 @@ export { referencesGraph, updateReferenceGraph, buildReverseReferenceGraph }
 
 function updateReferenceGraph(groups) {
     referencesGraph.IS_USED_BY_GRAPH = buildReverseReferenceGraph(groups);
+
+    return referencesGraph.IS_USED_BY_GRAPH;
 }
 
 function buildReverseReferenceGraph(groups) {

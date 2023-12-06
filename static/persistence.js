@@ -1,6 +1,6 @@
 import { GROUP_TYPE, INTERACTION_STATE, generateUniqueGroupID } from "./group-utils.js";
-import { groupsMap, addGroupElement, createGroupAndAddGroupElement, setGroupInteractionState, updateGroups } from "./group-management.js"
-import { referencesGraph, buildReverseReferenceGraph } from "./reference-graph.js";
+import { groupsMap, createGroupInLocalDataStructures, addGroupElement, setGroupInteractionState, updateGroups } from "./group-management.js"
+import { updateReferenceGraph } from "./reference-graph.js";
 import Validator from 'https://esm.run/jsonschema';
 import { displayAlert } from "./ui-utils.js";
 
@@ -215,14 +215,18 @@ async function loadGroups(importedGroups) {
 
         console.log("[LOADING] new Esquisse, creating a group");
 
-        createGroupAndAddGroupElement(GROUP_TYPE.TEXT, groups);
+        const group = createGroupInLocalDataStructures(groups, GROUP_TYPE.TEXT);
+
+        const groupElement = addGroupElement(GROUP_TYPE.TEXT, group.id, groups);
 
         // we are interested in having even this first isolated node in the graph
         // as we will use it in the updateGroups function
 
-        const isUsedByGraph = buildReverseReferenceGraph(groups);
-
         ID = null;
+
+        const isUsedByGraph = updateReferenceGraph(groups);
+
+        groupsMap.GROUPS = groups;
 
         return { groups, isUsedByGraph };
     }
@@ -255,7 +259,7 @@ async function loadGroups(importedGroups) {
             const dataElement = groupElement.querySelector(".data-text");
             const transformElement = groupElement.querySelector(".transform-text");
 
-            // Break groups elements don't have name and data elements
+            // Break groups elements don't have data and transform elements
             if (groupNameElement) groupNameElement.value = group.name;
             if (dataElement) dataElement.value = group.data;
             if (transformElement) transformElement.value = transform;
@@ -277,10 +281,9 @@ async function loadGroups(importedGroups) {
 
     document.title = `${groups.values().next().value.name} · Esquisse AI`
 
-    const isUsedByGraph = buildReverseReferenceGraph(groups);
+    const isUsedByGraph = updateReferenceGraph(groups);
 
     groupsMap.GROUPS = groups;
-    referencesGraph.IS_USED_BY_GRAPH = isUsedByGraph;
 
     // update all nodes, in topological order
     // this will fail if a cycle is detected

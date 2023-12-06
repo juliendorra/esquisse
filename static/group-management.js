@@ -18,7 +18,10 @@ const groupsMap = {
     }
 };
 
-export { groupsMap, addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, setGroupInteractionState, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, rebuildGroupsInNewOrder };
+export {
+    groupsMap, createGroupInLocalDataStructures,
+    addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, setGroupInteractionState, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, rebuildGroupsInNewOrder
+};
 
 const GROUP_HTML = {
 
@@ -105,12 +108,37 @@ const GROUP_HTML = {
 
 };
 
+function createGroupInLocalDataStructures(groups, groupType) {
+    const id = generateUniqueGroupID(groups);
 
+    const group = {
+        id,
+        name: groupType + "-" + id,
+        data: "",
+        transform: "",
+        type: groupType,
+        result: null,
+        lastRequestTime: 0,
+        interactionState: INTERACTION_STATE.OPEN,
+    };
+
+    console.log("[GROUP MANAGEMENT] New group in data:", group);
+
+    groups.set(group.id, group);
+
+    // we need this new isolated group in the graph
+    // as the graph is used by the updateGroups function
+    updateReferenceGraph(groups);
+
+    return group;
+}
 
 function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
     const groupElement = document.createElement("div");
 
     groupElement.dataset.id = groupId;
+
+    groupType = groups.get(groupId).type || GROUP_TYPE.TEXT;
 
     switch (groupType) {
 
@@ -138,6 +166,12 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
             groupElement.className = "group text";
             groupElement.innerHTML = GROUP_HTML.TEXT;
     }
+
+    // Group element is populated, we can now set the elements
+
+    const groupNameElement = groupElement.querySelector(".group-name");
+
+    groupNameElement.value = groups.get(groupId).name;
 
     // Initially hide the referenced-result-text 
     const refResultTextarea = groupElement.querySelector(".referenced-result-text");
@@ -178,36 +212,14 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
     return groupElement;
 }
 
+// this function combine the creation of group as local data, persisted on the server, and as an HTML element 
 function createGroupAndAddGroupElement(groupType = GROUP_TYPE.TEXT, groups) {
 
-    const id = generateUniqueGroupID(groups);
-
-    const group = {
-        id,
-        name: groupType + "-" + id,
-        data: "",
-        transform: "",
-        type: groupType,
-        result: null,
-        lastRequestTime: 0,
-        interactionState: INTERACTION_STATE.OPEN,
-    };
-
-    console.log("New group:", group)
-
-    groups.set(group.id, group);
-
-    // we need this new isolated group in the graph
-    // as the graph is used by the updateGroups function
-    updateReferenceGraph(groups)
+    const group = createGroupInLocalDataStructures(groups, groupType);
 
     persistGroups(groups);
 
     const groupElement = addGroupElement(groupType, group.id, groups);
-
-    const groupNameElement = groupElement.querySelector(".group-name");
-
-    groupNameElement.value = group.name;
 
     return groupElement;
 }
