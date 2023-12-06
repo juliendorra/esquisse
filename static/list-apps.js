@@ -128,6 +128,7 @@ function createAppsList(apps, username) {
         const appName = document.createElement('div');
 
         appName.textContent = app.name;
+        appName.classList.add("app-name");
 
         link.href = app.link;
         link.appendChild(appName);
