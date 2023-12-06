@@ -185,6 +185,9 @@ const handler = async (request: Request): Promise<Response> => {
   }
 
   else if (pathname === "/admin" && request.method === 'GET') {
+    if (!isAdmin) {
+      return new Response('Unauthorized', { status: 401, headers: { 'WWW-Authenticate': 'Basic realm="Esquisse"', } });
+    }
     const file = await Deno.readFile(`./static/admin.html`);
     const type = contentType("html") || "text/plain";
     return new Response(file, {
