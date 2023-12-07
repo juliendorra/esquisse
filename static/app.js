@@ -14,6 +14,7 @@ import { handleDroppedImage, handleInputChange } from "./input-change.js";
 import { initGroupObservation } from "./group-elements-observer.js";
 
 import { initMeshBackground } from "./mesh-background.js";
+import { displayAlert } from "./ui-utils.js";
 
 const SETTINGS = {
 
@@ -119,10 +120,13 @@ async function init() {
     const settingsMenu = document.querySelector('.settings-menu');
 
     const openButton = document.querySelector('.open-settings-menu-btn');
-    const closeButton = settingsMenu.querySelector('.close-settings-menu-btn');
+    const closeButtons = settingsMenu.querySelectorAll('.close-settings-menu-btn');
 
     openButton.addEventListener('click', () => settingsMenu.show());
-    closeButton.addEventListener('click', () => settingsMenu.hide());
+
+    for (const closeButton of closeButtons) {
+        closeButton.addEventListener('click', () => settingsMenu.hide());
+    }
 
     const qualitySwitch = settingsMenu.querySelector('.quality-switch');
 
@@ -145,6 +149,34 @@ async function init() {
             renderDataFlow();
         }
 
+    });
+
+    document.getElementById('share-btn').addEventListener('click', function () {
+        // Check if the Web Share API is supported
+        if (navigator.share) {
+            navigator.share({
+                title: document.title,
+                url: window.location.href
+            }).then(() => {
+                console.log('[SETTINGS MENU] URL shared');
+            })
+                .catch(console.error);
+        } else {
+            // Fallback to Clipboard API
+            navigator.clipboard.writeText(window.location.href)
+                .then(() => {
+                    displayAlert(
+                        {
+                            issue: "Link to this app copied!",
+                            action: "Paste the link to share your app.",
+                            variant: "success",
+                            icon: "person-arms-up",
+                            duration: 3000
+                        }
+                    )
+                })
+                .catch(console.error);
+        }
     });
 
     document.getElementById('download-json-btn').addEventListener('click', () => {

@@ -654,6 +654,28 @@
             margin-bottom: 2rem;
         }
 
+        sl-drawer .settings-menu-top {
+            margin-top: 0.75em;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        sl-drawer sl-icon {
+            vertical-align: text-bottom;
+        }
+
+        sl-drawer .settings-link {
+            font-size: 110%;
+            color: var(--sl-color-primary-600);
+            text-decoration: none;
+        }
+
+        sl-drawer sl-button {
+            width: 12rem;
+        }
+
         sl-switch {
             --width: 3rem;
             --height: 1.5rem;
@@ -686,6 +708,16 @@
             background-color: rgb(249, 99, 94);
         }
 
+        sl-drawer .drop-zone#upload-json-zone {
+            min-height: 5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            align-content: middle;
+            text-align: center;
+        }
+
+        /* END Settings Menu */
 
         .sortable-ghost {
             max-height: 10vw;
@@ -943,7 +975,25 @@
         <button class="footer-btn open-settings-menu-btn"><span class="icon-btn"><img src="/icons/settings.svg"></span></button>
     </div>
 
-    <sl-drawer label="Settings" class="settings-menu">
+    <sl-drawer class="settings-menu" no-header>
+
+        <div class="settings-menu-top">
+
+            <div>
+                <a href="/apps" class="settings-link">
+                    Your apps <sl-icon slot="icon" name="arrow-up-right-square"></sl-icon>
+                </a>
+            </div>
+
+            <div part="header-actions" class="drawer__header-actions close-settings-menu-btn">
+                <slot name="header-actions"></slot>
+                <sl-icon-button part="close-button" exportparts="base:close-button__base" class="drawer__close" name="x-lg" library="system" label="Close"></sl-icon-button>
+            </div>
+
+        </div>
+
+        <h3>Settings</h3>
+
         <div>
             Fast&nbsp;&&nbsp;Cheap&nbsp;
             <sl-switch class="quality-switch"></sl-switch>
@@ -954,15 +1004,27 @@
             <sl-switch class="dataflow-switch"></sl-switch>
             &nbsp;Flow&nbsp;On
         </div>
+
+        <h3>Share</h3>
+
+        <div>
+            <sl-button id="share-btn">
+                <sl-icon slot="prefix" name="person-arms-up"></sl-icon>
+                Share this app
+            </sl-button>
+        </div>
+
         <div>
             <sl-button id="download-json-btn">
-                Download .esquisse.json file
+                <sl-icon slot="prefix" name="file-earmark-arrow-down"></sl-icon>
+                Download app as file
             </sl-button>
         </div>
         <div id="upload-json-zone" class="drop-zone">
-            Drop .esquisse.json file here <br />
-            to load an Esquisse from file
+            Drop app file here <br />
+            to load your app from file
         </div>
+
         <button class="footer-btn close-settings-menu-btn" slot="footer">Close</button>
     </sl-drawer>
 

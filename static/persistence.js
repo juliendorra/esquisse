@@ -325,7 +325,7 @@ async function handleEsquisseJsonUpload(file) {
                 displayAlert(
                     {
                         issue: "Files is not a valid .esquisse.json",
-                        action: "Use a file downloaded from an Esquisse",
+                        action: "Use a file downloaded from an app",
                         variant: "warning"
                     }
                 );
