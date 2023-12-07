@@ -1,6 +1,7 @@
 import { getGroupFromName } from "./group-utils.js";
 
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
+import { displayAlert } from "./ui-utils.js";
 
 export { getReferencedGroupNamesFromDataText, getReferencedResultsAndCombinedDataWithResults };
 
@@ -75,6 +76,17 @@ function getReferencedResultsAndCombinedDataWithResults(dataText, currentGroupNa
 
             if (!referencedGroup) {
                 console.log(`[REFERENCE MATCHING] Trying to show reference but no group "${name}" found`);
+
+                displayAlert(
+                    {
+                        issue: `No group "${name}" found`,
+                        action: `Fix the reference in "${currentGroupName}"`,
+                        variant: "warning",
+                        icon: "question-circle",
+                        duration: 3000
+                    }
+                );
+
                 invalidReferencedResults.push(name);
                 continue;
             }
@@ -88,6 +100,17 @@ function getReferencedResultsAndCombinedDataWithResults(dataText, currentGroupNa
 
             if (hasDirectCircularReference || isSelfReference) {
                 console.log(`[REFERENCE MATCHING] Direct circular reference between ${currentGroupName} and ${name}`);
+
+                displayAlert(
+                    {
+                        issue: `Circular reference between "${currentGroupName}" and "${name}"`,
+                        action: "Remove circular references",
+                        variant: "warning",
+                        icon: "arrow-repeat",
+                        duration: 3000
+                    }
+                );
+
                 invalidReferencedResults.push(name);
                 continue;
             }

@@ -1,5 +1,5 @@
 
-import Graph from "https://cdn.jsdelivr.net/npm/graph-data-structure@3.3.0/+esm";
+import Graph from "https://cdn.jsdelivr.net/npm/graph-data-structure@3.5.0/+esm";
 import { GROUP_TYPE, getGroupFromName } from "./group-utils.js";
 import { getReferencedGroupNamesFromDataText } from "./reference-matching.js";
 

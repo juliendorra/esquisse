@@ -1,6 +1,7 @@
 import { GROUP_TYPE, INTERACTION_STATE, getGroupIdFromElement, getGroupElementFromId, getGroupFromName, generateUniqueGroupID } from "./group-utils.js";
 
-import { getReferencedResultsAndCombinedDataWithResults } from "./reference-matching.js";
+import { displayAlert } from "./ui-utils.js";
+
 import { handleInputChange, nameChangeHandler, handleImportedImage, handleDroppedImage } from "./input-change.js";
 import { onDragStart, onDragEnd } from "./reordering.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
@@ -263,10 +264,8 @@ function addEventListenersToGroup(groupElement, groups) {
 
 
     dataElement?.addEventListener("blur", () => {
-        const { availableReferencedResults, combinedReferencedResults } = getReferencedResultsAndCombinedDataWithResults(dataElement.value, group.name, groups);
-        if (availableReferencedResults.length > 0) {
-            group.combinedReferencedResults = combinedReferencedResults;
-            displayCombinedReferencedResult(groupElement, combinedReferencedResults);
+        if (group.availableReferencedResults.length > 0) {
+            displayCombinedReferencedResult(groupElement, group.combinedReferencedResults);
         }
     });
 
@@ -399,6 +398,19 @@ async function updateGroups(idsOfGroupsToUpdate, groups, forceRefresh = false) {
         && referencesGraph.IS_USED_BY_GRAPH.outdegree(id) === 0
     );
 
+    for (const id of independentUpdates) {
+
+        console.log("[UPDATE GROUPS] Independent group, updating without awaiting", id)
+
+        handleInputChange(
+            getGroupElementFromId(id),
+            true,
+            forceRefresh,
+            false,
+            groups
+        );
+    };
+
     // filter out the independent nodes from the dependent updates
     let dependentUpdates = idsOfGroupsToUpdate.filter(id => !independentUpdates.includes(id));
 
@@ -412,22 +424,24 @@ async function updateGroups(idsOfGroupsToUpdate, groups, forceRefresh = false) {
         console.log("[UPDATE GROUPS] Dependent updates Sorted: ", dependentUpdates);
 
     } catch (error) {
-        console.log("[UPDATE GROUPS] [CycleError] Circular dependency between these groups:", idsOfGroupsToUpdate)
+
+        const dependentGroupNames = dependentUpdates.map(
+            groupid => groups.get(groupid).name
+        );
+
+        console.log("[UPDATE GROUPS] [CycleError] Circular dependency between these groups:", dependentGroupNames)
+        displayAlert(
+            {
+                issue: `Circular dependency between these groups: ${dependentGroupNames.join(", ")}`,
+                action: "Remove circular references",
+                variant: "warning",
+                icon: "arrow-repeat",
+                duration: 3000
+            }
+        );
+
         return;
     }
-
-    for (const id of independentUpdates) {
-
-        console.log("[UPDATE GROUPS] Independent group, updating without awaiting", id)
-
-        handleInputChange(
-            getGroupElementFromId(id),
-            true,
-            forceRefresh,
-            false,
-            groups
-        );
-    };
 
     for (const id of dependentUpdates) {
 
