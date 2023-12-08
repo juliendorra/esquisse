@@ -264,7 +264,7 @@ function addEventListenersToGroup(groupElement, groups) {
 
 
     dataElement?.addEventListener("blur", () => {
-        if (group.availableReferencedResults.length > 0) {
+        if (group.availableReferencedResults && group.availableReferencedResults.length > 0) {
             displayCombinedReferencedResult(groupElement, group.combinedReferencedResults);
         }
     });
