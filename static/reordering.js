@@ -75,6 +75,8 @@ function applyScale() {
 
     console.log("[miniview] scale ", scale);
 
+    document.documentElement.style.setProperty('--invert-scale', 1 / scale);
+
     document.documentElement.style.setProperty('--scale', scale);
 }
 

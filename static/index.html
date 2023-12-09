@@ -33,6 +33,7 @@
         :root {
             --footer-height: 3rem;
             --scale: 0.4;
+            --invert-scale: 2.5;
 
             --neutral-color: #FaFaFa;
             --neutral-color-highlight: #fefefe;
@@ -788,19 +789,25 @@
         }
 
         .zoomable::before {
+
             content: "";
             display: block;
             position: fixed;
 
-            top: -100vh;
-            left: -100vw;
-            right: -100vw;
-            bottom: calc(-100vw/var(--scale));
+            width: 100vw;
+            height: 100vh;
 
-            backdrop-filter: blur(10vw);
-            -webkit-backdrop-filter: blur(10vw);
+            backdrop-filter: blur(3vw);
+            -webkit-backdrop-filter: blur(3vw);
 
             z-index: -2;
+        }
+
+        .miniview.zoomable::before {
+
+            transform: scale(var(--invert-scale));
+            transform-origin: top center;
+
         }
 
 
