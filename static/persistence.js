@@ -152,12 +152,14 @@ async function loadGroups(importedGroups) {
     groupsMap.GROUPS = new Map();
     const groups = groupsMap.GROUPS;
 
+    const nanoidRegex = /^\/app\/[123456789bcdfghjkmnpqrstvwxyz]{14}$/;
+
     if (importedGroups) {
         decodedGroups = importedGroups;
         ID = null;
     }
     // Check if the URL path is of the form /app/[NANOID]
-    else if (urlPath.startsWith('/app/')) {
+    else if (urlPath.startsWith('/app/') && nanoidRegex.test(urlPath)) {
 
         ID = urlPath.split('/')[2];
 
@@ -184,6 +186,8 @@ async function loadGroups(importedGroups) {
 
         } catch (error) {
             console.error("[LOADING] Error loading groups from server", error);
+
+            return createBlankApp();
         }
     }
     else if (window.location.hash) {
@@ -215,20 +219,7 @@ async function loadGroups(importedGroups) {
     }
     else {
 
-        console.log("[LOADING] new Esquisse, creating a group");
-
-        const group = createGroupInLocalDataStructures(GROUP_TYPE.TEXT);
-
-        const groupElement = addGroupElement(GROUP_TYPE.TEXT, group.id);
-
-        // we are interested in having even this first isolated node in the graph
-        // as we will use it in the updateGroups function
-
-        ID = null;
-
-        const isUsedByGraph = updateReferenceGraph(groups);
-
-        return { groups, isUsedByGraph };
+        return createBlankApp();
     }
 
     // using the decoded group data to create each group
@@ -288,6 +279,24 @@ async function loadGroups(importedGroups) {
     updateGroups(isUsedByGraph.nodes(), true);
 
     return { groups, isUsedByGraph };
+
+    function createBlankApp() {
+        console.log("[LOADING] new Esquisse, creating a group");
+
+        const group = createGroupInLocalDataStructures(GROUP_TYPE.TEXT);
+
+        const groupElement = addGroupElement(GROUP_TYPE.TEXT, group.id);
+
+        ID = null;
+
+        history.pushState(groups, "", "/app");
+
+        // we are interested in having even this first isolated node in the graph
+        // as we will use it in the updateGroups function
+        const isUsedByGraph = updateReferenceGraph(groups);
+
+        return { groups, isUsedByGraph };
+    }
 }
 
 function downloadEsquisseJson(groups) {

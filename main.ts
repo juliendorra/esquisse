@@ -23,8 +23,6 @@ const handler = async (request: Request): Promise<Response> => {
 
   const { isAuthenticated, isAdmin, username } = await basicAuth(request);
 
-  const nanoidRegex = /^\/app\/[123456789bcdfghjkmnpqrstvwxyz]{14}$/;
-
   // Public endpoints
 
   if (!pathname.startsWith("/public/")) {
@@ -160,7 +158,7 @@ const handler = async (request: Request): Promise<Response> => {
 
   // User facing URLs endpoints
 
-  else if (pathname.startsWith("/app/") && nanoidRegex.test(pathname) && request.method === 'GET') {
+  else if (pathname.startsWith("/app/") && request.method === 'GET') {
     const file = await Deno.readFile(`./static/index.html`);
     const type = contentType("html") || "text/plain";
     return new Response(file, {
