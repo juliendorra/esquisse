@@ -78,7 +78,7 @@ async function init() {
 
             console.log("TEST ADDING IMAGE ", index++)
 
-            const groupElement = createGroupAndAddGroupElement(GROUP_TYPE.IMPORTED_IMAGE, groupsMap.GROUPS);
+            const groupElement = createGroupAndAddGroupElement(GROUP_TYPE.IMPORTED_IMAGE);
 
             handleDroppedImage(file, groupElement, groupsMap.GROUPS);
 
@@ -86,7 +86,7 @@ async function init() {
 
         for (const file of textFiles) {
 
-            const groupElement = createGroupAndAddGroupElement(GROUP_TYPE.STATIC, groupsMap.GROUPS);
+            const groupElement = createGroupAndAddGroupElement(GROUP_TYPE.STATIC);
 
             handleDroppedText(file, groupElement, groupsMap.GROUPS);
         }
@@ -97,22 +97,22 @@ async function init() {
 
     document
         .querySelector(".add-break-group-btn")
-        .addEventListener("click", () => createGroupAndAddGroupElement(GROUP_TYPE.BREAK, groupsMap.GROUPS));
+        .addEventListener("click", () => createGroupAndAddGroupElement(GROUP_TYPE.BREAK));
 
     document
         .querySelector(".add-static-group-btn")
-        .addEventListener("click", () => createGroupAndAddGroupElement(GROUP_TYPE.STATIC, groupsMap.GROUPS));
+        .addEventListener("click", () => createGroupAndAddGroupElement(GROUP_TYPE.STATIC));
 
     document.querySelector(".add-group-btn").addEventListener("click", () =>
-        createGroupAndAddGroupElement(GROUP_TYPE.TEXT, groupsMap.GROUPS)
+        createGroupAndAddGroupElement(GROUP_TYPE.TEXT)
     );
 
     document.querySelector(".add-img-group-btn").addEventListener("click", () =>
-        createGroupAndAddGroupElement(GROUP_TYPE.IMAGE, groupsMap.GROUPS)
+        createGroupAndAddGroupElement(GROUP_TYPE.IMAGE)
     );
 
     document.querySelector(".add-imported-image-group-btn").addEventListener("click", () =>
-        createGroupAndAddGroupElement(GROUP_TYPE.IMPORTED_IMAGE, groupsMap.GROUPS)
+        createGroupAndAddGroupElement(GROUP_TYPE.IMPORTED_IMAGE)
     );
 
     // Settings Menu Listeners

@@ -109,7 +109,10 @@ const GROUP_HTML = {
 
 };
 
-function createGroupInLocalDataStructures(groups, groupType) {
+function createGroupInLocalDataStructures(groupType) {
+
+    const groups = groupsMap.GROUPS;
+
     const id = generateUniqueGroupID(groups);
 
     const group = {
@@ -134,7 +137,10 @@ function createGroupInLocalDataStructures(groups, groupType) {
     return group;
 }
 
-function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
+function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
+
+    const groups = groupsMap.GROUPS;
+
     const groupElement = document.createElement("div");
 
     groupElement.dataset.id = groupId;
@@ -194,7 +200,7 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
     const container = document.querySelector(".container");
     container.appendChild(groupElement);
 
-    addEventListenersToGroup(groupElement, groups);
+    addEventListenersToGroup(groupElement);
 
     groupElement.scrollIntoView(true, { behavior: "auto", block: "end" });
 
@@ -214,18 +220,23 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, groups) {
 }
 
 // this function combine the creation of group as local data, persisted on the server, and as an HTML element 
-function createGroupAndAddGroupElement(groupType = GROUP_TYPE.TEXT, groups) {
+function createGroupAndAddGroupElement(groupType = GROUP_TYPE.TEXT) {
 
-    const group = createGroupInLocalDataStructures(groups, groupType);
+    const groups = groupsMap.GROUPS;
+
+    const group = createGroupInLocalDataStructures(groupType);
 
     persistGroups(groups);
 
-    const groupElement = addGroupElement(groupType, group.id, groups);
+    const groupElement = addGroupElement(groupType, group.id);
 
     return groupElement;
 }
 
-function addEventListenersToGroup(groupElement, groups) {
+function addEventListenersToGroup(groupElement) {
+
+    const groups = groupsMap.GROUPS;
+
     const groupNameElement = groupElement.querySelector(".group-name");
     const dataElement = groupElement.querySelector(".data-text");
     const refResultTextarea = groupElement.querySelector(".referenced-result-text");
@@ -318,7 +329,7 @@ function addEventListenersToGroup(groupElement, groups) {
 
 
     /******** Tool buttons *************/
-    groupElement.querySelector(".delete-btn").addEventListener("click", () => deleteGroup(groupElement, groups));
+    groupElement.querySelector(".delete-btn").addEventListener("click", () => deleteGroup(groupElement));
 
 
     groupElement.querySelector(".lock-btn")?.addEventListener("click", () => {
@@ -339,8 +350,10 @@ function addEventListenersToGroup(groupElement, groups) {
 
 }
 
+function deleteGroup(groupElement) {
 
-function deleteGroup(groupElement, groups) {
+    const groups = groupsMap.GROUPS;
+
     const id = getGroupIdFromElement(groupElement);
 
     groupElement.remove();
@@ -350,7 +363,7 @@ function deleteGroup(groupElement, groups) {
     // the actual group data is now gone, 
     // so references to the group will be treated as wrong
 
-    updateGroupsReferencingIt(id, groups);
+    updateGroupsReferencingIt(id);
 
     // as updateGroupsReferencingIt() uses the graph to find the groups to update
     // we can only call removeNode() on the graph once all groups have been alerted.
@@ -384,7 +397,9 @@ function setGroupInteractionState(groupElement, interactionState) {
     }
 }
 
-async function updateGroups(idsOfGroupsToUpdate, groups, forceRefresh = false) {
+async function updateGroups(idsOfGroupsToUpdate, forceRefresh = false) {
+
+    const groups = groupsMap.GROUPS;
 
     // We sort the groups to update them in topological order
     // to avoid re-updating a group that would depends on both this group and another updated group
@@ -462,14 +477,14 @@ async function updateGroups(idsOfGroupsToUpdate, groups, forceRefresh = false) {
     };
 }
 
-function updateGroupsReferencingIt(id, groups) {
+function updateGroupsReferencingIt(id) {
 
     // get the list of groups that depends on the changed group in their dataText
     // precomputed in the reverse graph.
 
     const idsOfGroupsToUpdate = referencesGraph.IS_USED_BY_GRAPH.adjacent(id);
 
-    updateGroups(idsOfGroupsToUpdate, groups, false);
+    updateGroups(idsOfGroupsToUpdate, false);
 
 }
 
@@ -551,7 +566,11 @@ function rebuildGroupsInNewOrder() {
         newGroups.set(id, groupsMap.GROUPS.get(id));
     });
 
+    console.log("[REORDERING GROUPS] Old group: ", groupsMap.GROUPS, " New groups ", newGroups);
+
     groupsMap.GROUPS = newGroups;
+
+    console.log("[REORDERING GROUPS] reordered groups as: ", groupsMap.GROUPS);
 
     document.title = `${groupsMap.GROUPS.values().next().value.name} · Esquisse AI`;
 

@@ -1,5 +1,5 @@
-import { GROUP_TYPE, getGroupIdFromElement, getGroupElementFromId } from "./group-utils.js";
-import { updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus } from "./group-management.js"
+import { GROUP_TYPE, getGroupIdFromElement } from "./group-utils.js";
+import { updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, groupsMap } from "./group-management.js"
 import { getReferencedResultsAndCombinedDataWithResults } from "./reference-matching.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 import { persistGroups } from "./persistence.js";
@@ -16,9 +16,15 @@ let REQUEST_QUEUE = {};
 function nameChangeHandler(group, groupNameElement, groups) {
     return () => {
 
+        groups = groupsMap.GROUPS;
+
         const previousUsersOfThisGroup = referencesGraph.IS_USED_BY_GRAPH.adjacent(group.id);
 
-        console.log("[NAME CHANGED] previousUsersOfThisGroup ", previousUsersOfThisGroup);
+        console.log(
+            previousUsersOfThisGroup.length > 0 ?
+                "[NAME CHANGED] previousUsersOfThisGroup were: " + previousUsersOfThisGroup
+                : "[NAME CHANGED] No other group used this group"
+        );
 
         //Automatically deduplicate block names: add number like in Finder. Starts at 2. 
         let baseName = groupNameElement.value.trim();
@@ -32,12 +38,22 @@ function nameChangeHandler(group, groupNameElement, groups) {
 
         // convert names to lowercase for case-insensitive comparison
 
-        while (Array.from(groups.values()).some(g => g.name.toLowerCase() === finalName.toLowerCase())) {
+        while (
+            Array.from(
+                groups.values())
+                .filter(
+                    thisgroup => thisgroup.id !== group.id
+                ).some(
+                    thisgroup => thisgroup.name.toLowerCase() === finalName.toLowerCase()
+                )
+        ) {
             finalName = `${baseName}-${counter}`;
             counter++;
         }
 
-        group.name = finalName;
+        console.log(`[NAME CHANGED] Group "${group.name}" name will now be: ${group.name}`);
+
+        groups.get(group.id).name = finalName;
         groupNameElement.value = finalName;
 
         // if this is the first group, rename the page using its new name
@@ -45,19 +61,20 @@ function nameChangeHandler(group, groupNameElement, groups) {
             document.title = `${group.name} · Esquisse AI`;
         }
 
-        console.log(`Group ${groupNameElement} name now:${group.name}`);
+        // save the new name
+        persistGroups(groups);
 
         // we brute force rebuild the whole graph
         // wasteful but this make sure of the graph reflecting user-facing structure
         updateReferenceGraph(groups);
 
         // update the groups using the new name in their reference
-        updateGroupsReferencingIt(group.id, groups);
+        updateGroupsReferencingIt(group.id);
 
+        if (previousUsersOfThisGroup.length > 0)
         // update the now orphans groups so they stop showing this group results
-        updateGroups(previousUsersOfThisGroup, groups, false);
+        { updateGroups(previousUsersOfThisGroup, false); }
 
-        persistGroups(groups);
     };
 }
 
@@ -139,7 +156,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
         resultParagraph.textContent = group.result;
 
-        if (isUndirected) updateGroupsReferencingIt(group.id, groups);
+        if (isUndirected) updateGroupsReferencingIt(group.id);
     }
 
     group.data = data;
@@ -342,7 +359,7 @@ async function sendRequestsForGroup({
 
             if (isUndirected) {
                 console.log("[FETCH] Undirected update, Now updating dataText of groups referencing results from: ", group.name)
-                updateGroupsReferencingIt(group.id, groups);
+                updateGroupsReferencingIt(group.id);
             }
 
             delete REQUEST_QUEUE[group.id];

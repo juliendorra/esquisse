@@ -148,7 +148,9 @@ async function loadGroups(importedGroups) {
     const urlPath = window.location.pathname;
 
     let decodedGroups = [];
-    let groups = new Map();
+
+    groupsMap.GROUPS = new Map();
+    const groups = groupsMap.GROUPS;
 
     if (importedGroups) {
         decodedGroups = importedGroups;
@@ -215,9 +217,9 @@ async function loadGroups(importedGroups) {
 
         console.log("[LOADING] new Esquisse, creating a group");
 
-        const group = createGroupInLocalDataStructures(groups, GROUP_TYPE.TEXT);
+        const group = createGroupInLocalDataStructures(GROUP_TYPE.TEXT);
 
-        const groupElement = addGroupElement(GROUP_TYPE.TEXT, group.id, groups);
+        const groupElement = addGroupElement(GROUP_TYPE.TEXT, group.id);
 
         // we are interested in having even this first isolated node in the graph
         // as we will use it in the updateGroups function
@@ -225,8 +227,6 @@ async function loadGroups(importedGroups) {
         ID = null;
 
         const isUsedByGraph = updateReferenceGraph(groups);
-
-        groupsMap.GROUPS = groups;
 
         return { groups, isUsedByGraph };
     }
@@ -253,7 +253,7 @@ async function loadGroups(importedGroups) {
 
             groups.set(group.id, group);
 
-            const groupElement = addGroupElement(group.type, group.id, groups);
+            const groupElement = addGroupElement(group.type, group.id);
 
             const groupNameElement = groupElement.querySelector(".group-name");
             const dataElement = groupElement.querySelector(".data-text");
@@ -283,11 +283,9 @@ async function loadGroups(importedGroups) {
 
     const isUsedByGraph = updateReferenceGraph(groups);
 
-    groupsMap.GROUPS = groups;
-
     // update all nodes, in topological order
     // this will fail if a cycle is detected
-    updateGroups(isUsedByGraph.nodes(), groups, true);
+    updateGroups(isUsedByGraph.nodes(), true);
 
     return { groups, isUsedByGraph };
 }
