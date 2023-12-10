@@ -158,7 +158,7 @@ const handler = async (request: Request): Promise<Response> => {
 
   // User facing URLs endpoints
 
-  else if (pathname.startsWith("/app/") && request.method === 'GET') {
+  else if ((pathname.startsWith("/app/") || pathname === ("/app")) && request.method === 'GET') {
     const file = await Deno.readFile(`./static/index.html`);
     const type = contentType("html") || "text/plain";
     return new Response(file, {
