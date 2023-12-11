@@ -231,12 +231,22 @@ export async function generate(
     } catch (error) {
         if (error.response) {
 
-            const errorData = await error.response.json();
-            const isInvalidPrompt = errorData.name == "invalid_prompts";
+            let errorData;
 
-            console.error("[STABILITY] error response data", errorData);
+            try {
+                errorData = await error.response.json();
 
-            return { isInvalidPrompt };
+                const isInvalidPrompt = errorData.name == "invalid_prompts";
+
+                console.error("[STABILITY] error response data", errorData);
+
+                return { isInvalidPrompt };
+            }
+            catch {
+
+                console.error("[STABILITY] unknown fetch error", error);
+                return { error: "unknown error" };
+            }
         }
         else {
             console.error("[STABILITY] unknown fetch error", error);
