@@ -162,6 +162,17 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     group.data = data;
     group.transform = transform;
 
+    let imageB64;
+
+    for (const result of availableReferencedResults) {
+        if (result.type === GROUP_TYPE.IMAGE || result.type === GROUP_TYPE.IMPORTED_IMAGE) {
+            imageB64 = await fileToBase64(result.result)
+            console.log("[PREPARING TO FETCH] image blob is ", imageB64)
+            break;
+        }
+    }
+
+
     if (groups_structure_has_changed) persistGroups(groups);
 
     // Sending requests for the groups
@@ -206,6 +217,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
         await sendRequestsForGroup({
             currentData,
+            image: imageB64,
             lastTransformValue,
             isUndirected,
             groupElement,
@@ -218,6 +230,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
 async function sendRequestsForGroup({
     currentData,
+    image,
     lastTransformValue,
     isUndirected,
     groupElement,
@@ -231,6 +244,7 @@ async function sendRequestsForGroup({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             data: currentData,
+            image: image,
             transform: lastTransformValue,
             qualityEnabled: SETTINGS.qualityEnabled,
         }),
@@ -460,4 +474,16 @@ function removeGlobalWaitingIndicator() {
 
 function randomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+async function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const base64String = reader.result.replace('data:', '').replace(/^.+,/, '');
+            resolve(base64String);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
 }

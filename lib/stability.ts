@@ -26,22 +26,34 @@ try {
     }
 }
 catch (error) {
-    console.error(`GPT not available: ${error}`);
+    console.error(`Stability not available: ${error}`);
 }
 
 const apiHost = "https://api.stability.ai";
 
+type StabilityParameters = {
+    prompt: string,
+    negativeprompt: string,
+    image?: Uint8Array,
+    format: string,
+    qualityEnabled: boolean,
+    maxAttempts: number,
+}
+
 export async function tryGenerate(
-    prompt,
-    negativeprompt,
-    format,
-    qualityEnabled = false,
-    maxAttempts = 3,
+    {
+        prompt,
+        image,
+        negativeprompt,
+        format,
+        qualityEnabled = false,
+        maxAttempts = 3,
+    }: StabilityParameters
 ) {
     let generated;
 
     for (let i = 0; i < maxAttempts; i++) {
-        generated = await generate(prompt, negativeprompt, format, qualityEnabled);
+        generated = await generate({ prompt, image, negativeprompt, format, qualityEnabled });
 
         if (generated.isValid) {
             return { image: generated.data };
@@ -67,7 +79,7 @@ export async function tryGenerate(
 
                 console.log("[STABILITY] testing cleaned prompt", cleanedPromptToTest);
 
-                generated = await generate(cleanedPromptToTest, negativeprompt, format, qualityEnabled);
+                generated = await generate({ prompt: cleanedPromptToTest, image, negativeprompt, format, qualityEnabled });
 
                 if (generated.isValid) {
                     console.log("[STABILITY] Banned word was:", word)
@@ -110,7 +122,17 @@ export async function tryGenerate(
     }
 }
 
-export async function generate(prompt, negativeprompt, format, qualityEnabled = false) {
+export async function generate(
+    {
+        prompt,
+        image,
+        negativeprompt,
+        format,
+        qualityEnabled = false
+    }
+
+
+) {
 
     const engine = qualityEnabled ? QUALITY_EXPENSIVE_MODEL : FAST_CHEAP_MODEL;
 
@@ -121,40 +143,73 @@ export async function generate(prompt, negativeprompt, format, qualityEnabled = 
 
     const step_count = engine.steps;
 
-    const url = `${apiHost}/v1alpha/generation/${engine.id}/text-to-image`;
+    const generationType = image ? "image-to-image" : "text-to-image";
+
+    const url = `${apiHost}/v1/generation/${engine.id}/${generationType}`;
+
+    console.log("[STABILITY] API CALLED: ", url)
 
     try {
-        const response = await fetch(
-            url,
-            {
-                method: 'POST',
-                body: JSON.stringify({
-                    cfg_scale: 7,
-                    clip_guidance_preset: "FAST_BLUE",
-                    height: height,
-                    width: width,
-                    // sampler: "K_DPMPP_2M",
-                    samples: 1,
-                    seed: 0,
-                    steps: step_count,
-                    text_prompts: [
-                        {
-                            text: prompt,
-                            weight: 1.0,
-                        },
-                        // {
-                        //     text: negativeprompt,
-                        //     weight: -1.0,
-                        // },
-                    ],
-                }),
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "image/png",
-                    Authorization: apiKey,
-                }
-            },
-        );
+        let body;
+        let headers = {
+            Accept: "image/png",
+            Authorization: apiKey,
+        };
+
+        if (image) {
+            // Use FormData for image-to-image generation
+            const formData = new FormData();
+
+            formData.append('init_image', new File([image], 'image.jpeg', { type: 'image/jpeg' }));
+
+            formData.append('cfg_scale', '7');
+            formData.append('clip_guidance_preset', 'FAST_BLUE');
+
+            // as of Stability API v1, width and height cannot be set for image-to-image
+
+            formData.append('samples', '1');
+            formData.append('seed', '0');
+            formData.append('steps', step_count.toString());
+            formData.append('text_prompts[0][text]', prompt);
+            formData.append('text_prompts[0][weight]', '1.0');
+
+            // if (negativeprompt) {
+            //     formData.append('text_prompts[1][text]', negativeprompt);
+            //     formData.append('text_prompts[1][weight]', '-1.0');
+            // }
+
+            body = formData;
+            // We don't need to set Content-Type for FormData
+
+        } else {
+            // Use JSON for text-to-image generation
+            body = JSON.stringify({
+                cfg_scale: 7,
+                clip_guidance_preset: "FAST_BLUE",
+                height: height,
+                width: width,
+                samples: 1,
+                seed: 0,
+                steps: step_count,
+                text_prompts: [
+                    {
+                        text: prompt,
+                        weight: 1.0,
+                    },
+                    // {
+                    //     text: negativeprompt,
+                    //     weight: -1.0,
+                    // },
+                ],
+            });
+            headers["Content-Type"] = "application/json";
+        }
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: headers,
+            body: body,
+        });
 
         if (!response.ok) {
             throw { response };

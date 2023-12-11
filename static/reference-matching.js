@@ -1,4 +1,4 @@
-import { getGroupFromName } from "./group-utils.js";
+import { GROUP_TYPE, getGroupFromName } from "./group-utils.js";
 
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 import { displayAlert } from "./ui-utils.js";
@@ -44,12 +44,27 @@ function replaceThisGroupReferenceWithResult(name, data, groups) {
 
     let replacedData = data;
 
-    // Replace each match of targetPatternBracket in data
-    replacedData = replacedData.replace(targetPatternBracket, () => referencedGroup.result);
+    const isImageResult = referencedGroup.type === GROUP_TYPE.IMAGE || referencedGroup.type === GROUP_TYPE.IMPORTED_IMAGE;
 
-    // If the name does not contain spaces, replace each match of targetPatternHash in data
-    if (targetPatternHash) {
-        replacedData = replacedData.replace(targetPatternHash, () => referencedGroup.result);
+    if (isImageResult) {
+
+        // Replace each match of targetPatternBracket in data
+        replacedData = replacedData.replace(targetPatternBracket, () => `[image: ${referencedGroup.name}]`);
+
+        // If the name does not contain spaces, replace each match of targetPatternHash in data
+        if (targetPatternHash) {
+            replacedData = replacedData.replace(targetPatternHash, () => `[image: ${referencedGroup.name}]`);
+        }
+    }
+
+    else {
+        // Replace each match of targetPatternBracket in data
+        replacedData = replacedData.replace(targetPatternBracket, () => referencedGroup.result);
+
+        // If the name does not contain spaces, replace each match of targetPatternHash in data
+        if (targetPatternHash) {
+            replacedData = replacedData.replace(targetPatternHash, () => referencedGroup.result);
+        }
     }
 
     return replacedData;
@@ -124,10 +139,16 @@ function getReferencedResultsAndCombinedDataWithResults(dataText, currentGroupNa
 
             combinedReferencedResults = replaceThisGroupReferenceWithResult(name, combinedReferencedResults, groups);
 
-            availableReferencedResults.push({ name, result: referencedGroup.result });
+            availableReferencedResults.push({ name, result: referencedGroup.result, type: referencedGroup.type });
         }
     }
 
 
-    return { hasReferences: hasReferences, invalidReferencedResults, notreadyReferencedResults, availableReferencedResults, combinedReferencedResults };
+    return {
+        hasReferences: hasReferences,
+        invalidReferencedResults,
+        notreadyReferencedResults,
+        availableReferencedResults,
+        combinedReferencedResults
+    };
 }

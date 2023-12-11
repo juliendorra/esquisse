@@ -1,12 +1,13 @@
 import { serve } from "https://deno.land/std/http/server.ts";
 import { contentType } from "https://deno.land/std/media_types/mod.ts";
+import { base64ToUint8Array } from "./lib/utility.ts";
 
 import { decode } from "https://deno.land/x/imagescript/mod.ts";
 import { customAlphabet } from 'npm:nanoid';
 
 import { basicAuth } from "./lib/auth.ts";
 
-import { tryGenerate as callStability } from "./lib/stability.js";
+import { tryGenerate as callStability } from "./lib/stability.ts";
 import { callGPT } from "./lib/gpt.js";
 
 import { bulkCreateUsers, listUsers } from "./lib/users.ts";
@@ -275,14 +276,34 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
   }
 
   else if (pathname.startsWith("/stability") && request.method === 'POST') {
+
     // return either {error} or {image}
 
-    let generated = await callStability(
-      body.data + " " + body.transform,
-      "",
-      "",
-      body.qualityEnabled,
-      3);
+    // the image property is expected as a base64 encoded image, 
+    // and decoded before passing to the API handler function
+
+    type StabilityParameters = {
+      prompt: string,
+      negativeprompt: string,
+      image?: Uint8Array,
+      format: string,
+      qualityEnabled: boolean,
+      maxAttempts: number,
+    }
+
+    const stabilityParameters: StabilityParameters = {
+      prompt: body.data + " " + body.transform,
+      negativeprompt: "",
+      format: "",
+      qualityEnabled: body.qualityEnabled,
+      maxAttempts: 3
+    };
+
+    if (body.image) {
+      stabilityParameters.image = base64ToUint8Array(body.image);
+    }
+
+    let generated = await callStability(stabilityParameters);
 
     if (generated.image) {
 
