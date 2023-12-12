@@ -337,10 +337,26 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
   }
 
   else if (pathname.startsWith("/chatgpt") && request.method === 'POST') {
-    response = await callGPT(
-      body.data,
-      body.transform,
-      body.qualityEnabled);
+
+    type GptParameters = {
+      data: string,
+      image: string | undefined,
+      transform: string,
+      qualityEnabled: boolean,
+    }
+
+    const gptParameters: GptParameters = {
+      data: body.data,
+      image: undefined,
+      transform: body.transform,
+      qualityEnabled: body.qualityEnabled
+    };
+
+    if (body.image) {
+      gptParameters.image = body.image;
+    }
+
+    response = await callGPT(gptParameters);
 
     return new Response(
       JSON.stringify(response),
