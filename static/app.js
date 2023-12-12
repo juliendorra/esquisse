@@ -80,7 +80,9 @@ async function init() {
 
             const groupElement = createGroupAndAddGroupElement(GROUP_TYPE.IMPORTED_IMAGE);
 
-            handleDroppedImage(file, groupElement, groupsMap.GROUPS);
+            const group = groupsMap.GROUPS.get(getGroupIdFromElement(groupElement));
+
+            handleDroppedImage(file, group, groupElement);
 
         }
 

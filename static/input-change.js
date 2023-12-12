@@ -1,4 +1,4 @@
-import { GROUP_TYPE, getGroupIdFromElement } from "./group-utils.js";
+import { GROUP_TYPE, getGroupElementFromId, getGroupIdFromElement } from "./group-utils.js";
 import { updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, groupsMap } from "./group-management.js"
 import { getReferencedResultsAndCombinedDataWithResults } from "./reference-matching.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
@@ -103,7 +103,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     let currentData = data;
     let referencedResultsChanged = false;
 
-    const { hasReferences, invalidReferencedResults, notreadyReferencedResults, availableReferencedResults, combinedReferencedResults } = getReferencedResultsAndCombinedDataWithResults(data, group.name, groups);
+    const { hasReferences, invalidReferencedResults, notreadyReferencedResults, availableReferencedResults, combinedReferencedResults } = await getReferencedResultsAndCombinedDataWithResults(data, group.name, groups);
 
     displayDataTextReferenceStatus({ groupElement, hasReferences, invalidReferencedResults, notreadyReferencedResults, availableReferencedResults });
 
@@ -318,6 +318,11 @@ async function sendRequestsForGroup({
 
             groupElement.querySelector(".refresh-btn").style.display = "block";
 
+            if (isUndirected) {
+                console.log("[FETCH] Undirected update, Now updating dataText of groups referencing results from: ", group.name)
+                updateGroupsReferencingIt(group.id);
+            }
+
             const downloadButton = groupElement.querySelector(".download-btn");
             downloadButton.style.display = "block";
             downloadButton.href = blobUrl;
@@ -392,7 +397,7 @@ async function sendRequestsForGroup({
 
 // Imported image groups
 
-function handleImportedImage(event, resultImage, group, groups) {
+function handleImportedImage(event, resultImage, group) {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
@@ -410,16 +415,14 @@ function handleImportedImage(event, resultImage, group, groups) {
             resultImage.addEventListener('click', createZoomedImage);
 
             group.result = file; // Set the file as the result of the block
-            persistGroups(groups); // Persist the groups with the new image result
+            updateGroupsReferencingIt(group.id)
         };
         reader.readAsDataURL(file);
     };
     fileInput.click();
 }
 
-function handleDroppedImage(imageFile, groupElement, groups) {
-
-    const group = groups.get(getGroupIdFromElement(groupElement));
+function handleDroppedImage(imageFile, group, groupElement) {
 
     const resultElement = groupElement.querySelector(".result");
 
@@ -435,7 +438,7 @@ function handleDroppedImage(imageFile, groupElement, groups) {
     resultElement.addEventListener('click', createZoomedImage);
 
     group.result = imageFile;
-    persistGroups(groups);
+    updateGroupsReferencingIt(group.id)
 }
 
 // UI 

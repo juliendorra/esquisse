@@ -308,7 +308,7 @@ function addEventListenersToGroup(groupElement) {
 
     dropZone?.addEventListener(
         'click',
-        (event) => { handleImportedImage(event, resultImage, group, groups) }
+        (event) => { handleImportedImage(event, resultImage, group) }
     );
 
     dropZone?.addEventListener(
@@ -322,8 +322,7 @@ function addEventListenersToGroup(groupElement) {
 
             const imageFile = event.dataTransfer.files[0];
 
-            handleDroppedImage(imageFile, groupElement, groups)
-
+            handleDroppedImage(imageFile, group, groupElement)
         }
     );
 

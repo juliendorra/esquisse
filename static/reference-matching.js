@@ -21,7 +21,7 @@ function getReferencedGroupNamesFromDataText(data) {
     return matches;
 }
 
-function replaceThisGroupReferenceWithResult(name, data, groups) {
+async function replaceThisGroupReferenceWithResult(name, data, groups) {
     // Validate the name to ensure it conforms to the allowed format
     if (!/^[\w\s-.]+$/.test(name)) {
         console.error('[REFERENCE MATCHING] Invalid name format');
@@ -40,6 +40,9 @@ function replaceThisGroupReferenceWithResult(name, data, groups) {
 
     // Create regex patterns for the name with and without spaces
     const targetPatternBracket = new RegExp(`\\[${escapedName}\\]`, 'g');
+
+    // check if the name of the group referenced contains whitespace. 
+    // Only create Hash matching pattern if it doesn't
     const targetPatternHash = /\s/.test(name) ? null : new RegExp(`#${escapedName}(?!\\w)`, 'g');
 
     let replacedData = data;
@@ -48,12 +51,14 @@ function replaceThisGroupReferenceWithResult(name, data, groups) {
 
     if (isImageResult) {
 
-        // Replace each match of targetPatternBracket in data
-        replacedData = replacedData.replace(targetPatternBracket, () => `[image: ${referencedGroup.name}]`);
+        const imageHashFirstChars = await blobTo8charsHash(referencedGroup.result);
 
-        // If the name does not contain spaces, replace each match of targetPatternHash in data
+        const showedReferenceText = `[image: ${referencedGroup.name} version ${imageHashFirstChars}]`
+
+        replacedData = replacedData.replace(targetPatternBracket, showedReferenceText);
+
         if (targetPatternHash) {
-            replacedData = replacedData.replace(targetPatternHash, () => `[image: ${referencedGroup.name}]`);
+            replacedData = replacedData.replace(targetPatternHash, showedReferenceText);
         }
     }
 
@@ -70,7 +75,7 @@ function replaceThisGroupReferenceWithResult(name, data, groups) {
     return replacedData;
 }
 
-function getReferencedResultsAndCombinedDataWithResults(dataText, currentGroupName, groups) {
+async function getReferencedResultsAndCombinedDataWithResults(dataText, currentGroupName, groups) {
 
     const namesOfAllGroupsReferencedByThisGroup = getReferencedGroupNamesFromDataText(dataText);
 
@@ -137,7 +142,7 @@ function getReferencedResultsAndCombinedDataWithResults(dataText, currentGroupNa
                 continue;
             }
 
-            combinedReferencedResults = replaceThisGroupReferenceWithResult(name, combinedReferencedResults, groups);
+            combinedReferencedResults = await replaceThisGroupReferenceWithResult(name, combinedReferencedResults, groups);
 
             availableReferencedResults.push({ name, result: referencedGroup.result, type: referencedGroup.type });
         }
@@ -151,4 +156,23 @@ function getReferencedResultsAndCombinedDataWithResults(dataText, currentGroupNa
         availableReferencedResults,
         combinedReferencedResults
     };
+}
+
+// utils
+
+async function blobTo8charsHash(blob) {
+
+    const arrayBuffer = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(blob);
+    });
+
+    const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    return hashHex.substring(0, 8);
 }
