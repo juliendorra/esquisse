@@ -399,49 +399,52 @@ async function sendRequestsForGroup({
 
 // Imported image groups
 
-function handleImportedImage(event, resultImage, group) {
+async function handleImportedImage(event, resultImage, group) {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
 
-    fileInput.onchange = e => {
+    fileInput.onchange = async e => {
         const file = e.currentTarget.files[0];
-        const reader = new FileReader();
-        reader.onload = function (event) {
-            const blobUrl = URL.createObjectURL(file);
-            resultImage.src = blobUrl;
+        try {
+            const processedBlob = await processImage(file);
+            resultImage.src = URL.createObjectURL(processedBlob);
             resultImage.style.display = 'block';
 
             // Event listener for image click to toggle zoom in and out
             resultImage.removeEventListener('click', createZoomedImage);
             resultImage.addEventListener('click', createZoomedImage);
 
-            group.result = file; // Set the file as the result of the block
-            updateGroupsReferencingIt(group.id)
-        };
-        reader.readAsDataURL(file);
+            group.result = processedBlob; // Set the processed blob as the result of the block
+            updateGroupsReferencingIt(group.id);
+        } catch (error) {
+            console.error(error);
+            // Handle the error appropriately
+        }
     };
     fileInput.click();
 }
 
-function handleDroppedImage(imageFile, group, groupElement) {
-
+async function handleDroppedImage(imageFile, group, groupElement) {
     const resultElement = groupElement.querySelector(".result");
 
-    const blobUrl = URL.createObjectURL(imageFile);
+    try {
+        const processedBlob = await processImage(imageFile);
+        resultElement.src = URL.createObjectURL(processedBlob);
+        resultElement.style.display = 'block';
 
-    console.log("TEST DISPLAYING IMAGE")
+        // Event listener for image click to toggle zoom in and out
+        resultElement.removeEventListener('click', createZoomedImage);
+        resultElement.addEventListener('click', createZoomedImage);
 
-    resultElement.src = blobUrl;
-    resultElement.style.display = 'block';
-
-    // Event listener for image click to toggle zoom in and out
-    resultElement.removeEventListener('click', createZoomedImage);
-    resultElement.addEventListener('click', createZoomedImage);
-
-    group.result = imageFile;
-    updateGroupsReferencingIt(group.id)
+        group.result = processedBlob; // Set the processed blob as the result of the group
+        updateGroupsReferencingIt(group.id);
+    } catch (error) {
+        console.error(error);
+        // Handle the error appropriately
+    }
 }
+
 
 // UI 
 
@@ -492,3 +495,56 @@ async function fileToBase64(file) {
         reader.readAsDataURL(file);
     });
 }
+
+async function processImage(imageFile) {
+    return new Promise((resolve, reject) => {
+        // Create an image object
+        const img = new Image();
+        img.src = URL.createObjectURL(imageFile);
+
+        img.onload = () => {
+            // Create canvas
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Calculate the new size
+            const maxSize = 1024;
+            let width, height;
+            if (img.width > img.height) {
+                width = maxSize;
+                height = (img.height / img.width) * maxSize;
+            } else {
+                height = maxSize;
+                width = (img.width / img.height) * maxSize;
+            }
+
+            // Set canvas size
+            canvas.width = maxSize;
+            canvas.height = maxSize;
+
+            // Fill canvas with transparent background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw image in the center of the canvas
+            const xOffset = (maxSize - width) / 2;
+            const yOffset = (maxSize - height) / 2;
+            ctx.drawImage(img, xOffset, yOffset, width, height);
+
+            // Convert canvas to JPEG blob
+            canvas.toBlob(blob => {
+                if (blob) {
+                    resolve(blob);
+                } else {
+                    reject(new Error("Failed to convert canvas to blob."));
+                }
+            }, 'image/jpeg', 0.9);
+        };
+
+        img.onerror = () => {
+            reject(new Error("Failed to load image."));
+        };
+    });
+}
+
+
