@@ -51,7 +51,7 @@ function nameChangeHandler(group, groupNameElement, groups) {
             counter++;
         }
 
-        console.log(`[NAME CHANGED] Group "${group.name}" name will now be: ${group.name}`);
+        console.log(`[NAME CHANGED] Group "${group.name}" name will now be: ${finalName}`);
 
         groups.get(group.id).name = finalName;
         groupNameElement.value = finalName;
