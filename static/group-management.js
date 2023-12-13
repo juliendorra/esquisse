@@ -8,15 +8,9 @@ import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 
 import { persistGroups } from "./persistence.js";
 
-let PRIVATE_GROUPS = new Map();
 
 const groupsMap = {
-    get GROUPS() {
-        return PRIVATE_GROUPS;
-    },
-    set GROUPS(map) {
-        PRIVATE_GROUPS = map;
-    }
+    GROUPS: new Map(),
 };
 
 export {

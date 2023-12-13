@@ -80,6 +80,8 @@ function nameChangeHandler(group, groupNameElement, groups) {
 
 async function handleInputChange(groupElement, immediate = false, isRefresh = false, isUndirected = true, groups) {
 
+    groups = groupsMap.GROUPS;
+
     const group =
         groups.get(
             getGroupIdFromElement(groupElement)
