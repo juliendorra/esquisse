@@ -32,6 +32,11 @@ function renderDataFlow() {
 
 function showDataFlow(isUsedByGraph = referencesGraph.IS_USED_BY_GRAPH) {
 
+    const isMiniview = document.querySelector(".miniview") ? true : false;
+
+    const endPlugSize = isMiniview ? 0.8 : 1;
+    const lineSize = isMiniview ? 2 : 4;
+
     const nodes = isUsedByGraph.nodes();
 
     for (const node of nodes) {
@@ -43,21 +48,24 @@ function showDataFlow(isUsedByGraph = referencesGraph.IS_USED_BY_GRAPH) {
             const sourceElement = document.querySelector(`div[data-id="${node}"]`);
             const targetElement = document.querySelector(`div[data-id="${adjacent}"]`);
 
-            // Pick colors in cycle
-            const colorIndex = DATAFLOW_LINES.length % DATAFLOW_LINES_PALETTE.length;
-            const color = DATAFLOW_LINES_PALETTE[colorIndex];
+            const colors = getComputedStyle(sourceElement).borderColor.split('(')[1].split(')')[0].split(',');
 
-            DATAFLOW_LINES.push(
-                new LeaderLine(
-                    sourceElement,
-                    targetElement,
-                    {
-                        color: color,
-                        dash: { animation: true },
-                        endPlug: 'arrow3',
-                    }
-                )
+            const color = `rgba(${colors[0]}, ${colors[1]}, ${colors[2]}, 1)`
+
+            const line = new LeaderLine(
+                sourceElement,
+                targetElement,
+                {
+                    color: color,
+                    dash: { animation: true, len: 6, gap: 16 },
+                    endPlug: 'arrow3',
+                    path: "arc",
+                    size: lineSize,
+                    endPlugSize: endPlugSize,
+                }
             );
+
+            DATAFLOW_LINES.push(line);
         }
     }
 }
