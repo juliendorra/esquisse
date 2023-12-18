@@ -1,5 +1,5 @@
 import { GROUP_TYPE, getGroupElementFromId, getGroupIdFromElement } from "./group-utils.js";
-import { updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, groupsMap } from "./group-management.js"
+import { updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, groupsMap } from "./group-management.js"
 import { getReferencedResultsAndCombinedDataWithResults } from "./reference-matching.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 import { persistGroups } from "./persistence.js";
@@ -7,7 +7,7 @@ import { SETTINGS } from "./app.js";
 import { displayAlert } from "./ui-utils.js";
 
 
-export { handleInputChange, nameChangeHandler, handleImportedImage, handleDroppedImage };
+export { nameChangeHandler, handleInputChange, handleListSelectionChange, handleImportedImage, handleDroppedImage };
 
 const DELAY = 5000;
 
@@ -159,6 +159,17 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
         resultParagraph.textContent = group.result;
 
         if (isUndirected) updateGroupsReferencingIt(group.id);
+    }
+
+    // if the text result is displayed formated ex. as a list, display the new result as formatted
+
+    const isFormattedTextResult =
+        (group.type === GROUP_TYPE.STATIC || group.type === GROUP_TYPE.TEXT)
+        && group.resultDisplayFormat
+        && group.resultDisplayFormat !== "text";
+
+    if (isFormattedTextResult) {
+        displayFormattedResults(groupElement);
     }
 
     group.data = data;
@@ -403,6 +414,23 @@ async function sendRequestsForGroup({
         }
     }
 
+}
+
+// List selection change
+
+function handleListSelectionChange(selectElement, group, listItems) {
+
+    console.log(`[LIST SELECTION] group ${group.name} result is now: ${selectElement.value ? listItems[parseInt(selectElement.value)] : "a random choice"}`)
+
+    if (!selectElement.value) {
+        group.result = listItems[randomInt(0, listItems.length - 1)];
+    }
+
+    else {
+        group.result = listItems[parseInt(selectElement.value)];
+    }
+
+    updateGroupsReferencingIt(group.id)
 }
 
 // Imported image groups

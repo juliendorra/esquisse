@@ -1,5 +1,5 @@
 import { GROUP_TYPE, INTERACTION_STATE, generateUniqueGroupID } from "./group-utils.js";
-import { groupsMap, createGroupInLocalDataStructures, addGroupElement, setGroupInteractionState, updateGroups } from "./group-management.js"
+import { groupsMap, createGroupInLocalDataStructures, addGroupElement, displayGroupInteractionState, updateGroups, } from "./group-management.js"
 import { updateReferenceGraph } from "./reference-graph.js";
 import Validator from 'https://esm.run/jsonschema';
 import { displayAlert } from "./ui-utils.js";
@@ -90,12 +90,13 @@ function packageGroups(groups) {
     packagedGroups.version = VERSION;
 
     // we store the groups array in the groups property
-    packagedGroups.groups = Array.from(groups.values()).map(({ name, data, transform, type, interactionState }) => ({
+    packagedGroups.groups = Array.from(groups.values()).map(({ name, data, transform, type, interactionState, resultDisplayFormat }) => ({
         name,
         data,
         transform,
         type,
         interactionState,
+        resultDisplayFormat,
     }));
     return packagedGroups;
 }
@@ -230,7 +231,7 @@ async function loadGroups(importedGroups) {
         const groupsContainer = document.querySelector(".container");
         groupsContainer.innerHTML = "";
 
-        decodedGroups.groups.forEach(({ name, data, transform, type, interactionState }) => {
+        decodedGroups.groups.forEach(({ name, data, transform, type, interactionState, resultDisplayFormat }) => {
             const group = {
                 id: generateUniqueGroupID(groups),
                 name,
@@ -240,6 +241,7 @@ async function loadGroups(importedGroups) {
                 result: null,
                 lastRequestTime: 0,
                 interactionState: interactionState || INTERACTION_STATE.OPEN,
+                resultDisplayFormat: resultDisplayFormat || undefined,
             };
 
             groups.set(group.id, group);
@@ -255,8 +257,8 @@ async function loadGroups(importedGroups) {
             if (dataElement) dataElement.value = group.data;
             if (transformElement) transformElement.value = transform;
 
-            // setGroupInteractionState set the right UI state, 
-            setGroupInteractionState(groupElement, group.interactionState);
+            // displayGroupInteractionState display the right UI state based on the set group.interactionState
+            displayGroupInteractionState(groupElement, group.interactionState);
 
         });
     } catch (error) {

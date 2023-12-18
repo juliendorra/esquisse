@@ -13,6 +13,7 @@ type Apps = {
         transform?: string;
         type: string;
         interactionState: string;
+        resultDisplayFormat?: string;
     }>;
 }
 

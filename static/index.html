@@ -290,6 +290,67 @@
             color: #929292;
         }
 
+        .function-buttons-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+
+        .tool-btn {
+            padding: 0.4rem 0.5rem 0.25rem 0.5rem;
+            font-size: 0.8em;
+            align-self: flex-end;
+            border: 1px solid #cccccc;
+            cursor: pointer;
+            background-color: transparent;
+            margin-left: 0.5rem;
+        }
+
+        .tool-btn {
+            border-color: var(--light-border);
+            background-color: transparent;
+            transition: background-color 0.1s;
+
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+
+        .group.static .tool-btn {
+            border-color: var(--group-static-color-code);
+        }
+
+
+        .group.imported-image .tool-btn {
+            border-color: var(--group-static-color-code);
+        }
+
+
+        .group.text .tool-btn {
+            border-color: var(--group-text-color-code);
+        }
+
+
+        .group.image .tool-btn {
+            border-color: var(--group-image-color-code);
+        }
+
+
+        .tool-btn:hover {
+            background-color: var(--neutral-color);
+        }
+
+        .tool-btn img {
+            height: 1rem;
+
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
         .delete-btn {
             padding: 0.1rem 0.3rem 0.15rem 0.3rem;
             border: none;
@@ -301,90 +362,6 @@
 
         .group-header button.delete-btn img {
             height: 0.75rem;
-        }
-
-        .function-buttons-container {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-
-        .lock-btn,
-        .entry-btn,
-        .refresh-btn {
-            padding: 0.4rem 0.5rem 0.25rem 0.5rem;
-            font-size: 0.8em;
-            align-self: flex-end;
-            border: 1px solid #cccccc;
-            cursor: pointer;
-            background-color: transparent;
-            margin-left: 0.5rem;
-        }
-
-        .delete-btn,
-        .lock-btn,
-        .entry-btn,
-        .refresh-btn {
-            border-color: var(--light-border);
-            background-color: transparent;
-            transition: background-color 0.1s;
-
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        .group.static .delete-btn,
-        .group.static .lock-btn,
-        .group.static .entry-btn,
-        .group.static .refresh-btn,
-        .group.static .download-btn {
-            border-color: var(--group-static-color-code);
-        }
-
-        .group.imported-image .delete-btn,
-        .group.imported-image .lock-btn,
-        .group.imported-image .entry-btn,
-        .group.imported-image .refresh-btn,
-        .group.imported-image .download-btn {
-            border-color: var(--group-static-color-code);
-        }
-
-        .group.text .delete-btn,
-        .group.text .lock-btn,
-        .group.text .entry-btn,
-        .group.text .refresh-btn,
-        .group.text .download-btn {
-            border-color: var(--group-text-color-code);
-        }
-
-        .group.image .delete-btn,
-        .group.image .lock-btn,
-        .group.image .entry-btn,
-        .group.image .refresh-btn,
-        .group.image .download-btn {
-            border-color: var(--group-image-color-code);
-        }
-
-        .delete-btn:hover,
-        .lock-btn:hover,
-        .entry-btn:hover,
-        .refresh-btn:hover,
-        .download-btn:hover {
-            background-color: var(--neutral-color);
-        }
-
-        .lock-btn img,
-        .entry-btn img,
-        .refresh-btn img,
-        .download-btn img {
-            height: 1rem;
-
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
         }
 
         .download-btn {
@@ -502,7 +479,9 @@
             white-space: pre-line;
         }
 
-
+        .group sl-select {
+            margin-top: 1em;
+        }
 
         img.result {
             max-width: 0.77.5vw;

@@ -2,7 +2,7 @@ import { GROUP_TYPE, INTERACTION_STATE, getGroupIdFromElement, getGroupElementFr
 
 import { displayAlert } from "./ui-utils.js";
 
-import { handleInputChange, nameChangeHandler, handleImportedImage, handleDroppedImage } from "./input-change.js";
+import { nameChangeHandler, handleInputChange, handleListSelectionChange, handleImportedImage, handleDroppedImage } from "./input-change.js";
 import { onDragStart, onDragEnd } from "./reordering.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 
@@ -15,7 +15,7 @@ const groupsMap = {
 
 export {
     groupsMap, createGroupInLocalDataStructures,
-    addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, setGroupInteractionState, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, rebuildGroupsInNewOrder
+    addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, displayGroupInteractionState, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, rebuildGroupsInNewOrder
 };
 
 const GROUP_HTML = {
@@ -40,6 +40,7 @@ const GROUP_HTML = {
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
 
             <div class="function-buttons-container">
+                <button class="tool-btn list-mode-btn"><img src="/icons/list-mode.svg"></button>
                 <button class="tool-btn entry-btn"><img src="/icons/entry.svg"></button>
                 <button class="tool-btn lock-btn"><img src="/icons/lock.svg"></button>
             </div>
@@ -73,6 +74,7 @@ const GROUP_HTML = {
             <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
 
             <div class="function-buttons-container">
+                <button class="tool-btn list-mode-btn"><img src="/icons/list-mode.svg"></button>
                 <button class="tool-btn entry-btn"><img src="/icons/entry.svg"></button>
                 <button class="tool-btn lock-btn"><img src="/icons/lock.svg"></button>
                 <button class="tool-btn refresh-btn"><img src="/icons/refresh.svg"></button>
@@ -324,16 +326,22 @@ function addEventListenersToGroup(groupElement) {
     /******** Tool buttons *************/
     groupElement.querySelector(".delete-btn").addEventListener("click", () => deleteGroup(groupElement));
 
+    groupElement.querySelector(".list-mode-btn")?.addEventListener("click", () => {
+        const resultDisplayFormat = group.resultDisplayFormat === 'list' ? 'text' : 'list';
+        setGroupResultDisplayFormat(groupElement, resultDisplayFormat);
+        displayFormattedResults(groupElement);
+        persistGroups(groupsMap.GROUPS);
+    });
 
     groupElement.querySelector(".lock-btn")?.addEventListener("click", () => {
         group.interactionState = group.interactionState === INTERACTION_STATE.LOCKED ? INTERACTION_STATE.OPEN : INTERACTION_STATE.LOCKED;
-        setGroupInteractionState(groupElement, group.interactionState);
+        displayGroupInteractionState(groupElement, group.interactionState);
         persistGroups(groups);
     });
 
     groupElement.querySelector(".entry-btn")?.addEventListener("click", () => {
         group.interactionState = group.interactionState === INTERACTION_STATE.ENTRY ? INTERACTION_STATE.OPEN : INTERACTION_STATE.ENTRY;
-        setGroupInteractionState(groupElement, group.interactionState);
+        displayGroupInteractionState(groupElement, group.interactionState);
         persistGroups(groups);
     });
 
@@ -366,7 +374,12 @@ function deleteGroup(groupElement) {
     persistGroups(groups);
 }
 
-function setGroupInteractionState(groupElement, interactionState) {
+function setGroupResultDisplayFormat(groupElement, resultDisplayFormat) {
+    const group = groupsMap.GROUPS.get(getGroupIdFromElement(groupElement));
+    group.resultDisplayFormat = resultDisplayFormat;
+}
+
+function displayGroupInteractionState(groupElement, interactionState) {
     const groupNameElement = groupElement.querySelector(".group-name");
     const dataElement = groupElement.querySelector(".data-text");
     const transformElement = groupElement.querySelector(".transform-text");
@@ -540,6 +553,122 @@ function displayDataTextReferenceStatus({
             dataTextElement.classList.add('valid');
             refResultTextarea.classList.add('valid');
         }
+    }
+}
+
+
+function parseResultsAsList(text) {
+    // Define regular expressions for different list formats
+    const listPatterns = {
+        dashList: /^\s*-\s+(.+)/gm,             // - item
+        asteriskList: /^\s*\*\s+(.+)/gm,        // * item
+        numberedDotList: /^\s*\d+\.\s+(.+)/gm,  // 1. item
+        numberedSlashList: /^\s*\d+\/\s+(.+)/gm,// 1/ item
+        quotedList: /"([^"]+)"\s*(?:,\s*|\s+and\s+)?/g, // "item1", "item2", and "item3"
+        commaSeparatedList: /(?:\b|^)\s*(?:and\s+)?([^,]+?)(?=\s*,|\s+and\s+|$)/g // item1, item2, item3
+    };
+
+    // Determine the most probable list format
+    let format;
+    if (listPatterns.dashList.test(text)) {
+        format = 'dashList';
+    } else if (listPatterns.asteriskList.test(text)) {
+        format = 'asteriskList';
+    } else if (listPatterns.numberedDotList.test(text)) {
+        format = 'numberedDotList';
+    } else if (listPatterns.numberedSlashList.test(text)) {
+        format = 'numberedSlashList';
+    } else if (listPatterns.quotedList.test(text)) {
+        format = 'quotedList';
+    } else if (listPatterns.commaSeparatedList.test(text)) {
+        format = 'commaSeparatedList';
+    }
+
+    if (!format) {
+        return [];
+    }
+
+    // Reset regex lastIndex to ensure starting from the beginning of the text
+    listPatterns[format].lastIndex = 0;
+
+    let items = [];
+    let match;
+    while ((match = listPatterns[format].exec(text)) !== null) {
+        items.push(match[1].trim());
+    }
+
+    // Create a list only if there are at least two matching elements
+    return items.length >= 2 ? items : [];
+}
+
+function displayFormattedResults(groupElement) {
+    const resultElement = groupElement.querySelector(".result");
+
+    const group = groupsMap.GROUPS.get(getGroupIdFromElement(groupElement));
+
+    if (group.resultDisplayFormat === "list") {
+
+        const listItems = parseResultsAsList(group.result);
+
+        console.log("[DISPLAYING FORMATTED RESULT] ", listItems)
+
+        if (listItems.length === 0) {
+            displayAlert(
+                {
+                    issue: `No list found in ${group.name}'s results`,
+                    action: "Try to ask for a bulletpoint list",
+                    variant: "error",
+                    icon: "list-ul",
+                    duration: 3000
+                }
+            );
+            return;
+        }
+
+        group.savedResult = group.result;
+        group.listItems = listItems;
+
+        resultElement.style.display = 'none';
+
+        const existingSlSelect = groupElement.querySelector("sl-select");
+        if (existingSlSelect) {
+            existingSlSelect.remove();
+        }
+
+        let selectElement = document.createElement('sl-select');
+        selectElement.setAttribute('placeholder', 'Random choice');
+        selectElement.setAttribute('clearable', '');
+        selectElement.setAttribute('size', 'small');
+
+        group.listItems.forEach((item, index) => {
+            let optionElement = document.createElement('sl-option');
+            optionElement.setAttribute('value', index);
+            optionElement.textContent = item;
+            selectElement.appendChild(optionElement);
+        });
+
+        handleListSelectionChange(selectElement, group, group.listItems);
+
+        selectElement.addEventListener(
+            "sl-change",
+            (event) => {
+                handleListSelectionChange(selectElement, group, group.listItems);
+            });
+
+        resultElement.after(selectElement);
+
+    } else if (group.resultDisplayFormat === "text" || !group.resultDisplayFormat) {
+        resultElement.style.display = 'block';
+
+        const existingSlSelect = groupElement.querySelector("sl-select");
+
+        if (existingSlSelect) {
+            group.result = group.savedResult;
+            group.listItems = [];
+            existingSlSelect.remove();
+        }
+
+        updateGroupsReferencingIt(group.id)
     }
 }
 
