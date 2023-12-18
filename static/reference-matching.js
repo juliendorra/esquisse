@@ -5,7 +5,7 @@ import { displayAlert } from "./ui-utils.js";
 
 export { getReferencedGroupNamesFromDataText, getReferencedResultsAndCombinedDataWithResults };
 
-const REFERENCE_MATCHING_REGEX = /#([\w-.]+)|(?:\[)([^\]]+)(?:\])/gi;
+const REFERENCE_MATCHING_REGEX = /#([\S]+)|\[(.+?)\]/gi;
 
 function getReferencedGroupNamesFromDataText(data) {
 
@@ -22,11 +22,6 @@ function getReferencedGroupNamesFromDataText(data) {
 }
 
 async function replaceThisGroupReferenceWithResult(name, data, groups) {
-    // Validate the name to ensure it conforms to the allowed format
-    if (!/^[\w\s-.]+$/.test(name)) {
-        console.error('[REFERENCE MATCHING] Invalid name format');
-        return data; // return the original data if the name format is invalid
-    }
 
     // Escape special regex characters in the name
     const escapedName = name.replace(/([.*+?^${}()|\[\]\\])/g, '\\$&');
