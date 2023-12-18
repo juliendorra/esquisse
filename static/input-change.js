@@ -355,7 +355,11 @@ async function sendRequestsForGroup({
                 fileExtension = 'png';
             }
 
-            const fileName = `${group.name} — ${group.combinedReferencedResults} ${group.transform} — ${randomInt(1, 99999)}.${fileExtension} `.replace(/\s+/g, ' ').trim();
+            const maxPromptTextLength = 240 - group.name.length - 15;
+
+            let promptText = `${group.combinedReferencedResults} ${group.transform}`.substring(0, maxPromptTextLength);
+
+            const fileName = `${group.name} — ${promptText} — ${randomInt(1, 99999)}.${fileExtension}`.replace(/\s+/g, ' ').trim();
 
             downloadButton.download = fileName;
 
