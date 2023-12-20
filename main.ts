@@ -7,7 +7,7 @@ import { customAlphabet } from 'npm:nanoid';
 
 import { basicAuth } from "./lib/auth.ts";
 
-import { tryGenerate as callStability } from "./lib/stability.ts";
+import { tryGenerate as callImageGen } from "./lib/imagegen.ts";
 import { callGPT } from "./lib/gpt.js";
 
 import { bulkCreateUsers, listUsers } from "./lib/users.ts";
@@ -282,28 +282,30 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
     // the image property is expected as a base64 encoded image, 
     // and decoded before passing to the API handler function
 
-    type StabilityParameters = {
+    type ImageGenParameters = {
       prompt: string,
       negativeprompt: string,
       image?: Uint8Array,
       format: string,
       qualityEnabled: boolean,
+      controlnetEnabled: boolean,
       maxAttempts: number,
     }
 
-    const stabilityParameters: StabilityParameters = {
+    const imageGenParameters: ImageGenParameters = {
       prompt: body.data + " " + body.transform,
       negativeprompt: "",
       format: "",
       qualityEnabled: body.qualityEnabled,
+      controlnetEnabled: body.controlnetEnabled,
       maxAttempts: 3
     };
 
     if (body.image) {
-      stabilityParameters.image = base64ToUint8Array(body.image);
+      imageGenParameters.image = base64ToUint8Array(body.image);
     }
 
-    let generated = await callStability(stabilityParameters);
+    let generated = await callImageGen(imageGenParameters);
 
     if (generated.image) {
 
