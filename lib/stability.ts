@@ -1,215 +1,268 @@
 import "https://deno.land/x/dotenv/load.ts";
 
-const apiKey = Deno.env.get("STABILITY_API_KEY");
+const STABILITY_API_KEY = Deno.env.get("STABILITY_API_KEY");
+const SEGMIND_API_KEY = Deno.env.get("SEGMIND_API_KEY");
 
-const FAST_CHEAP_MODEL = {
-    id: "stable-diffusion-xl-1024-v1-0",
-    width: 1024,
-    height: 1024,
-    widthWide: 1152,
-    heightWide: 896,
-    steps: 15,
-
-}
-const QUALITY_EXPENSIVE_MODEL = {
-    id: "stable-diffusion-xl-1024-v1-0",
-    width: 1024,
-    height: 1024,
-    widthWide: 1152,
-    heightWide: 896,
-    steps: 45,
-}
-
-try {
-    if (!apiKey) {
-        throw new Error("missing STABILITY_API_KEY environment variable");
+const MODELS = {
+    TEXT_TO_IMAGE_FAST_CHEAP: {
+        endpoint: "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image",
+        id: "stable-diffusion-xl-1024-v1-0",
+        width: 1024,
+        height: 1024,
+        widthWide: 1152,
+        heightWide: 896,
+        steps: 15,
+    },
+    TEXT_TO_IMAGE_QUALITY_EXPENSIVE: {
+        endpoint: "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image",
+        id: "stable-diffusion-xl-1024-v1-0",
+        width: 1024,
+        height: 1024,
+        widthWide: 1152,
+        heightWide: 896,
+        steps: 45,
+    },
+    IMAGE_TO_IMAGE_FAST_CHEAP: {
+        endpoint: "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/image-to-image",
+        id: "stable-diffusion-xl-1024-v1-0",
+        width: 1024,
+        height: 1024,
+        widthWide: 1152,
+        heightWide: 896,
+        steps: 15,
+    },
+    IMAGE_TO_IMAGE_QUALITY_EXPENSIVE: {
+        endpoint: "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/image-to-image",
+        id: "stable-diffusion-xl-1024-v1-0",
+        width: 1024,
+        height: 1024,
+        widthWide: 1152,
+        heightWide: 896,
+        steps: 45,
+    },
+    CONTROLNET_FAST_CHEAP: {
+        endpoint: "https://api.segmind.com/v1/ssd-canny",
+        id: "ssd-canny",
+        steps: 15,
+    },
+    CONTROLNET_QUALITY_EXPENSIVE: {
+        endpoint: "https://api.segmind.com/v1/ssd-canny",
+        id: "ssd-canny",
+        steps: 30,
     }
-}
-catch (error) {
-    console.error(`Stability not available: ${error}`);
-}
+};
 
-const apiHost = "https://api.stability.ai";
+// Main generation function
+export async function tryGenerate({
+    prompt,
+    image,
+    negativeprompt,
+    format,
+    qualityEnabled = false,
+    controlnetEnabled = false,
+    maxAttempts = 3,
+}) {
+    if (!STABILITY_API_KEY) {
+        throw new Error("Missing STABILITY_API_KEY environment variable");
+    }
 
-type StabilityParameters = {
-    prompt: string,
-    negativeprompt: string,
-    image?: Uint8Array,
-    format: string,
-    qualityEnabled: boolean,
-    maxAttempts: number,
-}
-
-export async function tryGenerate(
-    {
-        prompt,
-        image,
-        negativeprompt,
-        format,
-        qualityEnabled = false,
-        maxAttempts = 3,
-    }: StabilityParameters
-) {
     let generated;
 
     for (let i = 0; i < maxAttempts; i++) {
-        generated = await generate({ prompt, image, negativeprompt, format, qualityEnabled });
+        generated = await generate({
+            prompt,
+            image,
+            negativeprompt,
+            format,
+            qualityEnabled,
+            controlnetEnabled
+        });
+
 
         if (generated.isValid) {
             return { image: generated.data };
         }
 
-        else if (generated.isInvalidPrompt) {
+        if (generated.isInvalidPrompt) {
+
             console.log(
                 { isInvalidPrompt: generated.isInvalidPrompt },
                 "Prompt invalid, trying with words removed",
             );
 
-            let cleanedPromptToTest;
-
-            const words = prompt.split(" ");
-            const wordsSet = new Set(words);
-            const uniqueWords = Array.from(wordsSet);
-
-            for (const word of uniqueWords) {
-                console.log({ word: word }, "removing word ");
-
-                const pattern = new RegExp("\\b" + word + "\\b", "g");
-                cleanedPromptToTest = prompt.replace(pattern, "");
-
-                console.log("[STABILITY] testing cleaned prompt", cleanedPromptToTest);
-
-                generated = await generate({ prompt: cleanedPromptToTest, image, negativeprompt, format, qualityEnabled });
-
-                if (generated.isValid) {
-                    console.log("[STABILITY] Banned word was:", word)
-                    return { image: generated.data, bannedword: word };
-                }
-            }
-
-            console.log(
-                {
-                    isValid: generated.isValid,
-                },
-                "No valid prompt found removing one word, generation failed",
-            );
-
-            console.log("No valid prompt found removing one word, generation failed");
-
-            return { error: "invalid prompt" }; // no image
+            return handleInvalidPrompt({
+                prompt,
+                image,
+                negativeprompt,
+                format,
+                qualityEnabled,
+                controlnetEnabled
+            });
+        }
+        if (generated.isBlurred) {
+            return { image: generated.data };
         }
 
-        console.log(
-            {
-                attempt: i,
-                attemptsLeft: maxAttempts - i,
-                isBlurred: generated.isBlurred,
-                isValid: generated.isValid,
-                error: generated.error,
-            },
-            "Image generation failed, requesting new image",
-        );
-    }
-    // blurred image
-    if (generated.isBlurred) {
-        return { image: generated.data };
     }
 
-    // no image
-    else {
-        console.error("No image");
-        return { error: generated.error };
+    console.error("Image generation failed after maximum attempts");
+    return { error: generated.error };
+}
+
+async function handleInvalidPrompt({ prompt, image, negativeprompt, format, qualityEnabled, controlnetEnabled }) {
+
+    const words = new Set(prompt.split(" "));
+
+    for (const word of words) {
+        const pattern = new RegExp("\\b" + word + "\\b", "g");
+        const cleanedPrompt = prompt.replace(pattern, '');
+
+        console.log("[IMAGE GENERATION] testing cleaned prompt", cleanedPrompt);
+
+        let generated = await generate({
+            prompt: cleanedPrompt,
+            image,
+            negativeprompt,
+            format,
+            qualityEnabled,
+            controlnetEnabled
+        });
+
+        if (generated.isValid) {
+            console.log("[IMAGE GENERATION] Banned word was:", word)
+            return { image: generated.data, bannedword: word };
+        }
+    }
+
+    console.log("[IMAGE GENERATION] No valid prompt found removing one word, generation failed");
+
+    return { error: "Invalid prompt" };  // no image
+}
+
+// Function to call the appropriate API based on the parameters
+async function generate({ prompt, image, negativeprompt, format, qualityEnabled, controlnetEnabled }) {
+    if (image && controlnetEnabled) {
+        return await callSegmindAPI(image, prompt, negativeprompt, qualityEnabled);
+    } else {
+        return await callStabilityAPI(prompt, image, negativeprompt, format, qualityEnabled);
     }
 }
 
-export async function generate(
-    {
-        prompt,
-        image,
-        negativeprompt,
-        format,
-        qualityEnabled = false
-    }
+// Function to call the Segmind API
+async function callSegmindAPI(image, prompt, negativeprompt, qualityEnabled) {
+    const model = qualityEnabled ? MODELS.CONTROLNET_FAST_CHEAP : MODELS.CONTROLNET_FAST_CHEAP;
 
-
-) {
-
-    const engine = qualityEnabled ? QUALITY_EXPENSIVE_MODEL : FAST_CHEAP_MODEL;
-
-    console.log("Calling Stability with model: ", engine);
-
-    const width = format == "wide" ? engine.widthWide : engine.width;
-    const height = format == "wide" ? engine.heightWide : engine.height;;
-
-    const step_count = engine.steps;
-
-    const generationType = image ? "image-to-image" : "text-to-image";
-
-    const url = `${apiHost}/v1/generation/${engine.id}/${generationType}`;
-
-    console.log("[STABILITY] API CALLED: ", url)
+    const data = {
+        image: image,
+        prompt: prompt,
+        negative_prompt: negativeprompt,
+        samples: 1,
+        scheduler: "UniPC",
+        num_inference_steps: model.steps,
+        guidance_scale: 7.5,
+        seed: -1,
+        controlnet_scale: 0.8,
+        base64: false
+    };
 
     try {
-        let body;
-        let headers = {
-            Accept: "image/png",
-            Authorization: apiKey,
-        };
-
-        if (image) {
-            // Use FormData for image-to-image generation
-            const formData = new FormData();
-
-            formData.append('init_image', new File([image], 'image.jpeg', { type: 'image/jpeg' }));
-
-            formData.append('cfg_scale', '7');
-            formData.append('clip_guidance_preset', 'FAST_BLUE');
-
-            // as of Stability API v1, width and height cannot be set for image-to-image
-
-            formData.append('samples', '1');
-            formData.append('seed', '0');
-            formData.append('steps', step_count.toString());
-            formData.append('text_prompts[0][text]', prompt);
-            formData.append('text_prompts[0][weight]', '1.0');
-
-            // if (negativeprompt) {
-            //     formData.append('text_prompts[1][text]', negativeprompt);
-            //     formData.append('text_prompts[1][weight]', '-1.0');
-            // }
-
-            body = formData;
-            // We don't need to set Content-Type for FormData
-
-        } else {
-            // Use JSON for text-to-image generation
-            body = JSON.stringify({
-                cfg_scale: 7,
-                clip_guidance_preset: "FAST_BLUE",
-                height: height,
-                width: width,
-                samples: 1,
-                seed: 0,
-                steps: step_count,
-                text_prompts: [
-                    {
-                        text: prompt,
-                        weight: 1.0,
-                    },
-                    // {
-                    //     text: negativeprompt,
-                    //     weight: -1.0,
-                    // },
-                ],
-            });
-            headers["Content-Type"] = "application/json";
-        }
-
-        const response = await fetch(url, {
+        const response = await fetch(model.endpoint, {
             method: 'POST',
-            headers: headers,
-            body: body,
+            headers: { 'x-api-key': SEGMIND_API_KEY },
+            body: JSON.stringify(data)
         });
+
+        if (!response.ok) throw new Error("Segmind API request failed");
+
+        const responseBuffer = await response.arrayBuffer();
+        return { data: responseBuffer, isValid: true };
+
+    } catch (error) {
+        console.error("Error in Segmind API call:", error);
+        return { error: error.message };
+    }
+}
+
+// Function to call the Stability API
+async function callStabilityAPI(prompt, image, negativeprompt, format, qualityEnabled) {
+
+    let model;
+
+    if (image) {
+        model = qualityEnabled ? MODELS.IMAGE_TO_IMAGE_QUALITY_EXPENSIVE : MODELS.IMAGE_TO_IMAGE_FAST_CHEAP;
+    }
+    else {
+        model = qualityEnabled ? MODELS.TEXT_TO_IMAGE_QUALITY_EXPENSIVE : MODELS.TEXT_TO_IMAGE_FAST_CHEAP;
+    }
+
+    console.log("[IMAGE GENERATION] API ENDPOINT: ", model.endpoint)
+
+    const width = format === 'wide' ? model.widthWide : model.width;
+    const height = format === 'wide' ? model.heightWide : model.height;
+
+    let body;
+    let headers = {
+        Accept: "image/png",
+        Authorization: STABILITY_API_KEY,
+    };
+
+    if (image) {
+        // Use FormData for image-to-image generation
+        const formData = new FormData();
+
+        formData.append('init_image', new File([image], 'image.jpeg', { type: 'image/jpeg' }));
+
+        formData.append('cfg_scale', '7');
+        formData.append('clip_guidance_preset', 'FAST_BLUE');
+
+        // as of Stability API v1, width and height cannot be set for image-to-image
+
+        formData.append('samples', '1');
+        formData.append('seed', '0');
+        formData.append('steps', model.steps.toString());
+        formData.append('text_prompts[0][text]', prompt);
+        formData.append('text_prompts[0][weight]', '1.0');
+
+        // if (negativeprompt) {
+        //     formData.append('text_prompts[1][text]', negativeprompt);
+        //     formData.append('text_prompts[1][weight]', '-1.0');
+        // }
+
+        body = formData;
+        // We don't need to set Content-Type for FormData
+
+    } else {
+        // Prepare JSON body for text-to-image generation
+        body = JSON.stringify({
+            cfg_scale: 7,
+            clip_guidance_preset: "FAST_BLUE",
+            height: height,
+            width: width,
+            samples: 1,
+            seed: 0,
+            steps: model.steps,
+            text_prompts: [
+                {
+                    text: prompt,
+                    weight: 1.0,
+                },
+                // {
+                //     text: negativeprompt,
+                //     weight: -1.0,
+                // },
+            ],
+        });
+        headers["Content-Type"] = "application/json";
+    }
+
+    try {
+        const response = await fetch(
+            model.endpoint,
+            {
+                method: 'POST',
+                headers: headers,
+                body: body
+            });
 
         if (!response.ok) {
             throw { response };
@@ -219,12 +272,13 @@ export async function generate(
             console.log(`${key}: ${value}`);
         }
 
-        console.log("[STABILITY] Finish-Reason: ", response.headers.get("Finish-Reason"))
+        console.log("[IMAGE GENERATION] Finish-Reason: ", response.headers.get("Finish-Reason"))
 
         const responseBuffer = await response.arrayBuffer();
 
-        const isValid = response.headers.get("Finish-Reason") == "SUCCESS";
-        const isBlurred = response.headers.get("Finish-Reason") == "CONTENT_FILTERED";
+        const isValid = response.headers.get("Finish-Reason") === "SUCCESS";
+
+        const isBlurred = response.headers.get("Finish-Reason") === "CONTENT_FILTERED";
 
         return { data: responseBuffer, isValid, isBlurred };
 
