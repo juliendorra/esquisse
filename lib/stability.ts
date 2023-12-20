@@ -52,7 +52,23 @@ const MODELS = {
     }
 };
 
-// Main generation function
+
+type ImageGenParameters = {
+    prompt: string,
+    negativeprompt: string,
+    image?: Uint8Array,
+    format: string,
+    qualityEnabled: boolean,
+    controlnetEnabled: boolean,
+    maxAttempts: number,
+}
+
+type ImageGenGenerated = {
+    image?: ArrayBuffer,
+    error?: string,
+    bannedword?: string,
+}
+
 export async function tryGenerate({
     prompt,
     image,
@@ -61,7 +77,7 @@ export async function tryGenerate({
     qualityEnabled = false,
     controlnetEnabled = false,
     maxAttempts = 3,
-}) {
+}: ImageGenParameters): Promise<ImageGenGenerated> {
     if (!STABILITY_API_KEY) {
         throw new Error("Missing STABILITY_API_KEY environment variable");
     }
@@ -111,7 +127,7 @@ export async function tryGenerate({
 
 async function handleInvalidPrompt({ prompt, image, negativeprompt, format, qualityEnabled, controlnetEnabled }) {
 
-    const words = new Set(prompt.split(" "));
+    const words: Set<string> = new Set(prompt.split(" "));
 
     for (const word of words) {
         const pattern = new RegExp("\\b" + word + "\\b", "g");
@@ -130,7 +146,10 @@ async function handleInvalidPrompt({ prompt, image, negativeprompt, format, qual
 
         if (generated.isValid) {
             console.log("[IMAGE GENERATION] Banned word was:", word)
-            return { image: generated.data, bannedword: word };
+
+            let corrected: { image: ArrayBuffer, bannedword: string } = { image: generated.data, bannedword: word };
+
+            return corrected;
         }
     }
 
