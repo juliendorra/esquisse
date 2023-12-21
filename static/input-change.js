@@ -268,6 +268,7 @@ async function sendRequestsForGroup({
             image: image,
             transform: lastTransformValue,
             qualityEnabled: SETTINGS.qualityEnabled,
+            controlnetEnabled: group.controlnetEnabled,
         }),
     };
 

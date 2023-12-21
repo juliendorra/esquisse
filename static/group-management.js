@@ -94,6 +94,7 @@ const GROUP_HTML = {
             <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
 
             <div class="function-buttons-container">
+                <button class="tool-btn controlnet-btn"><img src="/icons/controlnet.svg"></button>
                 <button class="tool-btn entry-btn"><img src="/icons/entry.svg"></button>
                 <button class="tool-btn lock-btn"><img src="/icons/lock.svg"></button>
                 <button class="tool-btn refresh-btn"><img src="/icons/refresh.svg"></button>
@@ -326,20 +327,33 @@ function addEventListenersToGroup(groupElement) {
     /******** Tool buttons *************/
     groupElement.querySelector(".delete-btn").addEventListener("click", () => deleteGroup(groupElement));
 
-    groupElement.querySelector(".list-mode-btn")?.addEventListener("click", () => {
+    groupElement.querySelector(".list-mode-btn")?.addEventListener("click", (event) => {
         const resultDisplayFormat = group.resultDisplayFormat === 'list' ? 'text' : 'list';
+
+        if (group.resultDisplayFormat === 'list') { event.currentTarget.classList.add("selected"); }
+        else { event.currentTarget.classList.remove("selected"); }
+
         setGroupResultDisplayFormat(groupElement, resultDisplayFormat);
         displayFormattedResults(groupElement);
         persistGroups(groupsMap.GROUPS);
     });
 
-    groupElement.querySelector(".lock-btn")?.addEventListener("click", () => {
+    groupElement.querySelector(".controlnet-btn")?.addEventListener("click", (event) => {
+        group.controlnetEnabled = group.controlnetEnabled === true ? false : true;
+
+        if (group.controlnetEnabled) { event.currentTarget.classList.add("selected"); }
+        else { event.currentTarget.classList.remove("selected"); }
+
+        persistGroups(groupsMap.GROUPS);
+    });
+
+    groupElement.querySelector(".lock-btn")?.addEventListener("click", (event) => {
         group.interactionState = group.interactionState === INTERACTION_STATE.LOCKED ? INTERACTION_STATE.OPEN : INTERACTION_STATE.LOCKED;
         displayGroupInteractionState(groupElement, group.interactionState);
         persistGroups(groups);
     });
 
-    groupElement.querySelector(".entry-btn")?.addEventListener("click", () => {
+    groupElement.querySelector(".entry-btn")?.addEventListener("click", (event) => {
         group.interactionState = group.interactionState === INTERACTION_STATE.ENTRY ? INTERACTION_STATE.OPEN : INTERACTION_STATE.ENTRY;
         displayGroupInteractionState(groupElement, group.interactionState);
         persistGroups(groups);

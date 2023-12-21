@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std/http/server.ts";
 import { contentType } from "https://deno.land/std/media_types/mod.ts";
-import { base64ToUint8Array } from "./lib/utility.ts";
 
 import { decode } from "https://deno.land/x/imagescript/mod.ts";
 import { customAlphabet } from 'npm:nanoid';
@@ -280,12 +279,11 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
     // return either {error} or {image}
 
     // the image property is expected as a base64 encoded image, 
-    // and decoded before passing to the API handler function
 
     type ImageGenParameters = {
       prompt: string,
       negativeprompt: string,
-      image?: Uint8Array,
+      image?: string,
       format: string,
       qualityEnabled: boolean,
       controlnetEnabled: boolean,
@@ -302,7 +300,7 @@ async function handleJsonEndpoints(request: Request): Promise<Response> {
     };
 
     if (body.image) {
-      imageGenParameters.image = base64ToUint8Array(body.image);
+      imageGenParameters.image = body.image;
     }
 
     let generated = await callImageGen(imageGenParameters);

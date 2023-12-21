@@ -1,4 +1,5 @@
 import "https://deno.land/x/dotenv/load.ts";
+import { base64ToUint8Array } from "./utility.ts";
 
 const STABILITY_API_KEY = Deno.env.get("STABILITY_API_KEY");
 const SEGMIND_API_KEY = Deno.env.get("SEGMIND_API_KEY");
@@ -56,7 +57,7 @@ const MODELS = {
 type ImageGenParameters = {
     prompt: string,
     negativeprompt: string,
-    image?: Uint8Array,
+    image?: string,
     format: string,
     qualityEnabled: boolean,
     controlnetEnabled: boolean,
@@ -78,8 +79,13 @@ export async function tryGenerate({
     controlnetEnabled = false,
     maxAttempts = 3,
 }: ImageGenParameters): Promise<ImageGenGenerated> {
+
     if (!STABILITY_API_KEY) {
         throw new Error("Missing STABILITY_API_KEY environment variable");
+    }
+
+    if (!SEGMIND_API_KEY) {
+        throw new Error("Missing SEGMIND_API_KEY environment variable");
     }
 
     let generated;
@@ -161,20 +167,20 @@ async function handleInvalidPrompt({ prompt, image, negativeprompt, format, qual
 // Function to call the appropriate API based on the parameters
 async function generate({ prompt, image, negativeprompt, format, qualityEnabled, controlnetEnabled }) {
     if (image && controlnetEnabled) {
-        return await callSegmindAPI(image, prompt, negativeprompt, qualityEnabled);
+        return await callSegmindAPI(prompt, image, negativeprompt, qualityEnabled);
     } else {
         return await callStabilityAPI(prompt, image, negativeprompt, format, qualityEnabled);
     }
 }
 
 // Function to call the Segmind API
-async function callSegmindAPI(image, prompt, negativeprompt, qualityEnabled) {
+async function callSegmindAPI(prompt, image, negativeprompt, qualityEnabled) {
     const model = qualityEnabled ? MODELS.CONTROLNET_FAST_CHEAP : MODELS.CONTROLNET_FAST_CHEAP;
 
-    const data = {
+    const data = JSON.stringify({
         image: image,
         prompt: prompt,
-        negative_prompt: negativeprompt,
+        // negative_prompt: negativeprompt,
         samples: 1,
         scheduler: "UniPC",
         num_inference_steps: model.steps,
@@ -182,23 +188,28 @@ async function callSegmindAPI(image, prompt, negativeprompt, qualityEnabled) {
         seed: -1,
         controlnet_scale: 0.8,
         base64: false
-    };
+    });
 
     try {
         const response = await fetch(model.endpoint, {
             method: 'POST',
-            headers: { 'x-api-key': SEGMIND_API_KEY },
-            body: JSON.stringify(data)
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': SEGMIND_API_KEY
+            },
+            body: data
         });
 
-        if (!response.ok) throw new Error("Segmind API request failed");
+        if (!response.ok) {
+            throw { response };
+        }
 
         const responseBuffer = await response.arrayBuffer();
         return { data: responseBuffer, isValid: true };
 
     } catch (error) {
         console.error("Error in Segmind API call:", error);
-        return { error: error.message };
+        return { error: error.statusText };
     }
 }
 
@@ -229,7 +240,7 @@ async function callStabilityAPI(prompt, image, negativeprompt, format, qualityEn
         // Use FormData for image-to-image generation
         const formData = new FormData();
 
-        formData.append('init_image', new File([image], 'image.jpeg', { type: 'image/jpeg' }));
+        formData.append('init_image', new File([base64ToUint8Array(image)], 'image.jpeg', { type: 'image/jpeg' }));
 
         formData.append('cfg_scale', '7');
         formData.append('clip_guidance_preset', 'FAST_BLUE');
