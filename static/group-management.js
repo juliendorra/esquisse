@@ -1,5 +1,7 @@
 import { GROUP_TYPE, INTERACTION_STATE, getGroupIdFromElement, getGroupElementFromId, getGroupFromName, generateUniqueGroupID } from "./group-utils.js";
 
+import Graph from "https://cdn.jsdelivr.net/npm/graph-data-structure@3.5.0/+esm";
+
 import { displayAlert } from "./ui-utils.js";
 
 import { nameChangeHandler, handleInputChange, handleListSelectionChange, handleImportedImage, handleDroppedImage } from "./input-change.js";
@@ -478,23 +480,30 @@ async function updateGroups(idsOfGroupsToUpdate, forceRefresh = false) {
         return;
     }
 
-    for (const id of dependentUpdates) {
+    const parallelTasks = getParallelTasks(referencesGraph.IS_USED_BY_GRAPH, dependentUpdates);
 
-        console.log("[UPDATE GROUPS] Dependent group, awaiting update", id)
+    console.log("[UPDATE GROUPS] parallel tasks: ", parallelTasks)
 
-        // if we don't await, a further group might launch a request when it actually depends on the previous group results
-        // we stop being fully reactive and fully async here
-        // and await between each steps
-        // we should probably use the graph more to async everything that can
+    for (const parallelTasksBatch of parallelTasks) {
 
-        await handleInputChange(
-            getGroupElementFromId(id),
-            true,
-            forceRefresh,
-            false,
-            groups
-        );
-    };
+        console.log("[UPDATE GROUPS] parallel Tasks Batch: ", parallelTasksBatch)
+        // Create an array of promises for the current batch
+        const batchPromises = parallelTasksBatch.map(id => {
+            console.log("[UPDATE GROUPS] Dependent group, awaiting update", id);
+            return handleInputChange(
+                getGroupElementFromId(id),
+                true,
+                forceRefresh,
+                false,
+                groups
+            );
+        });
+
+        // Wait for the entire batch to complete
+        await Promise.all(batchPromises);
+
+    }
+
 }
 
 function updateGroupsReferencingIt(id) {
@@ -507,6 +516,53 @@ function updateGroupsReferencingIt(id) {
     updateGroups(idsOfGroupsToUpdate, false);
 
 }
+
+function getParallelTasks(graph, nodeList) {
+    // Filter the nodes to include only those in the nodeList
+    const filteredGraph = Graph();
+    nodeList.forEach(node => {
+        if (graph.nodes().includes(node)) {
+            filteredGraph.addNode(node);
+        }
+    });
+
+    // Add reversed edges to the filtered graph
+    nodeList.forEach(node => {
+        graph.adjacent(node).forEach(adjNode => {
+            if (nodeList.includes(adjNode)) {
+                // Reverse the edge direction
+                filteredGraph.addEdge(adjNode, node);
+            }
+        });
+    });
+
+    const sortedNodes = filteredGraph.topologicalSort();
+    const parallelTasks = [];
+    const visited = new Set();
+
+    // Helper function to check if all successors of a node are visited
+    function areSuccessorsVisited(node) {
+        return filteredGraph.adjacent(node).every(successor => visited.has(successor));
+    }
+
+    while (visited.size < sortedNodes.length) {
+        let currentBatch = [];
+
+        for (const node of sortedNodes) {
+            if (!visited.has(node) && areSuccessorsVisited(node)) {
+                currentBatch.push(node);
+                visited.add(node);
+            }
+        }
+
+        if (currentBatch.length > 0) {
+            parallelTasks.push(currentBatch);
+        }
+    }
+
+    return parallelTasks;
+}
+
 
 function displayCombinedReferencedResult(groupElement, combinedReferencedResults) {
     const refResultTextarea = groupElement.querySelector(".referenced-result-text");
