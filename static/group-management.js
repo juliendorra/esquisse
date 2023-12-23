@@ -15,6 +15,9 @@ const groupsMap = {
     GROUPS: new Map(),
 };
 
+// this map hold the unresolved promises 
+let ONGOING_UPDATES = new Map();
+
 export {
     groupsMap, createGroupInLocalDataStructures,
     addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, displayGroupInteractionState, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, rebuildGroupsInNewOrder
@@ -486,20 +489,38 @@ async function updateGroups(idsOfGroupsToUpdate, forceRefresh = false) {
 
     for (const parallelTasksBatch of parallelTasks) {
 
-        console.log("[UPDATE GROUPS] parallel Tasks Batch: ", parallelTasksBatch)
+        console.log("[UPDATE GROUPS] Parallel Tasks Batch: ", parallelTasksBatch);
+
         // Create an array of promises for the current batch
-        const batchPromises = parallelTasksBatch.map(id => {
-            console.log("[UPDATE GROUPS] Dependent group, awaiting update", id);
-            return handleInputChange(
-                getGroupElementFromId(id),
-                true,
-                forceRefresh,
-                false,
-                groups
-            );
+
+        const batchPromises = parallelTasksBatch.map(async id => {
+            const ongoingUpdate = ONGOING_UPDATES.get(id);
+            if (ongoingUpdate) {
+                console.log("[UPDATE GROUPS] Already updating, waiting for completion", id);
+                return await ongoingUpdate;
+            } else {
+                console.log("[UPDATE GROUPS] Dependent group, awaiting update", id);
+                const updatePromise = handleInputChange(
+                    getGroupElementFromId(id),
+                    true,
+                    forceRefresh,
+                    false,
+                    groups
+                );
+
+                // Track the ongoing update
+                ONGOING_UPDATES.set(id, updatePromise);
+
+                // Await the update promise and remove it from ongoingUpdates
+                const result = await updatePromise;
+                ONGOING_UPDATES.delete(id);
+                return result;
+            }
+
         });
 
-        // Wait for the entire batch to complete
+
+        // Wait for the entire batch to complete before looping to the next batch of updating tasks
         await Promise.all(batchPromises);
 
     }
