@@ -134,35 +134,40 @@ export async function tryGenerate({
 async function handleInvalidPrompt({ prompt, image, negativeprompt, format, qualityEnabled, controlnetEnabled }) {
 
     const words: Set<string> = new Set(prompt.split(" "));
+    let resolvedCount = 0;
+    let hasValidResult = false;
+    let validResult: any = null;
 
-    for (const word of words) {
-        const pattern = new RegExp("\\b" + word + "\\b", "g");
-        const cleanedPrompt = prompt.replace(pattern, '');
+    return new Promise((resolve, reject) => {
+        for (const word of words) {
+            const pattern = new RegExp("\\b" + word + "\\b", "g");
+            const cleanedPrompt = prompt.replace(pattern, '');
 
-        console.log("[IMAGE GENERATION] testing cleaned prompt", cleanedPrompt);
+            console.log("[IMAGE GENERATION] testing cleaned prompt", cleanedPrompt);
 
-        let generated = await generate({
-            prompt: cleanedPrompt,
-            image,
-            negativeprompt,
-            format,
-            qualityEnabled,
-            controlnetEnabled
-        });
-
-        if (generated.isValid) {
-            console.log("[IMAGE GENERATION] Banned word was:", word)
-
-            let corrected: { image: ArrayBuffer, bannedword: string } = { image: generated.data, bannedword: word };
-
-            return corrected;
-        }
-    }
-
-    console.log("[IMAGE GENERATION] No valid prompt found removing one word, generation failed");
-
-    return { error: "Invalid prompt" };  // no image
+            generate({
+                prompt: cleanedPrompt,
+                image,
+                negativeprompt,
+                format,
+                qualityEnabled,
+                controlnetEnabled
+            }).then(generated => {
+                resolvedCount++;
+                if (generated.isValid && !hasValidResult) {
+                    hasValidResult = true;
+                    console.log("[IMAGE GENERATION] Banned word was:", word)
+                    validResult = { image: generated.data, bannedword: word };
+                    resolve(validResult);
+                } else if (resolvedCount === words.size && !hasValidResult) {
+                    console.log("[IMAGE GENERATION] No valid prompt found removing one word, generation failed");
+                    resolve({ error: "Invalid prompt" });
+                }
+            });
+        };
+    });
 }
+
 
 // Function to call the appropriate API based on the parameters
 async function generate({ prompt, image, negativeprompt, format, qualityEnabled, controlnetEnabled }) {
