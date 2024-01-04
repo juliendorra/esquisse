@@ -168,7 +168,7 @@ async function checkAppIsByUser(appid: string, username: string | null): Promise
     }
 }
 
-async function storeResults(result: Result): Promise<void> {
+async function storeResults(result: Result): Promise<any> {
     const addOperationResult = await db.results.add(result);
 
     console.log("Result added to kv store: ", addOperationResult.id, addOperationResult);
@@ -194,7 +194,7 @@ async function retrieveAppsByUser(username: string): Promise<Apps[] | []> {
 
         const apps = await db.apps.findBySecondaryIndex('username', username);
 
-        console.log(`Retrieved apps for user ${username}: `, apps.result);
+        // console.log(`Retrieved apps for user ${username}: `, apps.result);
 
         // document is { id, versionstamp,  value }
         // returning an array of apps objects
