@@ -2,6 +2,7 @@ import { Application, Router } from "https://deno.land/x/oak/mod.ts";
 import { basicAuth } from "./lib/auth.ts";
 import { handleStability, handleChatGPT, handleLoad, handleLoadVersions, handleLoadResult, handlePersist, handlePersistResults, handleListApps, handleListUsers, handleBulkCreateUsers } from './routes/api.ts';
 import { handleUserFacingURLs, handleStaticFiles } from './routes/user-facing-and-static.ts';
+import { renderResult } from "./lib/result-renderer.ts";
 
 
 const router = new Router();
@@ -27,6 +28,7 @@ router
   .get('/apps/:user', handleUserFacingURLs)
   .get('/admin', handleUserFacingURLs)
   .get('/', handleUserFacingURLs)
+  .get("/result/:id", renderResult)
   ;
 
 // Admin Endpoints
