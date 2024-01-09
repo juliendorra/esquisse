@@ -1,4 +1,4 @@
-import { GROUP_TYPE, INTERACTION_STATE, getGroupIdFromElement, getGroupElementFromId, getGroupFromName, generateUniqueGroupID } from "./group-utils.js";
+import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, getGroupIdFromElement, getGroupElementFromId, getGroupFromName, generateUniqueGroupID } from "./group-utils.js";
 
 import Graph from "https://cdn.jsdelivr.net/npm/graph-data-structure@3.5.0/+esm";
 
@@ -333,9 +333,9 @@ function addEventListenersToGroup(groupElement) {
     groupElement.querySelector(".delete-btn").addEventListener("click", () => deleteGroup(groupElement));
 
     groupElement.querySelector(".list-mode-btn")?.addEventListener("click", (event) => {
-        const resultDisplayFormat = group.resultDisplayFormat === 'list' ? 'text' : 'list';
+        const resultDisplayFormat = group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.LIST ? RESULT_DISPLAY_FORMAT.TEXT : RESULT_DISPLAY_FORMAT.LIST;
 
-        if (group.resultDisplayFormat === 'list') { event.currentTarget.classList.add("selected"); }
+        if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.LIST) { event.currentTarget.classList.add("selected"); }
         else { event.currentTarget.classList.remove("selected"); }
 
         setGroupResultDisplayFormat(groupElement, resultDisplayFormat);
@@ -697,7 +697,7 @@ function displayFormattedResults(groupElement) {
 
     const group = groupsMap.GROUPS.get(getGroupIdFromElement(groupElement));
 
-    if (group.resultDisplayFormat === "list") {
+    if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.LIST) {
 
         const listItems = parseResultsAsList(group.result);
 
@@ -748,7 +748,7 @@ function displayFormattedResults(groupElement) {
 
         resultElement.after(selectElement);
 
-    } else if (group.resultDisplayFormat === "text" || !group.resultDisplayFormat) {
+    } else if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.TEXT || !group.resultDisplayFormat) {
         resultElement.style.display = 'block';
 
         const existingSlSelect = groupElement.querySelector("sl-select");

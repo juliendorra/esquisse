@@ -1,4 +1,4 @@
-import { GROUP_TYPE, INTERACTION_STATE, generateUniqueGroupID } from "./group-utils.js";
+import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, generateUniqueGroupID } from "./group-utils.js";
 import { groupsMap, createGroupInLocalDataStructures, addGroupElement, displayGroupInteractionState, updateGroups, } from "./group-management.js"
 import { updateReferenceGraph } from "./reference-graph.js";
 import Validator from 'https://esm.run/jsonschema';
@@ -38,6 +38,10 @@ const PACKAGED_GROUPS_SCHEMA = {
                     "interactionState": {
                         "type": "string",
                         "enum": Object.values(INTERACTION_STATE)
+                    },
+                    "resultDisplayFormat": {
+                        "type": "string",
+                        "enum": Object.values(RESULT_DISPLAY_FORMAT)
                     }
                 },
                 "required": ["name", "data", "transform", "type", "interactionState"],

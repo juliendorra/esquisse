@@ -1,4 +1,4 @@
-export { GROUP_TYPE, INTERACTION_STATE, getGroupIdFromElement, getGroupElementFromId, getGroupFromName, generateUniqueGroupID };
+export { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, getGroupIdFromElement, getGroupElementFromId, getGroupFromName, generateUniqueGroupID };
 
 const GROUP_TYPE = {
     STATIC: "static",
@@ -14,6 +14,10 @@ const INTERACTION_STATE = {
     OPEN: "open",
     ENTRY: "entry",
     LOCKED: "locked",
+};
+const RESULT_DISPLAY_FORMAT = {
+    TEXT: "text",
+    LIST: "list",
 };
 
 

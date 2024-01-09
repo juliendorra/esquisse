@@ -1,4 +1,4 @@
-import { GROUP_TYPE, getGroupElementFromId, getGroupIdFromElement } from "./group-utils.js";
+import { GROUP_TYPE, RESULT_DISPLAY_FORMAT, getGroupElementFromId, getGroupIdFromElement } from "./group-utils.js";
 import { updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, groupsMap } from "./group-management.js"
 import { getReferencedResultsAndCombinedDataWithResults } from "./reference-matching.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
@@ -166,7 +166,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     const isFormattedTextResult =
         (group.type === GROUP_TYPE.STATIC || group.type === GROUP_TYPE.TEXT)
         && group.resultDisplayFormat
-        && group.resultDisplayFormat !== "text";
+        && group.resultDisplayFormat !== RESULT_DISPLAY_FORMAT.TEXT;
 
     if (isFormattedTextResult) {
         displayFormattedResults(groupElement);
