@@ -1,4 +1,4 @@
-export { displayAlert };
+export { displayAlert, removeGlobalWaitingIndicator };
 
 function displayAlert({ issue, action, variant = "warning", icon = "exclamation-triangle", duration = 3000 }) {
 
@@ -21,4 +21,16 @@ function displayAlert({ issue, action, variant = "warning", icon = "exclamation-
     customElements.whenDefined('sl-alert').then(() => {
         alert.toast();
     });
+}
+
+function removeGlobalWaitingIndicator() {
+
+    // is there any group or other active element waiting?
+    const waitingElement = document.querySelector(".waiting:not(.fetching-indicator)");
+
+    if (!waitingElement) {
+        const fetchingIndicatorElement = document.querySelector(".fetching-indicator");
+
+        fetchingIndicatorElement.classList.remove("waiting");
+    }
 }

@@ -5,6 +5,7 @@ import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 import { persistGroups } from "./persistence.js";
 import { SETTINGS } from "./app.js";
 import { displayAlert } from "./ui-utils.js";
+import { removeGlobalWaitingIndicator } from "./ui-utils.js";
 
 
 export { nameChangeHandler, handleInputChange, handleListSelectionChange, handleImportedImage, handleDroppedImage };
@@ -506,17 +507,6 @@ function createZoomedImage(event) {
 
     document.body.appendChild(clonedImage);
 
-}
-
-function removeGlobalWaitingIndicator() {
-
-    const waitingGroups = document.querySelector(".group.waiting");
-
-    if (!waitingGroups) {
-        const fetchingIndicatorElement = document.querySelector(".fetching-indicator");
-
-        fetchingIndicatorElement.classList.remove("waiting");
-    }
 }
 
 // Utils
