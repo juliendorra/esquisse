@@ -1,7 +1,7 @@
 import "https://deno.land/x/dotenv/load.ts";
 import { Eta } from "https://deno.land/x/eta/src/index.ts";
-import { retrieveResultMetadata } from "./apps.ts";
-import { downloadResult } from "./file-storage.ts";
+import { retrieveResultMetadata } from "../lib/apps.ts";
+import { downloadResult } from "../lib/file-storage.ts";
 
 let viewpath = Deno.cwd() + '/views/'
 let eta = new Eta({ views: viewpath, cache: false, debug: true })

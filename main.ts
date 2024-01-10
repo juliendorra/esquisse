@@ -7,7 +7,7 @@ import {
   handleListUsers, handleBulkCreateUsers
 } from './routes/api.ts';
 import { handleUserFacingURLs, handleStaticFiles } from './routes/user-facing-and-static.ts';
-import { renderResult } from "./lib/result-renderer.ts";
+import { renderResult } from "./routes/result-renderer.ts";
 
 
 const router = new Router();
