@@ -3,10 +3,6 @@ import { Eta } from "https://deno.land/x/eta/src/index.ts";
 import { retrieveResultMetadata } from "./apps.ts";
 import { downloadResult } from "./file-storage.ts";
 
-const S3_PROTOCOL = Deno.env.get("S3_PROTOCOL") || "https://"
-const S3_ENDPOINT = Deno.env.get("S3_ENDPOINT");
-const S3_BUCKET = Deno.env.get("S3_BUCKET");
-
 let viewpath = Deno.cwd() + '/views/'
 let eta = new Eta({ views: viewpath, cache: false, debug: true })
 
