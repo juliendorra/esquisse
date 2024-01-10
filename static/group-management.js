@@ -708,7 +708,7 @@ function displayFormattedResults(groupElement) {
                 {
                     issue: `No list found in ${group.name}'s results`,
                     action: "Try to ask for a bulletpoint list",
-                    variant: "error",
+                    variant: "warning",
                     icon: "list-ul",
                     duration: 3000
                 }
