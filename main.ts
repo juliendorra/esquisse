@@ -45,8 +45,29 @@ router
 const app = new Application();
 
 // Authentication Middleware
+
+const routePrefixes = [
+  "/app", "/apps",
+];
+
+const exactRoutes = [
+  '/stability', '/chatgpt',
+  '/persist', '/persist-result',
+  '/load', '/load-version', '/load-versions', '/load-result',
+  "/app", "/apps", "/list-apps",
+  "/admin",
+  "/list-users", "/bulk-create-users",
+];
+
 app.use(async (ctx, next) => {
-  if (!ctx.request.url.pathname.startsWith("/public/")) {
+
+  const path = ctx.request.url.pathname;
+
+  const isAuthRoute =
+    routePrefixes.some(prefix => path.startsWith(prefix + "/"))
+    || exactRoutes.some(route => path === route);
+
+  if (isAuthRoute) {
 
     const authResult = await basicAuth(ctx.request);
 
@@ -64,18 +85,6 @@ app.use(async (ctx, next) => {
 
 app.use(router.routes());
 app.use(router.allowedMethods());
-
-const routePrefixes = [
-  "/app", "/apps",
-];
-
-const exactRoutes = [
-  '/stability', '/chatgpt',
-  '/load', '/load-version', '/load-versions', '/load-result',
-  '/persist-result',
-  "/app", "/apps", "/admin",
-  "/list-users", "/bulk-create-users",
-];
 
 
 // Fallback Middleware for Static Files
