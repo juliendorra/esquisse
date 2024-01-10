@@ -8,6 +8,7 @@ let ID = null;
 let CREATOR = null;
 
 const VERSION = "2023-11-05";
+let APP_VERSION_TIMESTAMP;
 
 const PACKAGED_GROUPS_SCHEMA = {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -105,20 +106,6 @@ function packageGroups(groups) {
     return packagedGroups;
 }
 
-function persistInHash(packagedGroups) {
-
-    console.log("[PERSIST] Persisting in URL", packagedGroups);
-
-    try {
-        const base64Groups = base64UnicodeEncode(packagedGroups);
-        console.log("[PERSIST] btoa groups", base64Groups);
-
-        window.location.hash = base64Groups;
-    } catch (error) {
-        console.error("[PERSIST] Base64 encoding failed, impossible to persist in URL", error);
-    }
-}
-
 async function persistOnServer(packagedGroups, existingId = null) {
 
     console.log("[PERSIST] Persisting on server", packagedGroups);
@@ -185,8 +172,17 @@ async function loadGroups(importedGroups) {
 
             console.log(json)
 
-            decodedGroups = json;
+            const appVersion = json;
 
+            // appVersion: {
+            //   type,
+            //   timestamp,
+            //   value:{versiongroups,appid,timestamp,username}
+            //  }
+
+            APP_VERSION_TIMESTAMP = appVersion.timestamp;
+
+            decodedGroups = appVersion.value;
             CREATOR = decodedGroups.username;
 
         } catch (error) {

@@ -1,6 +1,10 @@
 import { kvdex, model, collection } from "https://deno.land/x/kvdex/mod.ts";
 
-export { storeApp, retrieveLatestAppVersion, retrieveMultipleLastAppVersions, retrieveAppVersion, checkAppIdExists, storeResults, retrieveResults, checkAppIsByUser, retrieveAppsByUser, Apps }
+export {
+    storeApp, retrieveLatestAppVersion, retrieveMultipleLastAppVersions, retrieveAppVersion, checkAppIdExists,
+    checkAppIsByUser, retrieveAppsByUser,
+    Apps
+}
 
 type Apps = {
     appid: string,
@@ -81,13 +85,21 @@ async function storeApp(app: Apps): Promise<any> {
     return result;
 }
 
+// findHistory()  supports pagination and filtering starting kvdex v0.27.0
+
 async function retrieveMultipleLastAppVersions(appid: string, limit: number = 5): Promise<Apps | null> {
     try {
-        const history = await db.apps.findHistory(appid);
+        const history = await db.apps.findHistory(
+            appid,
+            {
+                limit: limit,
+                reverse: true, // newer first
+            });
 
-        console.log("All versions: ", history);  // [ { type, timestamp, value: { version, appid, timestamp, username, groups:[...] } }, ... ]
+        // [ { type, timestamp, value: { version, appid, timestamp, username, groups:[...] } }, ... ]
+        console.log("All versions: ", history);
 
-        return history.slice(-limit).reverse();
+        return history.result;
 
     } catch (error) {
         console.error("Error retrieving all versions for url ID: ", appid, "Error: ", error);
@@ -97,13 +109,20 @@ async function retrieveMultipleLastAppVersions(appid: string, limit: number = 5)
 
 async function retrieveLatestAppVersion(appid: string): Promise<Apps | null> {
     try {
-        const appDocument = await db.apps.find(appid);
+        const history = await db.apps.findHistory(
+            appid,
+            {
+                limit: 1,
+                reverse: true, // newer first
+            });
 
-        const app = appDocument ? appDocument.value : null;
+        const appVersion = history.result.length > 0 ? history.result[0] : null
 
-        console.log("Most Recent App Version:\n", app, "\n END OF Most Recent App Version");
+        console.log("Latest app Version: ", appVersion);
 
-        return app;
+        // [ { type, timestamp, value: { version, appid, timestamp, username, groups:[...] } }, ... ]
+
+        return appVersion;
 
     } catch (error) {
         console.error("Error retrieving latest version for url ID: ", appid, "Error: ", error);
@@ -111,24 +130,32 @@ async function retrieveLatestAppVersion(appid: string): Promise<Apps | null> {
     }
 }
 
+// use the history entry timestamp
+// findHistory()  supports pagination and filtering starting kvdex v0.27.0
+
 async function retrieveAppVersion(appid: string, timestamp: string): Promise<Apps | null> {
     try {
-        const appVersionOperationResult = await db.apps.findBySecondaryIndex(
-            'appid',
+
+        const history = await db.apps.findHistory(
             appid,
             {
-                filter: (doc) => doc.value.timestamp = timestamp,
+                filter: (doc) => {
+                    // timestamps are not stored as strings
+                    return doc.timestamp.toISOString() === timestamp
+                }
             });
 
 
-        const appVersion = appVersionOperationResult.result.length > 0 ? appVersionOperationResult.result[0].value : null
+        const appVersion = history.result.length > 0 ? history.result[0] : null
 
-        console.log("App Version: ", appVersionOperationResult);
+        console.log("App Version: ", appVersion);
+
+        // [ { type, timestamp, value: { version, appid, timestamp, username, groups:[...] } }, ... ]
 
         return appVersion;
 
     } catch (error) {
-        console.error("Error retrieving latest version for url ID: ", appid, "Error: ", error);
+        console.error(`Error retrieving version ${timestamp} for url ID: `, appid, "Error: ", error);
         return null;
     }
 }
@@ -146,6 +173,7 @@ async function checkAppIdExists(appid: string): Promise<boolean> {
         return false;
     }
 }
+
 async function checkAppIsByUser(appid: string, username: string | null): Promise<boolean> {
 
     if (!appid || !username) { return false }

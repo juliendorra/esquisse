@@ -1,6 +1,11 @@
 import { Application, Router } from "https://deno.land/x/oak/mod.ts";
 import { basicAuth } from "./lib/auth.ts";
-import { handleStability, handleChatGPT, handleLoad, handleLoadVersions, handleLoadResult, handlePersist, handlePersistResults, handleListApps, handleListUsers, handleBulkCreateUsers } from './routes/api.ts';
+import {
+  handleStability, handleChatGPT,
+  handleLoad, handleLoadVersion, handleLoadVersions,
+  handleLoadResult, handlePersist, handlePersistResult, handleListApps,
+  handleListUsers, handleBulkCreateUsers
+} from './routes/api.ts';
 import { handleUserFacingURLs, handleStaticFiles } from './routes/user-facing-and-static.ts';
 import { renderResult } from "./lib/result-renderer.ts";
 
@@ -11,7 +16,7 @@ const router = new Router();
 router
   .post('/stability', handleStability)
   .post('/chatgpt', handleChatGPT)
-  .post('/persist-results', handlePersistResults)
+  .post('/persist-result', handlePersistResult)
   .post('/persist', handlePersist)
   .post('/list-apps', handleListApps)
   .post('/load-versions', handleLoadVersions)
