@@ -2,7 +2,7 @@ import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, generateUniqueGro
 import { groupsMap, createGroupInLocalDataStructures, addGroupElement, displayGroupInteractionState, updateGroups, } from "./group-management.js"
 import { updateReferenceGraph } from "./reference-graph.js";
 import Validator from 'https://esm.run/jsonschema';
-import { displayAlert } from "./ui-utils.js";
+import { displayAlert, removeGlobalWaitingIndicator } from "./ui-utils.js";
 
 let ID = null;
 let CREATOR = null;
@@ -54,8 +54,7 @@ const PACKAGED_GROUPS_SCHEMA = {
     "additionalProperties": false
 }
 
-
-export { persistGroups, loadGroups, downloadEsquisseJson, handleEsquisseJsonUpload };
+export { persistGroups, loadGroups, shareResult, downloadEsquisseJson, handleEsquisseJsonUpload };
 
 async function persistGroups(groups) {
 
@@ -351,6 +350,124 @@ async function handleEsquisseJsonUpload(file) {
     reader.readAsText(file);
 }
 
+async function shareResult(groups, ShareButtonElement) {
+
+    ShareButtonElement.classList.remove("error");
+    ShareButtonElement.classList.add("waiting");
+    const fetchingIndicatorElement = document.querySelector(".fetching-indicator");
+    fetchingIndicatorElement.classList.add("waiting");
+
+    const result = await packageResult(groups);
+
+    if (window.DEBUG) {
+        const jsonData = JSON.stringify(result);
+        const blob = new Blob([jsonData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${groups.values().next().value.name} - esquisse-result.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    const resultid = await persistResultOnServer(result);
+
+    if (resultid) {
+        const protocol = window.location.protocol;
+        const host = window.location.host;
+        const url = protocol + "//" + host + "/result/" + resultid
+
+        displayAlert({
+            issue: "Result ready to share!",
+            action: `<a href = "${url}" target = "_blank" > Link to your result</a> `,
+            variant: "success",
+            icon: "file-earmark-arrow-up",
+            duration: Infinity
+        })
+    }
+    else {
+        displayAlert({
+            issue: "Couldn't save your result",
+            action: `Check your connection`,
+            variant: "danger",
+            icon: "file-earmark-arrow-up",
+            duration: 3000
+        })
+
+    }
+
+    ShareButtonElement.classList.remove("waiting");
+    removeGlobalWaitingIndicator();
+}
+
+async function packageResult(groups) {
+    let packagedGroupsResults = {};
+
+    packagedGroupsResults.version = VERSION;
+    packagedGroupsResults.appid = ID;
+    packagedGroupsResults.appversiontimestamp = APP_VERSION_TIMESTAMP;
+    // username and resultid are added server-side
+
+    // we store the groups array in the groups property
+    const groupsResultsPromises = Array.from(groups.values()).map(
+
+        async ({ name, type, result }) => {
+
+            const isResultAnImage =
+                result
+                && result.type
+                && result.type.startsWith("image/")
+                && (type === GROUP_TYPE.IMAGE || type === GROUP_TYPE.IMPORTED_IMAGE);
+
+            if (isResultAnImage) {
+                result = await fileToBase64(result)
+            }
+            return { name, type, result }
+        }
+    );
+
+    packagedGroupsResults.groups = await Promise.all(groupsResultsPromises);
+
+    console.log("[RESULT] stringifyed after promise.all", JSON.stringify(packagedGroupsResults.groups));
+
+    return packagedGroupsResults;
+}
+
+async function persistResultOnServer(packagedResult) {
+
+    console.log("[PERSIST] Persist result on server", packagedResult);
+
+    try {
+        const response = await fetch('/persist-result', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(
+                {
+                    groups: packagedResult.groups,
+                    version: packagedResult.version,
+                    appid: packagedResult.appid,
+                    appversiontimestamp: packagedResult.appversiontimestamp,
+                }
+            ),
+        });
+
+        if (!response.ok) {
+            throw new Error(response);
+        }
+
+        const { resultid } = await response.json();
+
+        console.log("[PERSIST] result id sent by server", resultid);
+
+        return resultid;
+
+    } catch (error) {
+        console.error("Error in persisting result", error.body);
+    }
+}
+
 // Utils
 
 // Function to encode a string as base64 while handling Unicode characters
@@ -367,8 +484,6 @@ function base64UnicodeEncode(obj) {
     return btoa(base64ReadyString);
 }
 
-
-
 // Function to decode a base64 string back while handling Unicode characters
 function base64UnicodeDecode(base64String) {
     const binaryString = atob(base64String);
@@ -378,4 +493,14 @@ function base64UnicodeDecode(base64String) {
 }
 
 
-
+async function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const base64String = reader.result.replace('data:', '').replace(/^.+,/, '');
+            resolve(base64String);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}

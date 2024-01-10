@@ -5,7 +5,7 @@ import { addMiniviewButtonsListeners } from "./reordering.js";
 
 import { GROUP_TYPE, getGroupIdFromElement } from "./group-utils.js";
 
-import { loadGroups, downloadEsquisseJson, handleEsquisseJsonUpload } from "./persistence.js";
+import { loadGroups, shareResult, downloadEsquisseJson, handleEsquisseJsonUpload } from "./persistence.js";
 
 import { groupsMap, createGroupAndAddGroupElement } from "./group-management.js";
 
@@ -116,6 +116,10 @@ async function init() {
     document.querySelector(".add-imported-image-group-btn").addEventListener("click", () =>
         createGroupAndAddGroupElement(GROUP_TYPE.IMPORTED_IMAGE)
     );
+
+    document.querySelector(".share-result-btn").addEventListener('click', (event) => {
+        shareResult(groupsMap.GROUPS, event.currentTarget);
+    });
 
     // Settings Menu Listeners
 
