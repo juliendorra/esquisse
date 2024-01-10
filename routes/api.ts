@@ -4,17 +4,27 @@ import { customAlphabet } from 'npm:nanoid';
 import { tryGenerate as callImageGen } from "../lib/imagegen.ts";
 import { callGPT } from "../lib/gpt.js";
 import { bulkCreateUsers, listUsers } from "../lib/users.ts";
+import { downloadResult, uploadResult } from "../lib/file-storage.ts";
 import {
-    storeApp, retrieveLatestAppVersion, retrieveMultipleLastAppVersions, checkAppIdExists,
-    storeResults, retrieveResults, checkAppIsByUser, retrieveAppsByUser
+    storeApp,
+    retrieveLatestAppVersion, retrieveMultipleLastAppVersions, retrieveAppVersion, checkAppIdExists,
+    storeResultMetadata, retrieveResultMetadata,
+    checkAppIsByUser, retrieveAppsByUser,
 } from "../lib/apps.ts";
 
 
-export { handleStability, handleChatGPT, handleLoad, handleLoadVersions, handleLoadResult, handlePersist, handlePersistResults, handleListApps, handleListUsers, handleBulkCreateUsers }
+export {
+    handleStability, handleChatGPT,
+    handleLoad, handleLoadVersion, handleLoadVersions,
+    handleLoadResult,
+    handlePersist, handlePersistResult, handleListApps,
+    handleListUsers, handleBulkCreateUsers
+}
 
 // Constants and utilities
 const alphabet = "123456789bcdfghjkmnpqrstvwxyz";
-const nanoid = customAlphabet(alphabet, 14);
+const nanoidForApp = customAlphabet(alphabet, 14);
+const nanoidForResult = customAlphabet(alphabet, 17);
 
 // Handler functions
 
@@ -117,11 +127,46 @@ async function handleLoad(ctx) {
 
     console.log("Loading groups from KV: ", body);
 
+    //  {type,timestamp,value:{versiongroups,appid,timestamp,username}}
     const groups = await retrieveLatestAppVersion(id);
 
     if (groups) {
         ctx.response.body = JSON.stringify(groups);
         return;
+    } else {
+        ctx.response.status = 404;
+        ctx.response.body = 'App not found';
+        return;
+    }
+}
+
+// Handler for '/load-version' endpoint
+async function handleLoadVersion(ctx) {
+
+    const responseBody = ctx.request.body({ type: "json" });
+    const body = await responseBody.value;
+
+    console.log("Loading versions of app from KV");
+
+    const id = body.id;
+    const appversiontimestamp = body.appversiontimestamp;
+
+    // {type,timestamp,value:{versiongroups,appid,timestamp,username}}
+    let appversion;
+
+    if (id && appversiontimestamp) {
+        appversion = await retrieveAppVersion(id, appversiontimestamp);
+    }
+    else {
+        ctx.response.status = 400;
+        ctx.response.body = 'Missing id and/or appversiontimestamp fields';
+        return;
+    }
+
+    if (appversion) {
+        ctx.response.body = JSON.stringify(appversion);
+        return;
+
     } else {
         ctx.response.status = 404;
         ctx.response.body = 'App not found';
@@ -139,10 +184,12 @@ async function handleLoadVersions(ctx) {
 
     const id = body.id;
     const limit = body.limit;
-    let groups;
+
+    // [{type,timestamp,value:{versiongroups,appid,timestamp,username}}, ...]
+    let appversions;
 
     if (id && limit) {
-        groups = await retrieveMultipleLastAppVersions(id, limit);
+        appversions = await retrieveMultipleLastAppVersions(id, limit);
     }
     else {
         ctx.response.status = 400;
@@ -150,8 +197,8 @@ async function handleLoadVersions(ctx) {
         return;
     }
 
-    if (groups) {
-        ctx.response.body = JSON.stringify(groups);
+    if (appversions.length > 0) {
+        ctx.response.body = JSON.stringify(appversions);
         return;
 
     } else {
@@ -175,11 +222,24 @@ async function handleLoadResult(ctx) {
         return;
     }
 
-    const results = await retrieveResults(resultid);
+    const resultMetadata = await retrieveResultMetadata(resultid);
 
-    ctx.response.body = JSON.stringify(results);
+    if (!resultMetadata) {
+        ctx.response.status = 404;
+        ctx.response.body = ("No metadata found for this result");
+        return;
+    }
+
+    const downloadResponse = await downloadResult(resultMetadata.id)
+
+    if (!downloadResponse) {
+        ctx.response.status = 404;
+        ctx.response.body = ("No file found for this result");
+        return;
+    }
+
+    ctx.response.body = downloadResponse.body;
 }
-
 
 // Handler for '/persist' endpoint
 async function handlePersist(ctx) {
@@ -195,7 +255,7 @@ async function handlePersist(ctx) {
     const timestamp = new Date().toISOString();
 
     if (!appid) {
-        appid = nanoid(); //=> "f1q6jhnnvfmgxx"
+        appid = nanoidForApp(); //=> "f1q6jhnnvfmgxx"
     }
     else if (!await checkAppIdExists(appid)) {
         ctx.response.status = 404;
@@ -204,7 +264,7 @@ async function handlePersist(ctx) {
     }
 
     if (!(await checkAppIsByUser(appid, username))) {
-        appid = nanoid(); // Generate new ID if the existing ID belongs to another user
+        appid = nanoidForApp(); // Generate new ID if the existing ID belongs to another user
     }
 
     let groups = body.groups;
@@ -219,27 +279,47 @@ async function handlePersist(ctx) {
     ctx.response.body = JSON.stringify({ id: appid, username: username });
 }
 
-// Handler for '/persist-results' endpoint
-async function handlePersistResults(ctx) {
+// Handler for '/persist-result' endpoint
+async function handlePersistResult(ctx) {
 
     const responseBody = ctx.request.body({ type: "json" });
-    const body = await responseBody.value;
+    const resultData = await responseBody.value;
 
-    const resultid = nanoid();
-    const timestamp = new Date().toISOString();
+    resultData.resultid = nanoidForResult();
+    resultData.timestamp = new Date().toISOString();
+    resultData.username = ctx.state.user.username;
 
-    const resultsData = { ...body, timestamp, resultid };
+    const metadata = {
+        resultid: resultData.resultid,
 
-    const result = await storeResults(resultsData);
+        username: resultData.username,
+        timestamp: resultData.timestamp,
 
-    if (!result.ok) {
+        appid: resultData.appid,
+        appversiontimestamp: resultData.appversiontimestamp,
+    }
+
+    const storingStatus = await storeResultMetadata(metadata);
+
+    if (!storingStatus.ok) {
         ctx.response.status = 400;
-        ctx.response.body = ("Results not stored");
+        ctx.response.body = ("Result metadata storing failed");
         return;
     }
 
+    const uploadStatus = await uploadResult(resultData, storingStatus.id)
+
+    if (!uploadStatus.success) {
+
+        ctx.response.status = 400;
+        ctx.response.body = ("Result upload failed");
+        return;
+    }
+
+    console.log(`[RESULT] saved result id ${metadata.resultid} available at ", uploadStatus.url`)
+
     ctx.response.status = 200;
-    ctx.response.body = ("Results stored successfully");
+    ctx.response.body = { resultid: resultData.resultid };
 }
 
 // Handler for '/list-apps' endpoint

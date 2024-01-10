@@ -20,6 +20,7 @@ router
   .post('/persist', handlePersist)
   .post('/list-apps', handleListApps)
   .post('/load-versions', handleLoadVersions)
+  .post('/load-version', handleLoadVersion)
   .post('/load-result', handleLoadResult)
   .post('/load', handleLoad)
   ;
@@ -31,9 +32,9 @@ router
   .get('/app/:id', handleUserFacingURLs)
   .get('/apps', handleUserFacingURLs)
   .get('/apps/:user', handleUserFacingURLs)
+  .get("/result/:id", renderResult)
   .get('/admin', handleUserFacingURLs)
   .get('/', handleUserFacingURLs)
-  .get("/result/:id", renderResult)
   ;
 
 // Admin Endpoints
@@ -69,7 +70,9 @@ const routePrefixes = [
 ];
 
 const exactRoutes = [
-  '/stability', '/chatgpt', '/load', '/load-versions', '/load-result',
+  '/stability', '/chatgpt',
+  '/load', '/load-version', '/load-versions', '/load-result',
+  '/persist-result',
   "/app", "/apps", "/admin",
   "/list-users", "/bulk-create-users",
 ];

@@ -2,6 +2,7 @@ import { kvdex, model, collection } from "https://deno.land/x/kvdex/mod.ts";
 
 export {
     storeApp, retrieveLatestAppVersion, retrieveMultipleLastAppVersions, retrieveAppVersion, checkAppIdExists,
+    storeResultMetadata, retrieveResultMetadata,
     checkAppIsByUser, retrieveAppsByUser,
     Apps
 }
@@ -23,17 +24,10 @@ type Apps = {
 
 type Result = {
     resultid: string;
-    appid: string;
-    timestamp: string;
     username: string;
-    groups: Array<{
-        name: string;
-        data?: string;
-        transform?: string;
-        result: string;
-        type: string;
-        interactionState: string;
-    }>;
+    timestamp: string;
+    appid: string;
+    appversiontimestamp: string;
 }
 
 const ResultModel = model<Result>();
@@ -66,10 +60,6 @@ const db = kvdex(kv, {
                 appid: "secondary",
                 timestamp: "secondary",
                 username: "secondary",
-            },
-            serialized: {
-                serialize: (obj) => new TextEncoder().encode(JSON.stringify(obj)),
-                deserialize: (data) => JSON.parse(new TextDecoder().decode(data)),
             }
         })
 });
@@ -196,7 +186,8 @@ async function checkAppIsByUser(appid: string, username: string | null): Promise
     }
 }
 
-async function storeResults(result: Result): Promise<any> {
+async function storeResultMetadata(result: Result): Promise<any> {
+
     const addOperationResult = await db.results.add(result);
 
     console.log("Result added to kv store: ", addOperationResult.id, addOperationResult);
@@ -204,7 +195,7 @@ async function storeResults(result: Result): Promise<any> {
     return addOperationResult;
 }
 
-async function retrieveResults(resultid: string): Promise<Result | null> {
+async function retrieveResultMetadata(resultid: string): Promise<{ id: string, versionstamp: string, value: Result } | null> {
 
     try {
         const resultByResultid = await db.results.findByPrimaryIndex("resultid", resultid)

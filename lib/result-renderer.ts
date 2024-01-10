@@ -1,5 +1,7 @@
 import "https://deno.land/x/dotenv/load.ts";
 import { Eta } from "https://deno.land/x/eta/src/index.ts";
+import { retrieveResultMetadata } from "./apps.ts";
+import { downloadResult } from "./file-storage.ts";
 
 const S3_PROTOCOL = Deno.env.get("S3_PROTOCOL") || "https://"
 const S3_ENDPOINT = Deno.env.get("S3_ENDPOINT");
@@ -51,32 +53,29 @@ const GROUP_HTML = {
 async function renderResult(ctx) {
     const id = ctx.params.id;
 
-    const key = `${id}.json`;
-    const resultUrl = `${S3_PROTOCOL}${S3_ENDPOINT}/${S3_BUCKET}/${key}`;
-
-    console.log("[RESULT] fetching json from ", resultUrl)
-
-    let result: any;
-
-    try {
-        const response = await fetch(resultUrl);
-
-        if (!response.ok) {
-            throw { response };
-        }
-
-        const json = await response.json();
-
-        result = json;
-
-    }
-    catch (error) {
-        console.error("[RESULT] Error loading results", error);
-
-        ctx.response.status = error.response.status;
-        ctx.response.body = await error.response;
+    if (!id) {
+        ctx.response.status = 400;
+        ctx.response.body = "id is required";
         return;
     }
+
+    const resultMetadata = await retrieveResultMetadata(id);
+
+    if (!resultMetadata) {
+        ctx.response.status = 404;
+        ctx.response.body = ("No metadata found for this result");
+        return;
+    }
+
+    const downloadResponse = await downloadResult(resultMetadata.id)
+
+    if (!downloadResponse) {
+        ctx.response.status = 404;
+        ctx.response.body = ("No file found for this result");
+        return;
+    }
+
+    const result = await downloadResponse.json();
 
     ctx.response.headers.set("content-type", "text/html; charset=utf-8");
 
