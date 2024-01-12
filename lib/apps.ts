@@ -1,4 +1,4 @@
-import { kvdex, model, collection } from "https://deno.land/x/kvdex/mod.ts";
+import { kvdex, model, collection, HistoryEntry } from "https://deno.land/x/kvdex/mod.ts";
 
 export {
     storeApp, retrieveLatestAppVersion, retrieveMultipleLastAppVersions, retrieveAppVersion, checkAppIdExists,
@@ -18,6 +18,7 @@ type Apps = {
         transform?: string;
         type: string;
         interactionState: string;
+        controlnetEnabled: boolean;
         resultDisplayFormat?: string;
     }>;
 }
@@ -47,8 +48,8 @@ const db = kvdex(kv, {
             },
             history: true,
             serialized: {
-                serialize: (obj) => new TextEncoder().encode(JSON.stringify(obj)),
-                deserialize: (data) => JSON.parse(new TextDecoder().decode(data)),
+                serialize: (obj: object) => new TextEncoder().encode(JSON.stringify(obj)),
+                deserialize: (data: ArrayBuffer) => JSON.parse(new TextDecoder().decode(data)),
             }
         }),
 
@@ -77,7 +78,7 @@ async function storeApp(app: Apps): Promise<any> {
 
 // findHistory()  supports pagination and filtering starting kvdex v0.27.0
 
-async function retrieveMultipleLastAppVersions(appid: string, limit: number = 5): Promise<Apps | null> {
+async function retrieveMultipleLastAppVersions(appid: string, limit = 5): Promise<Apps | null> {
     try {
         const history = await db.apps.findHistory(
             appid,
@@ -97,7 +98,8 @@ async function retrieveMultipleLastAppVersions(appid: string, limit: number = 5)
     }
 }
 
-async function retrieveLatestAppVersion(appid: string): Promise<Apps | null> {
+
+async function retrieveLatestAppVersion(appid: string): Promise<HistoryEntry<Apps> | null> {
     try {
         const history = await db.apps.findHistory(
             appid,
@@ -110,7 +112,7 @@ async function retrieveLatestAppVersion(appid: string): Promise<Apps | null> {
 
         console.log("Latest app Version: ", appVersion);
 
-        // [ { type, timestamp, value: { version, appid, timestamp, username, groups:[...] } }, ... ]
+        // { type, timestamp, value: { version, appid, timestamp, username, groups:[...] } }
 
         return appVersion;
 
@@ -123,7 +125,7 @@ async function retrieveLatestAppVersion(appid: string): Promise<Apps | null> {
 // use the history entry timestamp
 // findHistory()  supports pagination and filtering starting kvdex v0.27.0
 
-async function retrieveAppVersion(appid: string, timestamp: string): Promise<Apps | null> {
+async function retrieveAppVersion(appid: string, timestamp: string): Promise<HistoryEntry<Apps> | null> {
     try {
 
         const history = await db.apps.findHistory(
@@ -140,7 +142,7 @@ async function retrieveAppVersion(appid: string, timestamp: string): Promise<App
 
         console.log("App Version: ", appVersion);
 
-        // [ { type, timestamp, value: { version, appid, timestamp, username, groups:[...] } }, ... ]
+        // { type, timestamp, value: { version, appid, timestamp, username, groups:[...] } }
 
         return appVersion;
 
@@ -175,7 +177,7 @@ async function checkAppIsByUser(appid: string, username: string | null): Promise
 
         if (latestGroups) {
 
-            isByUser = (latestGroups.username === username)
+            isByUser = (latestGroups.value.username === username)
         }
 
         return isByUser;
