@@ -1,4 +1,4 @@
-export { displayAlert, removeGlobalWaitingIndicator };
+export { displayAlert, removeGlobalWaitingIndicator, createZoomedImage };
 
 function displayAlert({ issue, action, variant = "warning", icon = "exclamation-triangle", duration = 3000 }) {
 
@@ -33,4 +33,23 @@ function removeGlobalWaitingIndicator() {
 
         fetchingIndicatorElement.classList.remove("waiting");
     }
+}
+
+function createZoomedImage(event) {
+
+    let clonedImage = event.currentTarget.cloneNode(true);
+
+    clonedImage.classList.add('zoomed');
+
+    document.body.classList.add('no-scroll');
+
+    clonedImage.addEventListener('click',
+        function (event) {
+            document.body.classList.remove('no-scroll');
+            clonedImage.remove();
+            clonedImage = null;
+        });
+
+    document.body.appendChild(clonedImage);
+
 }

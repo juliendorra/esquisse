@@ -4,9 +4,7 @@ import { getReferencedResultsAndCombinedDataWithResults } from "./reference-matc
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 import { persistGroups } from "./persistence.js";
 import { SETTINGS } from "./app.js";
-import { displayAlert } from "./ui-utils.js";
-import { removeGlobalWaitingIndicator } from "./ui-utils.js";
-
+import { displayAlert, removeGlobalWaitingIndicator, createZoomedImage } from "./ui-utils.js";
 
 export { nameChangeHandler, handleInputChange, handleListSelectionChange, handleImportedImage, handleDroppedImage };
 
@@ -487,27 +485,6 @@ async function handleDroppedImage(imageFile, group, groupElement) {
     }
 }
 
-
-// UI 
-
-function createZoomedImage(event) {
-
-    let clonedImage = event.currentTarget.cloneNode(true);
-
-    clonedImage.classList.add('zoomed');
-
-    document.body.classList.add('no-scroll');
-
-    clonedImage.addEventListener('click',
-        function (event) {
-            document.body.classList.remove('no-scroll');
-            clonedImage.remove();
-            clonedImage = null;
-        });
-
-    document.body.appendChild(clonedImage);
-
-}
 
 // Utils
 
