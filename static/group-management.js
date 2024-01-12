@@ -20,7 +20,7 @@ let ONGOING_UPDATES = new Map();
 
 export {
     groupsMap, createGroupInLocalDataStructures,
-    addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, displayGroupInteractionState, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, rebuildGroupsInNewOrder
+    addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, displayGroupInteractionState, displayControlnetStatus, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, rebuildGroupsInNewOrder
 };
 
 const GROUP_HTML = {
@@ -346,8 +346,7 @@ function addEventListenersToGroup(groupElement) {
     groupElement.querySelector(".controlnet-btn")?.addEventListener("click", (event) => {
         group.controlnetEnabled = group.controlnetEnabled === true ? false : true;
 
-        if (group.controlnetEnabled) { event.currentTarget.classList.add("selected"); }
-        else { event.currentTarget.classList.remove("selected"); }
+        displayControlnetStatus(groupElement, group.controlnetEnabled)
 
         persistGroups(groupsMap.GROUPS);
     });
@@ -420,6 +419,15 @@ function displayGroupInteractionState(groupElement, interactionState) {
             transformElement?.setAttribute("readonly", "readonly");
             break;
     }
+}
+
+function displayControlnetStatus(groupElement, controlnetEnabled) {
+
+    const controlnetButton = groupElement.querySelector(".controlnet-btn")
+
+    if (controlnetButton && controlnetEnabled) { controlnetButton.classList.add("selected"); }
+    else if (controlnetButton) { controlnetButton.classList.remove("selected"); }
+
 }
 
 async function updateGroups(idsOfGroupsToUpdate, forceRefresh = false) {

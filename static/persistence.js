@@ -1,5 +1,5 @@
 import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, generateUniqueGroupID } from "./group-utils.js";
-import { groupsMap, createGroupInLocalDataStructures, addGroupElement, displayGroupInteractionState, updateGroups, } from "./group-management.js"
+import { groupsMap, createGroupInLocalDataStructures, addGroupElement, displayGroupInteractionState, displayControlnetStatus, updateGroups, } from "./group-management.js"
 import { updateReferenceGraph } from "./reference-graph.js";
 import Validator from 'https://esm.run/jsonschema';
 import { displayAlert, removeGlobalWaitingIndicator } from "./ui-utils.js";
@@ -94,12 +94,13 @@ function packageGroups(groups) {
     packagedGroups.version = VERSION;
 
     // we store the groups array in the groups property
-    packagedGroups.groups = Array.from(groups.values()).map(({ name, data, transform, type, interactionState, resultDisplayFormat }) => ({
+    packagedGroups.groups = Array.from(groups.values()).map(({ name, data, transform, type, interactionState, controlnetEnabled, resultDisplayFormat }) => ({
         name,
         data,
         transform,
         type,
         interactionState,
+        controlnetEnabled,
         resultDisplayFormat,
     }));
     return packagedGroups;
@@ -230,7 +231,7 @@ async function loadGroups(importedGroups) {
         const groupsContainer = document.querySelector(".container");
         groupsContainer.innerHTML = "";
 
-        decodedGroups.groups.forEach(({ name, data, transform, type, interactionState, resultDisplayFormat }) => {
+        decodedGroups.groups.forEach(({ name, data, transform, type, interactionState, controlnetEnabled, resultDisplayFormat }) => {
             const group = {
                 id: generateUniqueGroupID(groups),
                 name,
@@ -240,6 +241,7 @@ async function loadGroups(importedGroups) {
                 result: null,
                 lastRequestTime: 0,
                 interactionState: interactionState || INTERACTION_STATE.OPEN,
+                controlnetEnabled: controlnetEnabled || undefined,
                 resultDisplayFormat: resultDisplayFormat || undefined,
             };
 
@@ -258,6 +260,8 @@ async function loadGroups(importedGroups) {
 
             // displayGroupInteractionState display the right UI state based on the set group.interactionState
             displayGroupInteractionState(groupElement, group.interactionState);
+
+            displayControlnetStatus(groupElement, group.controlnetEnabled);
 
         });
     } catch (error) {
