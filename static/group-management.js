@@ -419,6 +419,16 @@ function displayGroupInteractionState(groupElement, interactionState) {
             transformElement?.setAttribute("readonly", "readonly");
             break;
     }
+
+    const lockButton = groupElement.querySelector(".lock-btn");
+
+    if (interactionState === INTERACTION_STATE.LOCKED) { lockButton.classList.add("selected"); }
+    else { lockButton.classList.remove("selected"); }
+
+    const entryButton = groupElement.querySelector(".entry-btn");
+
+    if (interactionState === INTERACTION_STATE.ENTRY) { entryButton.classList.add("selected"); }
+    else { entryButton.classList.remove("selected"); }
 }
 
 function displayControlnetStatus(groupElement, controlnetEnabled) {
