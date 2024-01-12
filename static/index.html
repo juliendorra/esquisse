@@ -661,6 +661,10 @@
             justify-content: space-between;
         }
 
+        sl-drawer .settings-menu-top div {
+            margin-bottom: 0;
+        }
+
         sl-drawer sl-icon {
             vertical-align: text-bottom;
         }
@@ -998,6 +1002,13 @@
                 <sl-icon-button part="close-button" exportparts="base:close-button__base" class="drawer__close" name="x-lg" library="system" label="Close"></sl-icon-button>
             </div>
 
+        </div>
+
+        <div>
+            <sl-button id="create-new-app-btn" href="/app">
+                <sl-icon slot="prefix" name="plus-circle"></sl-icon>
+                Create new app
+            </sl-button>
         </div>
 
         <h3>Settings</h3>
