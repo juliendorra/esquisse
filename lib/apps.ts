@@ -68,7 +68,7 @@ async function storeApp(app: Apps): Promise<any> {
 
     console.log(app);
 
-    const result = await db.apps.write(app.appid, app);
+    const result = await db.apps.set(app.appid, app, { overwrite: true });
 
     console.log(`app ${app.appid}, (${app.groups[0].name}) written to kv store: `, result);
 
