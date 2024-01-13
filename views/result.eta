@@ -821,7 +821,7 @@
         <button class="footer-btn exit-miniview-btn">Back <span class="icon-btn"><img src="/icons/miniview.svg"></span></button>
         <button class="footer-btn enter-miniview-btn">Miniview <span class="icon-btn"><img src="/icons/miniview.svg"></span></button>
         
-        <a class="footer-btn use-this-app-btn" href="/app/<%= it.appid %>">Use this app <span class="icon-btn"><img src="/icons/image-gen.svg"></span></a>
+        <a class="footer-btn use-this-app-btn" href="/app/<%= it.appid %>">Use this app <span class="icon-btn"><img src="/icons/use-app.svg"></span></a>
         <a class="footer-btn create-new-app-btn" href="/app">Create new app <span class="icon-btn"><img src="/icons/new-app.svg"></span></a>
 
     </div>
