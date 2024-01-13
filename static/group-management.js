@@ -339,12 +339,13 @@ function addEventListenersToGroup(groupElement) {
     groupElement.querySelector(".delete-btn").addEventListener("click", () => deleteGroup(groupElement));
 
     groupElement.querySelector(".list-mode-btn")?.addEventListener("click", (event) => {
-        const resultDisplayFormat = group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.LIST ? RESULT_DISPLAY_FORMAT.TEXT : RESULT_DISPLAY_FORMAT.LIST;
+
+        group.resultDisplayFormat = (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.LIST) ? RESULT_DISPLAY_FORMAT.TEXT : RESULT_DISPLAY_FORMAT.LIST;
 
         if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.LIST) { event.currentTarget.classList.add("selected"); }
         else { event.currentTarget.classList.remove("selected"); }
 
-        setGroupResultDisplayFormat(groupElement, resultDisplayFormat);
+        setGroupResultDisplayFormat(groupElement, group.resultDisplayFormat);
         displayFormattedResults(groupElement);
         persistGroups(groupsMap.GROUPS);
     });
