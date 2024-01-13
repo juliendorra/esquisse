@@ -721,6 +721,8 @@ function displayFormattedResults(groupElement) {
 
     const group = groupsMap.GROUPS.get(getGroupIdFromElement(groupElement));
 
+    if (!group.result) { return; }
+
     if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.LIST) {
 
         const listItems = parseResultsAsList(group.result);
