@@ -29,7 +29,7 @@ const GROUP_HTML = {
             <div class="group-header">
                 <small><img src="/icons/break.svg"></small>
                 <div class="drag-handle">···</div>
-                <button class="tool-btn delete-btn"><img src="/icons/delete.svg"></button>
+                <button class="tool-btn delete-btn" aria-label="Delete"><img src="/icons/delete.svg"></button>
             </div>
             <input type="text" class="group-name" placeholder="Name of this block">
             `,
@@ -38,17 +38,17 @@ const GROUP_HTML = {
             <div class="group-header">
                 <small><img src="/icons/text-static.svg"></small>
                 <div class="drag-handle">···</div>
-                <button class="tool-btn delete-btn"><img src="/icons/delete.svg"></button>
+                <button class="tool-btn delete-btn" aria-label="Delete"><img src="/icons/delete.svg"></button>
             </div>
             <input type="text" class="group-name" placeholder="Name of this block">
             <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
 
             <div class="function-buttons-container">
-                <button class="tool-btn list-mode-btn"><img src="/icons/list-mode.svg"></button>
+                <button class="tool-btn list-mode-btn" aria-label="List mode"><img src="/icons/list-mode.svg"></button>
                 <div class="group-btn">
-                <button class="tool-btn entry-btn"><img src="/icons/entry.svg"></button>
-                <button class="tool-btn lock-btn"><img src="/icons/lock.svg"></button>
+                <button class="tool-btn entry-btn" aria-label="Entry"><img src="/icons/entry.svg"></button>
+                <button class="tool-btn lock-btn" aria-label="Lock"><img src="/icons/lock.svg"></button>
                 </div>
             </div>
             `,
@@ -58,13 +58,13 @@ const GROUP_HTML = {
             <div class="group-header">
                 <small><img src="/icons/imported-image.svg"></small>
                 <div class="drag-handle">···</div>
-                <button class="tool-btn delete-btn"><img src="/icons/delete.svg"></button>
+                <button class="tool-btn delete-btn" aria-label="Delete"><img src="/icons/delete.svg"></button>
             </div>
             <input type="text" class="group-name" placeholder="Name of this block">
             <div class="image-import-container">
                 <div class="drop-zone">Drop image here<br/>or click to load</div>
             </div>
-            <img class="result" style="display:none;">
+            <img class="result" alt="Imported image" style="display:none;">
             `,
 
 
@@ -72,7 +72,7 @@ const GROUP_HTML = {
             <div class="group-header">
                 <small><img src="/icons/text-gen.svg"></small>
                 <div class="drag-handle">···</div>
-                <button class="tool-btn delete-btn"><img src="/icons/delete.svg"></button>
+                <button class="tool-btn delete-btn" aria-label="Delete"><img src="/icons/delete.svg"></button>
             </div>
 
             <input type="text" class="group-name" placeholder="Name of this block">
@@ -81,12 +81,12 @@ const GROUP_HTML = {
             <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
 
             <div class="function-buttons-container">
-                <button class="tool-btn list-mode-btn"><img src="/icons/list-mode.svg"></button>
+                <button class="tool-btn list-mode-btn"><img alt="List mode" src="/icons/list-mode.svg"></button>
                 <div class="group-btn">
-                <button class="tool-btn entry-btn"><img src="/icons/entry.svg"></button>
-                <button class="tool-btn lock-btn"><img src="/icons/lock.svg"></button>
+                <button class="tool-btn entry-btn" aria-label="Entry"><img src="/icons/entry.svg"></button>
+                <button class="tool-btn lock-btn" aria-label="Lock"><img src="/icons/lock.svg"></button>
                 </div>
-                <button class="tool-btn refresh-btn"><img src="/icons/refresh.svg"></button>
+                <button class="tool-btn refresh-btn" aria-label="Refresh"><img src="/icons/refresh.svg"></button>
             </div>
             `,
 
@@ -94,7 +94,7 @@ const GROUP_HTML = {
             <div class="group-header">
                 <small><img src="/icons/image-gen.svg"></small>
                 <div class="drag-handle">···</div>
-                <button class="tool-btn delete-btn"><img src="/icons/delete.svg"></button>
+                <button class="tool-btn delete-btn" aria-label="Delete"><img src="/icons/delete.svg"></button>
             </div>
 
             <input type="text" class="group-name" placeholder="Name of this Block">
@@ -103,16 +103,16 @@ const GROUP_HTML = {
             <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
 
             <div class="function-buttons-container">
-                <button class="tool-btn controlnet-btn"><img src="/icons/controlnet.svg"></button>
+                <button class="tool-btn controlnet-btn" aria-label="Controlnet"><img src="/icons/controlnet.svg"></button>
                 <div class="group-btn">
-                <button class="tool-btn entry-btn"><img src="/icons/entry.svg"></button>
-                <button class="tool-btn lock-btn"><img src="/icons/lock.svg"></button>
+                <button class="tool-btn entry-btn" aria-label="Entry"><img src="/icons/entry.svg"></button>
+                <button class="tool-btn lock-btn" aria-label="Lock"><img src="/icons/lock.svg"></button>
                 </div>
-                <button class="tool-btn refresh-btn"><img src="/icons/refresh.svg"></button>
+                <button class="tool-btn refresh-btn" aria-label="Refresh"><img src="/icons/refresh.svg"></button>
             </div>
 
-            <img class="result">
-            <a class="tool-btn download-btn"><img src="/icons/download.svg"></a>
+            <img class="result"  alt="Imported image"  style="display:none;">
+            <a class="tool-btn download-btn" aria-label="Download"><img src="/icons/download.svg"></a>
             `,
 
 };
