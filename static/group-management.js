@@ -46,8 +46,10 @@ const GROUP_HTML = {
 
             <div class="function-buttons-container">
                 <button class="tool-btn list-mode-btn"><img src="/icons/list-mode.svg"></button>
+                <div class="group-btn">
                 <button class="tool-btn entry-btn"><img src="/icons/entry.svg"></button>
                 <button class="tool-btn lock-btn"><img src="/icons/lock.svg"></button>
+                </div>
             </div>
             `,
 
@@ -80,8 +82,10 @@ const GROUP_HTML = {
 
             <div class="function-buttons-container">
                 <button class="tool-btn list-mode-btn"><img src="/icons/list-mode.svg"></button>
+                <div class="group-btn">
                 <button class="tool-btn entry-btn"><img src="/icons/entry.svg"></button>
                 <button class="tool-btn lock-btn"><img src="/icons/lock.svg"></button>
+                </div>
                 <button class="tool-btn refresh-btn"><img src="/icons/refresh.svg"></button>
             </div>
             `,
@@ -100,8 +104,10 @@ const GROUP_HTML = {
 
             <div class="function-buttons-container">
                 <button class="tool-btn controlnet-btn"><img src="/icons/controlnet.svg"></button>
+                <div class="group-btn">
                 <button class="tool-btn entry-btn"><img src="/icons/entry.svg"></button>
                 <button class="tool-btn lock-btn"><img src="/icons/lock.svg"></button>
+                </div>
                 <button class="tool-btn refresh-btn"><img src="/icons/refresh.svg"></button>
             </div>
 

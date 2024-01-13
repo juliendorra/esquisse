@@ -297,6 +297,36 @@ textarea {
     box-shadow: inset 0.25em 0.3em var(--light-border);
 }
 
+/* Button groups, This style is to be used for buttons that are exclusive to each others */
+
+.group-btn {
+    display: inline-flex;
+}
+
+/* first button */
+.group-btn .tool-btn:first-child {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0rem;
+    margin-right: 0;
+}
+
+/* middle buttons */
+.group-btn .tool-btn:not(:first-child):not(:last-child) {
+    border-radius: 0;
+    margin-left: 0;
+    margin-right: 0;
+    border-left: none;
+    border-right: none;
+}
+
+/* last button */
+.group-btn .tool-btn:last-child {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    margin-left: 0;
+    border-left: none;
+}
+
 .group.static .tool-btn {
     border-color: var(--group-static-color-code);
 }
