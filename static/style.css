@@ -556,10 +556,13 @@ img.result.zoomed {
     vertical-align: text-bottom;
 }
 
+.footer-btn text-btn.hidden {
+    display: none;
+}
+
 .footer-btn.open-settings-menu-btn img {
     padding-left: 0;
 }
-
 
 .enter-miniview-btn,
 .exit-miniview-btn {
