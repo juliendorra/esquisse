@@ -855,11 +855,11 @@ sl-drawer .drop-zone#upload-json-zone {
     position: fixed;
     z-index: 99;
     width: 100vw;
-    height: 0.5ex;
+    height: 1.5ex;
     color: #f8a7ff;
 
-    background-image: linear-gradient(270deg, #f8a7ff, #efe4f9, #f8a7ff);
-    animation: scrollingBackground 40s infinite linear;
+    background-image: repeating-linear-gradient(-270deg, #f8a7ff, #e2cbfe 45.38%, rgb(198, 154, 254) 57.56%, #f8a7ff);
+    animation: scrollingBackground 20s infinite linear;
 }
 
 
