@@ -49,7 +49,8 @@ body {
 }
 
 
-canvas#mesh-background {
+canvas#mesh-background,
+img#mesh-background-clone {
     z-index: -99;
     position: absolute;
     top: 0;

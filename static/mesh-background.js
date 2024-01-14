@@ -1,10 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.157.0/+esm';
 
-export { initMeshBackground, renderBackground };
-
-const FPS = 6;
-
-let STOP_ANIMATION = false;
+export { initMeshBackground, renderBackground, renderAndReturnUrlOfCopy };
 
 const MAX_DIVS = 100;
 let ACTIVE_DIVS = 3;
@@ -198,3 +194,42 @@ function renderBackground() {
 
     RENDERER.render(SCENE, CAMERA);
 }
+
+
+async function renderAndReturnUrlOfCopy() {
+
+    renderBackground();
+
+    // Convert 3vw to pixels
+    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+    const blurRadius = 0.03 * vw; // 3% of the viewport width
+
+    // Create a temporary canvas to apply the blur effect
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = RENDERER.domElement.width;
+    tempCanvas.height = RENDERER.domElement.height;
+    const tempCtx = tempCanvas.getContext('2d');
+
+    // Draw the original canvas content onto the temporary canvas
+    tempCtx.drawImage(RENDERER.domElement, 0, 0);
+
+    // Apply the blur effect. Safari just ignore it.
+    tempCtx.filter = `blur(${blurRadius}px)`;
+    tempCtx.drawImage(tempCanvas, 0, 0);
+
+    // Save the blurred canvas as a Blob URL
+    const blob = await canvasToBlob(tempCanvas);
+    const blobUrl = URL.createObjectURL(blob);
+    return blobUrl;
+}
+
+// utils 
+function canvasToBlob(canvas) {
+    return new Promise(function (resolve) {
+        canvas.toBlob(
+            resolve,
+            'image/jpeg',
+            0.9
+        );
+    });
+};
