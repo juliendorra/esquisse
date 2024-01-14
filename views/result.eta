@@ -799,12 +799,12 @@
 
                 <div class="group-name"><%= group.name %></div>
 
-                <% if (group.result.startsWith("https://")) { %>
+                <% if (group.result && group.result.startsWith("https://")) { %>
                     <img class="result" src="<%= group.result %>">
                     <% if (group.type === "image") { %>
                         <a class="tool-btn download-btn" href="<%= group.result %>" download><img src="/icons/download.svg"></a>
                     <% } %>
-                <% } else if (group.result.startsWith("/9j/")) { %>
+                <% } else if (group.result && group.result.startsWith("/9j/")) { %>
                     <img class="result" src="data:image/jpeg;base64,<%= group.result %>">
                 <% } %>
                 </div>
