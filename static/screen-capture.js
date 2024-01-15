@@ -69,9 +69,10 @@ async function captureThumbnail() {
 
     ctx.drawImage(renderedHTML, 0, 0, thumbnailSideLength, thumbnailSideLength);
 
+    const blob = await canvasToBlob(thumbnailCanvas);
+
     if (window.DEBUG) {
         // Save the final thumbnail
-        const blob = await canvasToBlob(thumbnailCanvas);
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -80,7 +81,7 @@ async function captureThumbnail() {
         URL.revokeObjectURL(url);
     }
 
-    return thumbnailCanvas;
+    return blob;
 };
 
 
