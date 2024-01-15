@@ -1,10 +1,12 @@
 import { decode } from "https://deno.land/x/imagescript/mod.ts";
 import { customAlphabet } from 'npm:nanoid';
 
+import { base64ToUint8Array } from "../lib/utility.ts";
+
 import { tryGenerate as callImageGen } from "../lib/imagegen.ts";
 import { callGPT } from "../lib/gpt.js";
 import { bulkCreateUsers, listUsers } from "../lib/users.ts";
-import { downloadResult, uploadResult } from "../lib/file-storage.ts";
+import { downloadResult, uploadResult, uploadImage } from "../lib/file-storage.ts";
 import {
     storeApp,
     retrieveLatestAppVersion, retrieveMultipleLastAppVersions, retrieveAppVersion, checkAppIdExists,
@@ -316,7 +318,30 @@ async function handlePersistResult(ctx) {
         return;
     }
 
-    console.log(`[RESULT] saved result id ${metadata.resultid} available at ", uploadStatus.url`)
+    console.log(`[RESULT] metadate saved result id ${metadata.resultid} available at `, uploadStatus.url)
+
+    console.log(resultData)
+
+    const thumbnailIsJpeg = resultData.thumbnail && resultData.thumbnail.startsWith("/9j/");
+
+    if (!thumbnailIsJpeg) {
+        ctx.response.status = 400;
+        ctx.response.body = ("No valid thumbnail");
+        return;
+    }
+
+    const uploadImageStatus = await uploadImage(
+        base64ToUint8Array(resultData.thumbnail),
+        storingStatus.id)
+
+    if (!uploadStatus.success) {
+
+        ctx.response.status = 400;
+        ctx.response.body = ("Thumbnail upload failed");
+        return;
+    }
+
+    console.log(`[RESULT] thumbnail saved result id ${metadata.resultid} available at `, uploadImageStatus.url)
 
     ctx.response.status = 200;
     ctx.response.body = { resultid: resultData.resultid };

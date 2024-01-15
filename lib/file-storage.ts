@@ -20,7 +20,7 @@ const s3client = new S3Client({
 });
 
 export async function uploadImage(buffer: Uint8Array, id: string) {
-  const key = `${id}.jpg`;
+  const key = `${id}.jpeg`;
 
   try {
     await s3client.putObject(key, buffer, {
