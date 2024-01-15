@@ -14,7 +14,7 @@ async function captureThumbnail() {
     const visibleWidth = window.innerWidth;
     const visibleHeight = window.innerHeight - footerToolsRect.height;
 
-    const containerSmallerSide = Math.min(visibleWidth, visibleHeight);
+    const visibleSmallerSide = Math.min(visibleWidth, visibleHeight);
 
     const meshBackgroundCloneUrl = await renderAndReturnUrlOfCopy();
 
@@ -23,10 +23,12 @@ async function captureThumbnail() {
     meshBackgroundClone.classList.add("mesh-background-clone")
     meshBackgroundClone.id = 'mesh-background-clone';
 
-    // using the clone callback to alter the rendering clone in place
+    // We set up a function for the clone callback
+    // The function alter in place the document clone used for rendering 
     const alterDom = (document, element) => {
 
         // Replacing the 3D canvas background with the static image
+        // this is the cloned container, not the original container
         const container = document.querySelector(".zoomable");
         const meshBackgroundCanvas = document.querySelector('#mesh-background');
         container.insertBefore(meshBackgroundClone, meshBackgroundCanvas);
@@ -42,9 +44,7 @@ async function captureThumbnail() {
         const dropZones = document.querySelectorAll('.drop-zone');
 
         for (const button of [...buttons, ...dragHandles, ...groupIcons, ...dataTexts, ...referencedResultTexts, ...transformTexts, ...dropZones]) {
-            // we cannot easily use display none, as it will change the height of the document 
-            // the scroll will be wrong
-            button.style.opacity = "0";
+            button.style.display = "none";
         }
     }
 
@@ -52,12 +52,12 @@ async function captureThumbnail() {
         logging: false,
         onclone: alterDom,
         x: 0,
-        y: window.scrollY,
+        y: 0,
         windowWidth: visibleWidth,
         windowHeight: visibleHeight,
         scale: window.devicePixelRatio,
-        width: containerSmallerSide,
-        height: containerSmallerSide,
+        width: visibleSmallerSide,
+        height: visibleSmallerSide,
     });
 
     const thumbnailCanvas = document.createElement("canvas");
