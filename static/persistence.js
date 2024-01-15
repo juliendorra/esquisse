@@ -3,6 +3,7 @@ import { groupsMap, createGroupInLocalDataStructures, addGroupElement, displayGr
 import { updateReferenceGraph } from "./reference-graph.js";
 import Validator from 'https://esm.run/jsonschema';
 import { displayAlert, removeGlobalWaitingIndicator } from "./ui-utils.js";
+import { captureThumbnail } from "./screen-capture.js"
 
 let ID = null;
 let CREATOR = null;
@@ -361,7 +362,9 @@ async function shareResult(groups, ShareButtonElement) {
     const fetchingIndicatorElement = document.querySelector(".fetching-indicator");
     fetchingIndicatorElement.classList.add("waiting");
 
-    const result = await packageResult(groups);
+    const thumbnailBlob = await captureThumbnail();
+
+    const result = await packageResult(groups, thumbnailBlob);
 
     if (window.DEBUG) {
         const jsonData = JSON.stringify(result);
@@ -404,9 +407,14 @@ async function shareResult(groups, ShareButtonElement) {
     removeGlobalWaitingIndicator();
 }
 
-async function packageResult(groups) {
+// Packaged result fields are not guaranteed to be sent to the server:
+// The persist function pick what it sends.
+async function packageResult(groups, thumbnail) {
     let packagedGroupsResults = {};
 
+    if (thumbnail && thumbnail.type === "image/jpeg") {
+        packagedGroupsResults.thumbnail = await fileToBase64(thumbnail)
+    }
     packagedGroupsResults.version = VERSION;
     packagedGroupsResults.appid = ID;
     packagedGroupsResults.appversiontimestamp = APP_VERSION_TIMESTAMP;
@@ -453,6 +461,7 @@ async function persistResultOnServer(packagedResult) {
                     version: packagedResult.version,
                     appid: packagedResult.appid,
                     appversiontimestamp: packagedResult.appversiontimestamp,
+                    thumbnail: packagedResult.thumbnail,
                 }
             ),
         });
