@@ -8,6 +8,7 @@ import {
 } from './routes/api.ts';
 import { handleUserFacingURLs, handleStaticFiles } from './routes/user-facing-and-static.ts';
 import { renderResult } from "./routes/result-renderer.ts";
+import { serveThumbnail } from "./routes/thumbnail.ts";
 
 
 const router = new Router();
@@ -33,6 +34,7 @@ router
   .get('/apps', handleUserFacingURLs)
   .get('/apps/:user', handleUserFacingURLs)
   .get("/result/:id", renderResult)
+  .get("/thumbnail/:id", serveThumbnail)
   .get('/admin', handleUserFacingURLs)
   .get('/', handleUserFacingURLs)
   ;

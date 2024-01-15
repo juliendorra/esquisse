@@ -58,6 +58,22 @@ export async function uploadResult(data: string, id: string) {
 }
 
 
+export async function downloadImage(id: string) {
+  const key = `${id}.jpeg`;
+
+  try {
+    const response = await s3client.getObject(key);
+
+    return response;
+
+  } catch (error) {
+
+    console.log("Upload failed: ", error.message)
+
+    return;
+  }
+}
+
 export async function downloadResult(id: string) {
   const key = `${id}.json`;
 
