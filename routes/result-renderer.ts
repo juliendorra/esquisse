@@ -1,12 +1,12 @@
 import "https://deno.land/x/dotenv/load.ts";
 import { Eta } from "https://deno.land/x/eta/src/index.ts";
-import { retrieveResultMetadata } from "../lib/apps.ts";
+import { retrieveResultMetadata, retrieveResultsByUser } from "../lib/apps.ts";
 import { downloadResult } from "../lib/file-storage.ts";
 
 let viewpath = Deno.cwd() + '/views/'
 let eta = new Eta({ views: viewpath, cache: false, debug: true })
 
-export { renderResult }
+export { renderResult, renderUserResults }
 
 const GROUP_HTML = {
     BREAK: `
@@ -63,6 +63,7 @@ async function renderResult(ctx) {
         return;
     }
 
+    // this id is the ulid key of the result data in kv, not the public sharing resultid
     const downloadResponse = await downloadResult(resultMetadata.id)
 
     if (!downloadResponse) {
@@ -80,3 +81,29 @@ async function renderResult(ctx) {
     ctx.response.body = eta.render('result', result);
 }
 
+
+async function renderUserResults(ctx) {
+    const user = ctx.state.user;
+
+    console.log(ctx.state)
+
+    if (!user.username) {
+        ctx.response.status = 400;
+        ctx.response.body = "No user";
+        return;
+    }
+
+    const resultsMetadata = await retrieveResultsByUser(user.username);
+
+    console.log("[User results]", resultsMetadata);
+
+    if (!resultsMetadata) {
+        ctx.response.status = 404;
+        ctx.response.body = ("No metadata found for this result");
+        return;
+    }
+
+    ctx.response.headers.set("content-type", "text/html; charset=utf-8");
+
+    ctx.response.body = eta.render('results', { results: resultsMetadata });
+}

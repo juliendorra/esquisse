@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <!-- Generated using https://realfavicongenerator.net/ -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/public/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/public/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/public/favicon-16x16.png">
+  <link rel="manifest" href="/public/site.webmanifest">
+  <meta name="apple-mobile-web-app-title" content="Esquisse">
+  <meta name="application-name" content="Esquisse">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <meta name="msapplication-TileColor" content="#603cba">
+  <meta name="msapplication-config" content="/public/browserconfig.xml">
+  <meta name="theme-color" content="#ffffff">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Your generated results · Esquisse AI</title>
+
+  <style>
+    :root {
+      --footer-height: 3rem;
+      --scale: 0.4;
+
+      --neutral-color: #FaFaFa;
+      --neutral-color-highlight: #fefefe;
+      --light-border: #E0E0E0;
+      --title-text-color: #929292;
+      --footer-btn-color: #363636;
+
+      --slight-passthrough-color: rgba(245, 245, 245, 0.5);
+
+      --group-break-color-code-button: #929292;
+      --group-break-color-code-border: #ffffff;
+
+      --group-static-color-code: rgb(154, 123, 212);
+
+      --group-text-color-code: rgb(186, 226, 127);
+      --group-image-color-code: rgb(233, 107, 168);
+
+      --card-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+      --primary-font: 'Helvetica Neue', sans-serif;
+
+      --apps-app-title-link-color: rgb(93, 64, 147);
+      --apps-background-color: rgb(223, 167, 253);
+
+    }
+
+    html {
+      font-family: var(--primary-font);
+      box-sizing: border-box;
+    }
+
+    body {
+      position: relative;
+      margin: 0;
+      padding: 0;
+      font-weight: normal;
+      background-color: var(--apps-background-color);
+    }
+
+    :not(:defined) {
+      visibility: hidden;
+    }
+
+    .apps-list-container {
+      padding: 3em 10vw;
+    }
+
+    .apps-page-title {
+      color: white;
+    }
+
+    .apps-list {
+      list-style-type: none;
+      display: flex;
+      flex-wrap: wrap;
+      padding: 0;
+    }
+
+    .apps-list li {
+      background-color: white;
+      border-radius: 2em;
+      padding: 0.5em;
+      box-sizing: border-box;
+      margin-bottom: 1em;
+      margin-left: 1vw;
+    }
+
+    @media (max-width: 600px) {
+      .apps-list-container {
+        padding: 0.5em;
+      }
+
+      .apps-list li {
+        padding: 1em;
+      }
+    }
+
+    .apps-list .app-name {
+      margin-bottom: 0.8em;
+    }
+
+    .apps-list a {
+      text-decoration: none;
+      color: var(--apps-app-title-link-color);
+    }
+
+    .result-preview {
+      border-radius: 1.5em;
+      padding: 0;
+      margin: 0;
+      width: 15em;
+    }
+  </style>
+
+  <script src="/results-page.js" type="module" async></script>
+
+</head>
+
+<body>
+  <div class="apps-list-container">
+
+    <h2 class="apps-page-title">Your generated results</h2>
+
+    <ul class="apps-list">
+
+      <% it.results.forEach(function(result){ %>
+      <li>
+        <a href="/result/<%= result.resultid %>">
+          <% if (result.name) { %>
+          <div class="result-name"><%= result.name %></div>
+          <% } else { %>
+          <div class="result-name"></div>
+          <% } %>
+          <img src="/thumbnail/<%= result.resultid %>" class="result-preview">
+        </a>
+      </li>
+
+      <% }) %>
+
+    </ul>
+
+  </div>
+
+</body>
+
+</html>

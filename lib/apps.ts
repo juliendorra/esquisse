@@ -3,9 +3,10 @@ import { kvdex, model, collection, HistoryEntry } from "https://deno.land/x/kvde
 export {
     storeApp, retrieveLatestAppVersion, retrieveMultipleLastAppVersions, retrieveAppVersion, checkAppIdExists,
     storeResultMetadata, retrieveResultMetadata,
-    checkAppIsByUser, retrieveAppsByUser,
-    Apps
-}
+    retrieveResultsByUser,
+    checkAppIsByUser, retrieveAppsByUser
+};
+export type { Apps };
 
 type Apps = {
     appid: string,
@@ -228,6 +229,28 @@ async function retrieveAppsByUser(username: string): Promise<Apps[] | []> {
 
     } catch (error) {
         console.error("Error retrieving apps by user: ", username, "Error: ", error);
+        return [];
+    }
+}
+
+async function retrieveResultsByUser(username: string): Promise<Result[] | []> {
+    try {
+
+        const results = await db.results.findBySecondaryIndex(
+            'username',
+            username,
+            {
+                reverse: true, // newer first
+            });
+
+        // console.log(`Retrieved results from user ${username}: `, results.result);
+
+        // document is { id, versionstamp,  value }
+        // returning an array of result objects
+        return results.result.map(doc => doc.value);
+
+    } catch (error) {
+        console.error("Error retrieving results by user: ", username, "Error: ", error);
         return [];
     }
 }

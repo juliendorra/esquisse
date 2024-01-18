@@ -7,7 +7,7 @@ import {
   handleListUsers, handleBulkCreateUsers
 } from './routes/api.ts';
 import { handleUserFacingURLs, handleStaticFiles } from './routes/user-facing-and-static.ts';
-import { renderResult } from "./routes/result-renderer.ts";
+import { renderResult, renderUserResults } from "./routes/result-renderer.ts";
 import { serveThumbnail } from "./routes/thumbnail.ts";
 
 
@@ -34,6 +34,7 @@ router
   .get('/apps', handleUserFacingURLs)
   .get('/apps/:user', handleUserFacingURLs)
   .get("/result/:id", renderResult)
+  .get("/results", renderUserResults)
   .get("/thumbnail/:id", serveThumbnail)
   .get('/admin', handleUserFacingURLs)
   .get('/', handleUserFacingURLs)
@@ -58,6 +59,7 @@ const exactRoutes = [
   '/persist', '/persist-result',
   '/load', '/load-version', '/load-versions', '/load-result',
   "/app", "/apps", "/list-apps",
+  "/results",
   "/admin",
   "/list-users", "/bulk-create-users",
 ];
