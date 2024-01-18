@@ -53,6 +53,7 @@ const routePrefixes = [
 ];
 
 const exactRoutes = [
+  '/',
   '/stability', '/chatgpt',
   '/persist', '/persist-result',
   '/load', '/load-version', '/load-versions', '/load-result',
