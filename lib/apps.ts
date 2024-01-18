@@ -213,7 +213,12 @@ async function retrieveResultMetadata(resultid: string): Promise<{ id: string, v
 async function retrieveAppsByUser(username: string): Promise<Apps[] | []> {
     try {
 
-        const apps = await db.apps.findBySecondaryIndex('username', username);
+        const apps = await db.apps.findBySecondaryIndex(
+            'username',
+            username,
+            {
+                reverse: true, // newer first
+            });
 
         // console.log(`Retrieved apps for user ${username}: `, apps.result);
 
