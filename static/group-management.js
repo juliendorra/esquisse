@@ -4,7 +4,7 @@ import Graph from "https://cdn.jsdelivr.net/npm/graph-data-structure@3.5.0/+esm"
 
 import { displayAlert } from "./ui-utils.js";
 
-import { nameChangeHandler, handleInputChange, handleListSelectionChange, handleImportedImage, handleDroppedImage } from "./input-change.js";
+import { nameChangeHandler, handleInputChange, handleListSelectionChange, handleImportedImage, handleDroppedImage, clearImportedImage } from "./input-change.js";
 import { onDragStart, onDragEnd } from "./reordering.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 
@@ -65,6 +65,10 @@ const GROUP_HTML = {
                 <div class="drop-zone">Drop image here<br/>or click to load</div>
             </div>
             <img class="result" alt="Imported image" style="display:none;">
+            <div class="function-buttons-container" style="display:none;">
+                <button class="tool-btn clear-btn" aria-label="Clear" ><img src="/icons/clear.svg"></button>
+                </div>
+            </div>
             `,
 
 
@@ -300,7 +304,6 @@ function addEventListenersToGroup(groupElement) {
 
     // Event listeners for imported image 
     const dropZone = groupElement.querySelector(".drop-zone");
-    const resultImage = groupElement.querySelector(".result");
 
     dropZone?.addEventListener("dragover", event => {
         event.preventDefault();
@@ -316,7 +319,7 @@ function addEventListenersToGroup(groupElement) {
 
     dropZone?.addEventListener(
         'click',
-        (event) => { handleImportedImage(event, resultImage, group) }
+        (event) => { handleImportedImage(group, groupElement) }
     );
 
     dropZone?.addEventListener(
@@ -373,6 +376,7 @@ function addEventListenersToGroup(groupElement) {
 
     groupElement.querySelector(".refresh-btn")?.addEventListener("click", () => handleInputChange(groupElement, true, true, true, groups));
 
+    groupElement.querySelector(".clear-btn")?.addEventListener("click", () => clearImportedImage(group, groupElement));
 
 }
 

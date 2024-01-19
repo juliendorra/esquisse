@@ -6,7 +6,11 @@ import { persistGroups } from "./persistence.js";
 import { SETTINGS } from "./app.js";
 import { displayAlert, removeGlobalWaitingIndicator, createZoomedImage } from "./ui-utils.js";
 
-export { nameChangeHandler, handleInputChange, handleListSelectionChange, handleImportedImage, handleDroppedImage };
+export {
+    nameChangeHandler, handleInputChange,
+    handleListSelectionChange,
+    handleImportedImage, handleDroppedImage, clearImportedImage
+};
 
 const DELAY = 5000;
 
@@ -439,21 +443,25 @@ function handleListSelectionChange(selectElement, group, listItems) {
 
 // Imported image groups
 
-async function handleImportedImage(event, resultImage, group) {
+async function handleImportedImage(group, groupElement) {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
+
+    const resultElement = groupElement.querySelector(".result");
+    const functionButtonsContainer = groupElement.querySelector(".function-buttons-container");
 
     fileInput.onchange = async e => {
         const file = e.currentTarget.files[0];
         try {
             const processedBlob = await processImage(file);
-            resultImage.src = URL.createObjectURL(processedBlob);
-            resultImage.style.display = 'block';
+            resultElement.src = URL.createObjectURL(processedBlob);
+            resultElement.style.display = 'block';
+            functionButtonsContainer.style.display = 'flex';
 
             // Event listener for image click to toggle zoom in and out
-            resultImage.removeEventListener('click', createZoomedImage);
-            resultImage.addEventListener('click', createZoomedImage);
+            resultElement.removeEventListener('click', createZoomedImage);
+            resultElement.addEventListener('click', createZoomedImage);
 
             group.result = processedBlob; // Set the processed blob as the result of the block
             updateGroupsReferencingIt(group.id);
@@ -467,11 +475,13 @@ async function handleImportedImage(event, resultImage, group) {
 
 async function handleDroppedImage(imageFile, group, groupElement) {
     const resultElement = groupElement.querySelector(".result");
+    const functionButtonsContainer = groupElement.querySelector(".function-buttons-container");
 
     try {
         const processedBlob = await processImage(imageFile);
         resultElement.src = URL.createObjectURL(processedBlob);
         resultElement.style.display = 'block';
+        functionButtonsContainer.style.display = 'flex';
 
         // Event listener for image click to toggle zoom in and out
         resultElement.removeEventListener('click', createZoomedImage);
@@ -483,6 +493,23 @@ async function handleDroppedImage(imageFile, group, groupElement) {
         console.error(error);
         // Handle the error appropriately
     }
+}
+
+function clearImportedImage(group, groupElement) {
+
+    const resultElement = groupElement.querySelector(".result");
+    const functionButtonsContainer = groupElement.querySelector(".function-buttons-container");
+
+    resultElement.style.display = 'none';
+    resultElement.src = "";
+    resultElement.removeEventListener('click', createZoomedImage);
+
+    functionButtonsContainer.style.display = 'none';
+
+    group.result = undefined;
+
+    updateGroupsReferencingIt(group.id);
+
 }
 
 
