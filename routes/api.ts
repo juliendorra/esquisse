@@ -284,8 +284,23 @@ async function handlePersist(ctx) {
 // Handler for '/persist-result' endpoint
 async function handlePersistResult(ctx) {
 
+    const appIdPattern = /^[123456789bcdfghjkmnpqrstvwxyz]{14}$/;
+
+
     const responseBody = ctx.request.body({ type: "json" });
     const resultData = await responseBody.value;
+
+    if (!resultData.appid) {
+        ctx.response.status = 400;
+        ctx.response.body = ("Missing app id");
+        return;
+    }
+
+    if (appIdPattern.test(resultData.appid)) {
+        ctx.response.status = 400;
+        ctx.response.body = ("Invalid app id");
+        return;
+    }
 
     resultData.resultid = nanoidForResult();
     resultData.timestamp = new Date().toISOString();
