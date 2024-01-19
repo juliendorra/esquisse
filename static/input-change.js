@@ -492,7 +492,7 @@ function randomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-async function fileToBase64(file) {
+function fileToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
@@ -504,7 +504,7 @@ async function fileToBase64(file) {
     });
 }
 
-async function processImage(imageFile) {
+function processImage(imageFile) {
     return new Promise((resolve, reject) => {
         // Create an image object
         const img = new Image();

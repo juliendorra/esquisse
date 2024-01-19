@@ -506,7 +506,7 @@ function base64UnicodeDecode(base64String) {
 }
 
 
-async function fileToBase64(file) {
+function fileToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {

@@ -131,7 +131,7 @@ export async function tryGenerate({
     return { error: generated.error };
 }
 
-async function handleInvalidPrompt({ prompt, image, negativeprompt, format, qualityEnabled, controlnetEnabled }) {
+function handleInvalidPrompt({ prompt, image, negativeprompt, format, qualityEnabled, controlnetEnabled }) {
 
     const words: Set<string> = new Set(prompt.split(" "));
     let resolvedCount = 0;
