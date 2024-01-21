@@ -296,7 +296,7 @@ async function handlePersistResult(ctx) {
         return;
     }
 
-    if (appIdPattern.test(resultData.appid)) {
+    if (!appIdPattern.test(resultData.appid)) {
         ctx.response.status = 400;
         ctx.response.body = ("Invalid app id");
         return;
