@@ -2,7 +2,7 @@ import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, generateUniqueGro
 import { groupsMap, createGroupInLocalDataStructures, addGroupElement, displayGroupInteractionState, displayControlnetStatus, updateGroups, } from "./group-management.js"
 import { updateReferenceGraph } from "./reference-graph.js";
 import Validator from 'https://esm.run/jsonschema';
-import { displayAlert, removeGlobalWaitingIndicator } from "./ui-utils.js";
+import { displayAlert, removeGlobalWaitingIndicator, createZoomedImage } from "./ui-utils.js";
 import { captureThumbnail } from "./screen-capture.js"
 
 let ID = null;
@@ -55,7 +55,7 @@ const PACKAGED_GROUPS_SCHEMA = {
     "additionalProperties": false
 }
 
-export { persistGroups, loadGroups, shareResult, downloadEsquisseJson, handleEsquisseJsonUpload };
+export { persistGroups, persistImage, loadGroups, shareResult, downloadEsquisseJson, handleEsquisseJsonUpload };
 
 async function persistGroups(groups) {
 
@@ -95,15 +95,18 @@ function packageGroups(groups) {
     packagedGroups.version = VERSION;
 
     // we store the groups array in the groups property
-    packagedGroups.groups = Array.from(groups.values()).map(({ name, data, transform, type, interactionState, controlnetEnabled, resultDisplayFormat }) => ({
-        name,
-        data,
-        transform,
-        type,
-        interactionState,
-        controlnetEnabled,
-        resultDisplayFormat,
-    }));
+    packagedGroups.groups = Array.from(groups
+        .values())
+        .map(({ name, data, transform, type, interactionState, controlnetEnabled, resultDisplayFormat, hashImportedImage }) => ({
+            name,
+            data,
+            transform,
+            type,
+            interactionState,
+            controlnetEnabled,
+            resultDisplayFormat,
+            hashImportedImage,
+        }));
     return packagedGroups;
 }
 
@@ -134,6 +137,52 @@ async function persistOnServer(packagedGroups, existingId = null) {
     } catch (error) {
         console.error("Error in persisting groups", error);
     }
+}
+
+async function persistImage(imageBlob) {
+
+    if (!imageBlob || imageBlob.type !== "image/jpeg") {
+        return;
+    }
+
+    const imageB64 = await fileToBase64(imageBlob)
+
+    console.log("[PERSIST] Persist image on server");
+
+    try {
+        const response = await fetch('/persist-image', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(
+                {
+                    image: imageB64,
+                }
+            ),
+        });
+
+        if (!response.ok) {
+            throw new Error(response);
+        }
+
+        const { imageHash } = await response.json();
+
+        console.log("[PERSIST] image hash sent by server", imageHash);
+
+        return imageHash;
+
+    } catch (error) {
+        console.error("Error in persisting image", error.body);
+        displayAlert(
+            {
+                issue: "Imported image not saved",
+                action: "You can still use the app!",
+                variant: "warning"
+            }
+        );
+    }
+
 }
 
 async function loadGroups(importedGroups) {
@@ -232,39 +281,103 @@ async function loadGroups(importedGroups) {
         const groupsContainer = document.querySelector(".container");
         groupsContainer.innerHTML = "";
 
-        decodedGroups.groups.forEach(({ name, data, transform, type, interactionState, controlnetEnabled, resultDisplayFormat }) => {
-            const group = {
-                id: generateUniqueGroupID(groups),
-                name,
-                data,
-                transform,
-                type: type || GROUP_TYPE.TEXT,
-                result: null,
-                lastRequestTime: 0,
-                interactionState: interactionState || INTERACTION_STATE.OPEN,
-                controlnetEnabled: controlnetEnabled || undefined,
-                resultDisplayFormat: resultDisplayFormat || undefined,
-            };
+        await Promise.all(
+            decodedGroups.groups.map(
+                async ({ name, data, transform, type, interactionState, controlnetEnabled, resultDisplayFormat, hashImportedImage }) => {
+                    const group = {
+                        id: generateUniqueGroupID(groups),
+                        name,
+                        data,
+                        transform,
+                        type: type || GROUP_TYPE.TEXT,
+                        result: null,
+                        lastRequestTime: 0,
+                        interactionState: interactionState || INTERACTION_STATE.OPEN,
+                        controlnetEnabled: controlnetEnabled || undefined,
+                        resultDisplayFormat: resultDisplayFormat || undefined,
+                        hashImportedImage: hashImportedImage || undefined,
+                    };
 
-            groups.set(group.id, group);
+                    groups.set(group.id, group);
 
-            const groupElement = addGroupElement(group.type, group.id);
+                    const groupElement = addGroupElement(group.type, group.id);
 
-            const groupNameElement = groupElement.querySelector(".group-name");
-            const dataElement = groupElement.querySelector(".data-text");
-            const transformElement = groupElement.querySelector(".transform-text");
+                    const groupNameElement = groupElement.querySelector(".group-name");
+                    const dataElement = groupElement.querySelector(".data-text");
+                    const transformElement = groupElement.querySelector(".transform-text");
 
-            // Break groups elements don't have data and transform elements
-            if (groupNameElement) groupNameElement.value = group.name;
-            if (dataElement) dataElement.value = group.data;
-            if (transformElement) transformElement.value = transform;
+                    // Break groups elements don't have data and transform elements
+                    if (groupNameElement) groupNameElement.value = group.name;
+                    if (dataElement) dataElement.value = group.data;
+                    if (transformElement) transformElement.value = transform;
 
-            // displayGroupInteractionState display the right UI state based on the set group.interactionState
-            displayGroupInteractionState(groupElement, group.interactionState);
+                    if (group.type === GROUP_TYPE.IMPORTED_IMAGE && group.hashImportedImage) {
 
-            displayControlnetStatus(groupElement, group.controlnetEnabled);
+                        const urlEncodedHash = encodeURIComponent(group.hashImportedImage);
 
-        });
+                        const imageUrl = `/imported-image/${urlEncodedHash}`
+
+                        try {
+                            const response = await fetch(imageUrl);
+
+                            if (!response.ok) {
+
+                                const errorData = await response.json();
+
+                                if (response.status === 400 || response.status === 404) {
+
+                                    displayAlert(
+                                        {
+                                            issue: `Error loading image ${group.name}`,
+                                            action: `Import a new image in the group`,
+                                            variant: "warning",
+                                            icon: "exclamation-octagon",
+                                            duration: 3000
+                                        }
+                                    );
+                                }
+
+                                throw new Error(`HTTP status ${response.status}, ${errorData.error}`);
+                            }
+
+                            const resultBuffer = await response.arrayBuffer();
+
+                            console.log(`Received image result buffer`);
+
+                            const contentType = response.headers.get('Content-Type');
+
+                            const blob = new Blob([resultBuffer], { type: contentType });
+
+                            const blobUrl = URL.createObjectURL(blob);
+                            console.log("[IMPORTED IMAGE] URL for the image ", blobUrl);
+
+                            const resultElement = groupElement.querySelector("img.result");
+                            const functionButtonsContainer = groupElement.querySelector(".function-buttons-container");
+
+                            resultElement.src = blobUrl;
+                            resultElement.style.display = 'block';
+                            functionButtonsContainer.style.display = 'flex';
+
+                            // Event listener for image click to toggle zoom in and out
+                            resultElement.removeEventListener('click', createZoomedImage);
+                            resultElement.addEventListener('click', createZoomedImage);
+
+                            group.result = blob;
+                            console.log("[IMPORTED IMAGE] Added to group's result")
+
+                        } catch (error) {
+                            console.error(`Fetching image for immported image group ${group.name} failed: ${error} `);
+                        }
+                    }
+
+                    // displayGroupInteractionState display the right UI state based on the set group.interactionState
+                    displayGroupInteractionState(groupElement, group.interactionState);
+
+                    displayControlnetStatus(groupElement, group.controlnetEnabled);
+
+                }
+            )
+        );
     } catch (error) {
 
         ID = null;

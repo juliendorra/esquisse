@@ -2,7 +2,7 @@ import { GROUP_TYPE, RESULT_DISPLAY_FORMAT, getGroupElementFromId, getGroupIdFro
 import { updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, groupsMap } from "./group-management.js"
 import { getReferencedResultsAndCombinedDataWithResults } from "./reference-matching.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
-import { persistGroups } from "./persistence.js";
+import { persistGroups, persistImage } from "./persistence.js";
 import { SETTINGS } from "./app.js";
 import { displayAlert, removeGlobalWaitingIndicator, createZoomedImage } from "./ui-utils.js";
 
@@ -444,55 +444,54 @@ function handleListSelectionChange(selectElement, group, listItems) {
 // Imported image groups
 
 async function handleImportedImage(group, groupElement) {
+
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
 
-    const resultElement = groupElement.querySelector(".result");
-    const functionButtonsContainer = groupElement.querySelector(".function-buttons-container");
-
     fileInput.onchange = async e => {
-        const file = e.currentTarget.files[0];
-        try {
-            const processedBlob = await processImage(file);
-            resultElement.src = URL.createObjectURL(processedBlob);
-            resultElement.style.display = 'block';
-            functionButtonsContainer.style.display = 'flex';
-
-            // Event listener for image click to toggle zoom in and out
-            resultElement.removeEventListener('click', createZoomedImage);
-            resultElement.addEventListener('click', createZoomedImage);
-
-            group.result = processedBlob; // Set the processed blob as the result of the block
-            updateGroupsReferencingIt(group.id);
-        } catch (error) {
-            console.error(error);
-            // Handle the error appropriately
-        }
+        const imageFile = e.currentTarget.files[0];
+        handleDroppedImage(imageFile, group, groupElement);
     };
     fileInput.click();
 }
 
 async function handleDroppedImage(imageFile, group, groupElement) {
-    const resultElement = groupElement.querySelector(".result");
-    const functionButtonsContainer = groupElement.querySelector(".function-buttons-container");
 
     try {
         const processedBlob = await processImage(imageFile);
-        resultElement.src = URL.createObjectURL(processedBlob);
-        resultElement.style.display = 'block';
-        functionButtonsContainer.style.display = 'flex';
 
-        // Event listener for image click to toggle zoom in and out
-        resultElement.removeEventListener('click', createZoomedImage);
-        resultElement.addEventListener('click', createZoomedImage);
+        displayAndStoreImportedImageBlob(groupElement, processedBlob, group);
 
-        group.result = processedBlob; // Set the processed blob as the result of the group
+        const hashImportedImage = await persistImage(processedBlob);
+
+        if (hashImportedImage && hashImportedImage !== group.hashImportedImage) {
+            group.hashImportedImage = hashImportedImage;
+
+            const groups = groupsMap.GROUPS;
+            persistGroups(groups)
+        }
+
         updateGroupsReferencingIt(group.id);
     } catch (error) {
         console.error(error);
         // Handle the error appropriately
     }
+}
+
+function displayAndStoreImportedImageBlob(groupElement, processedBlob, group) {
+    const resultElement = groupElement.querySelector(".result");
+    const functionButtonsContainer = groupElement.querySelector(".function-buttons-container");
+
+    resultElement.src = URL.createObjectURL(processedBlob);
+    resultElement.style.display = 'block';
+    functionButtonsContainer.style.display = 'flex';
+
+    // Event listener for image click to toggle zoom in and out
+    resultElement.removeEventListener('click', createZoomedImage);
+    resultElement.addEventListener('click', createZoomedImage);
+
+    group.result = processedBlob;
 }
 
 function clearImportedImage(group, groupElement) {
