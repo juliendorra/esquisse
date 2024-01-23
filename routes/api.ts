@@ -19,7 +19,8 @@ export {
     handleStability, handleChatGPT,
     handleLoad, handleLoadVersion, handleLoadVersions,
     handleLoadResult,
-    handlePersist, handlePersistResult, handleListApps,
+    handlePersist, handlePersistImage,
+    handlePersistResult, handleListApps,
     handleListUsers, handleBulkCreateUsers
 }
 
@@ -281,11 +282,82 @@ async function handlePersist(ctx) {
     ctx.response.body = JSON.stringify({ id: appid, username: username });
 }
 
+async function handlePersistImage(ctx) {
+
+    const responseBody = ctx.request.body({ type: "json" });
+    const imageMessage = await responseBody.value;
+
+    if (!imageMessage.image) {
+        ctx.response.status = 400;
+        ctx.response.body = ("Missing image");
+        return;
+    }
+
+    const imageIsJpeg = imageMessage.image && imageMessage.image.startsWith("/9j/");
+
+    if (!imageIsJpeg) {
+        ctx.response.status = 400;
+        ctx.response.body = ("No valid image");
+        return;
+    }
+
+    const imageUint8Array = base64ToUint8Array(imageMessage.image);
+
+    const imageFile = new File([imageUint8Array], 'image.jpeg', { type: 'image/jpeg' })
+
+    const imageHash = await blobToFullHash(imageFile);
+
+    console.log(`[PERSIST IMAGE] image hash: ${imageHash}`)
+
+
+    const uploadImageStatus = await uploadImage(imageUint8Array, imageHash)
+
+    if (!uploadImageStatus.success) {
+        ctx.response.status = 400;
+        ctx.response.body = ("Image upload failed");
+        return;
+    }
+
+    console.log(`[PERSIST IMAGE] image saved with hash id: ${imageHash} available at `, uploadImageStatus.url)
+
+    ctx.response.status = 200;
+    ctx.response.body = { imageHash: imageHash };
+}
+
+// utils for handlePersistImage
+
+async function blobToFullHash(blob: Blob): Promise<string> {
+    const arrayBuffer: ArrayBuffer = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            if (reader.result instanceof ArrayBuffer) {
+                resolve(reader.result);
+            } else {
+                reject(new Error("Read result is not an ArrayBuffer"));
+            }
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsArrayBuffer(blob);
+    });
+
+    const hashBuffer: ArrayBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+    const hashBase64: string = bufferToBase64(hashBuffer);
+
+    const urlSafeHash = hashBase64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+    return urlSafeHash;
+}
+
+function bufferToBase64(buffer: ArrayBuffer): string {
+    const byteArray = new Uint8Array(buffer);
+    const binaryString = Array.from(byteArray, byte => String.fromCharCode(byte)).join('');
+    return btoa(binaryString);
+}
+
 // Handler for '/persist-result' endpoint
 async function handlePersistResult(ctx) {
 
     const appIdPattern = /^[123456789bcdfghjkmnpqrstvwxyz]{14}$/;
-
 
     const responseBody = ctx.request.body({ type: "json" });
     const resultData = await responseBody.value;

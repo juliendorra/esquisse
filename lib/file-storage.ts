@@ -1,13 +1,12 @@
 import "https://deno.land/x/dotenv/load.ts";
 import { S3Client } from "https://deno.land/x/s3_lite_client/mod.ts";
 
-const S3_ENDPOINT = Deno.env.get("S3_ENDPOINT");
-const S3_REGION = Deno.env.get("S3_REGION");
+const S3_ENDPOINT = Deno.env.get("S3_ENDPOINT") || "";
+const S3_REGION = Deno.env.get("S3_REGION") || "";
 const S3_BUCKET = Deno.env.get("S3_BUCKET");
 const S3_ACCESS_KEY_ID = Deno.env.get("S3_ACCESS_KEY_ID");
 const SECRET_ACCESS_KEY = Deno.env.get("SECRET_ACCESS_KEY");
 
-// Configure your S3 client here
 const s3client = new S3Client({
   endPoint: S3_ENDPOINT,
   port: 443,
@@ -22,14 +21,36 @@ const s3client = new S3Client({
 export async function uploadImage(buffer: Uint8Array, id: string) {
   const key = `${id}.jpeg`;
 
+  const hashSafeB64Pattern = /^[A-Za-z0-9\-_]{42,44}$/;
+  const isHash = hashSafeB64Pattern.test(id);
+
+  if (isHash) {
+    const imageExists = await s3client.exists(key);
+    console.log("[IMAGE UPLOAD] image exists, checked by hash")
+
+    if (imageExists) {
+      return {
+        success: true,
+        url: `https://${S3_ENDPOINT}/${S3_BUCKET}/${key}`,
+      };
+    }
+  };
+
   try {
-    await s3client.putObject(key, buffer, {
-      ContentType: "image/jpeg",
-    });
+    console.log("[IMAGE UPLOAD] putting image in store")
+
+    const response = await s3client.putObject(
+      key,
+      buffer,
+      {
+        ContentType: "image/jpeg",
+      });
+
+    console.log(`[IMAGE UPLOAD] response `, JSON.stringify(response))
 
     return {
       success: true,
-      url: `https://${s3client.endPoint}/${s3client.bucket}/${key}`,
+      url: `https://${S3_ENDPOINT}/${S3_BUCKET}/${key}`,
     };
   } catch (error) {
     return { success: false, reason: "Upload failed: " + error.message };

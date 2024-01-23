@@ -3,12 +3,15 @@ import { basicAuth } from "./lib/auth.ts";
 import {
   handleStability, handleChatGPT,
   handleLoad, handleLoadVersion, handleLoadVersions,
-  handleLoadResult, handlePersist, handlePersistResult, handleListApps,
+  handleLoadResult,
+  handlePersist, handlePersistImage,
+  handlePersistResult, handleListApps,
   handleListUsers, handleBulkCreateUsers
 } from './routes/api.ts';
 import { handleUserFacingURLs, handleStaticFiles } from './routes/user-facing-and-static.ts';
 import { renderResult, renderUserResults } from "./routes/result-renderer.ts";
 import { serveThumbnail } from "./routes/thumbnail.ts";
+import { serveImportedImage } from "./routes/imported-image.ts";
 
 
 const router = new Router();
@@ -17,6 +20,7 @@ const router = new Router();
 router
   .post('/stability', handleStability)
   .post('/chatgpt', handleChatGPT)
+  .post('/persist-image', handlePersistImage)
   .post('/persist-result', handlePersistResult)
   .post('/persist', handlePersist)
   .post('/list-apps', handleListApps)
@@ -36,6 +40,7 @@ router
   .get("/result/:id", renderResult)
   .get("/results", renderUserResults)
   .get("/thumbnail/:id", serveThumbnail)
+  .get("/imported-image/:hash", serveImportedImage)
   .get('/admin', handleUserFacingURLs)
   .get('/', handleUserFacingURLs)
   ;
@@ -50,13 +55,13 @@ const app = new Application();
 // Authentication Middleware
 
 const routePrefixes = [
-  "/app", "/apps",
+  "/app", "/apps", "/imported-image",
 ];
 
 const exactRoutes = [
   '/',
   '/stability', '/chatgpt',
-  '/persist', '/persist-result',
+  '/persist', '/persist-result', '/persist-image',
   '/load', '/load-version', '/load-versions', '/load-result',
   "/app", "/apps", "/list-apps",
   "/results",
