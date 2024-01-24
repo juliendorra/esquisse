@@ -1,4 +1,4 @@
-import { GROUP_TYPE, RESULT_DISPLAY_FORMAT, getGroupElementFromId, getGroupIdFromElement } from "./group-utils.js";
+import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, getGroupElementFromId, getGroupIdFromElement } from "./group-utils.js";
 import { updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, groupsMap } from "./group-management.js"
 import { getReferencedResultsAndCombinedDataWithResults } from "./reference-matching.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
@@ -129,7 +129,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     group.combinedReferencedResults = currentData;
 
     const groups_structure_has_changed =
-        group.data !== data
+        (group.interactionState !== INTERACTION_STATE.ENTRY && group.data !== data)
         || group.transform !== transform;
 
     const groups_have_changed =
