@@ -99,7 +99,8 @@ function packageGroups(groups) {
         .values())
         .map(({ name, data, transform, type, interactionState, controlnetEnabled, resultDisplayFormat, hashImportedImage }) => ({
             name,
-            data,
+            // We don't package the data text if the block is set to Entry (ie. as a temporary input) 
+            data: interactionState === INTERACTION_STATE.ENTRY ? "" : data,
             transform,
             type,
             interactionState,
