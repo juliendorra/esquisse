@@ -854,8 +854,10 @@ sl-drawer .drop-zone#upload-json-zone {
     display: block;
     position: fixed;
     z-index: 99;
-    width: 100vw;
-    height: 1.5ex;
+    width: 80vw;
+    margin-left: 10vw;
+    margin-top: 0.5ex;
+    height: 1ex;
     color: #f8a7ff;
 
     background-image: repeating-linear-gradient(-270deg, #f8a7ff, #e2cbfe 45.38%, rgb(198, 154, 254) 57.56%, #f8a7ff);
