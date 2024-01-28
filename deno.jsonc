@@ -1,4 +1,10 @@
 {
+  "compilerOptions": {
+    "lib":[
+      "DOM", 
+      "deno.unstable" // we are using deno.kv, which is unstable at the time of writing this comment
+    ]
+  },
   "tasks": {
     "dev": "deno run --unstable --allow-net --allow-read --allow-env --watch main.ts "
   }
