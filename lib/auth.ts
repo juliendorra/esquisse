@@ -1,4 +1,6 @@
 import "https://deno.land/x/dotenv/load.ts";
+import { Request } from "https://deno.land/x/oak/mod.ts";
+
 import { compare } from "./bcrypt.ts";
 import { getUserPasswordHash } from "./users.ts";
 
@@ -14,8 +16,10 @@ const envAdmin = Deno.env.get("ADMIN");
 
 console.log('Loaded user data from environment variables ', userEntries);
 
+type AuthResult = { isAuthenticated: boolean, isAdmin: boolean, username: string | null }
+
 // A helper function to perform Basic Auth check
-export async function basicAuth(request: Request): Promise<{ isAuthenticated: boolean, isAdmin: boolean, username: string | null }> {
+export async function basicAuth(request: Request): Promise<AuthResult> {
     const authorization = request.headers.get("Authorization");
 
     if (!authorization) {
