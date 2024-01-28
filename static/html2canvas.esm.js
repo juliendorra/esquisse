@@ -7835,4 +7835,3 @@ var parseBackgroundColor = function (context, element, backgroundColorOverride) 
 };
 
 export default html2canvas;
-//# sourceMappingURL=html2canvas.esm.js.map
