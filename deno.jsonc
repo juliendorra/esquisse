@@ -9,6 +9,6 @@
     "dev": "deno run --unstable --allow-net --allow-read --allow-env --watch main.ts "
   },
   "imports": {
-    "https://deno.land/x/oak/mod.ts": "https://deno.land/x/oak@v12.6.1/mod.ts"
+    "https://deno.land/x/oak/mod.ts": "https://deno.land/x/oak@v13.0.1/mod.ts"
   }
 }

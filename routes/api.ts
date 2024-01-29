@@ -34,8 +34,8 @@ const nanoidForResult = customAlphabet(alphabet, 17);
 // Handler for '/stability' endpoint
 async function handleStability(ctx) {
 
-    const responseBody = ctx.request.body({ type: "json" });
-    const body = await responseBody.value;
+    const responseBody = ctx.request.body;
+    const body = await responseBody.json();
 
     // return either {error} or {image}
 
@@ -93,8 +93,8 @@ async function handleStability(ctx) {
 // Handler for '/chatgpt' endpoint
 async function handleChatGPT(ctx) {
 
-    const responseBody = ctx.request.body({ type: "json" });
-    const body = await responseBody.value;
+    const responseBody = ctx.request.body;
+    const body = await responseBody.json();
 
     type GptParameters = {
         data: string,
@@ -123,8 +123,8 @@ async function handleChatGPT(ctx) {
 // Handler for '/load' endpoint
 async function handleLoad(ctx) {
 
-    const responseBody = ctx.request.body({ type: "json" });
-    const body = await responseBody.value;
+    const responseBody = ctx.request.body;
+    const body = await responseBody.json();
 
     const id = body.id;
 
@@ -146,8 +146,8 @@ async function handleLoad(ctx) {
 // Handler for '/load-version' endpoint
 async function handleLoadVersion(ctx) {
 
-    const responseBody = ctx.request.body({ type: "json" });
-    const body = await responseBody.value;
+    const responseBody = ctx.request.body;
+    const body = await responseBody.json();
 
     console.log("Loading versions of app from KV");
 
@@ -180,8 +180,8 @@ async function handleLoadVersion(ctx) {
 // Handler for '/load-versions' endpoint
 async function handleLoadVersions(ctx) {
 
-    const responseBody = ctx.request.body({ type: "json" });
-    const body = await responseBody.value;
+    const responseBody = ctx.request.body;
+    const body = await responseBody.json();
 
     console.log("Loading versions of app from KV");
 
@@ -214,8 +214,8 @@ async function handleLoadVersions(ctx) {
 // Handler for '/load-result' endpoint
 async function handleLoadResult(ctx) {
 
-    const responseBody = ctx.request.body({ type: "json" });
-    const body = await responseBody.value;
+    const responseBody = ctx.request.body;
+    const body = await responseBody.json();
 
     const resultid = body.resultid;
 
@@ -247,8 +247,8 @@ async function handleLoadResult(ctx) {
 // Handler for '/persist' endpoint
 async function handlePersist(ctx) {
 
-    const responseBody = ctx.request.body({ type: "json" });
-    const body = await responseBody.value;
+    const responseBody = ctx.request.body;
+    const body = await responseBody.json();
 
     console.log("body for groups to persist", body)
 
@@ -284,8 +284,8 @@ async function handlePersist(ctx) {
 
 async function handlePersistImage(ctx) {
 
-    const responseBody = ctx.request.body({ type: "json" });
-    const imageMessage = await responseBody.value;
+    const responseBody = ctx.request.body;
+    const imageMessage = await responseBody.json();
 
     if (!imageMessage.image) {
         ctx.response.status = 400;
@@ -359,8 +359,8 @@ async function handlePersistResult(ctx) {
 
     const appIdPattern = /^[123456789bcdfghjkmnpqrstvwxyz]{14}$/;
 
-    const responseBody = ctx.request.body({ type: "json" });
-    const resultData = await responseBody.value;
+    const responseBody = ctx.request.body;
+    const resultData = await responseBody.json();
 
     if (!resultData.appid) {
         ctx.response.status = 400;
@@ -437,8 +437,8 @@ async function handlePersistResult(ctx) {
 // Handler for '/list-apps' endpoint
 async function handleListApps(ctx) {
 
-    const responseBody = ctx.request.body({ type: "json" });
-    const body = await responseBody.value;
+    const responseBody = ctx.request.body;
+    const body = await responseBody.json();
 
     const username = ctx.state.user?.username;
     let targetUsername = body.username?.toLowerCase().trim();
@@ -492,8 +492,8 @@ async function handleBulkCreateUsers(ctx) {
         return new Response('Unauthorized', { status: 401, headers: { 'WWW-Authenticate': 'Basic realm="Esquisse"', } });
     }
 
-    const responseBody = ctx.request.body({ type: "json" });
-    const body = await responseBody.value;
+    const responseBody = ctx.request.body;
+    const body = await responseBody.json();
 
     console.log("Bulk creating users");
 
