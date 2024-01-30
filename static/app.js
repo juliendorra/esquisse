@@ -5,7 +5,7 @@ import { addMiniviewButtonsListeners } from "./reordering.js";
 
 import { GROUP_TYPE, getGroupIdFromElement } from "./group-utils.js";
 
-import { loadGroups, shareResult, downloadEsquisseJson, handleEsquisseJsonUpload } from "./persistence.js";
+import { loadGroups, shareResult, downloadEsquisseJson, handleEsquisseJsonUpload, beaconGroups, persistGroupsUnthrottled } from "./persistence.js";
 
 import { groupsMap, createGroupAndAddGroupElement } from "./group-management.js";
 
@@ -38,6 +38,22 @@ async function init() {
     const loadingResult = await loadGroups();
 
     console.log(loadingResult);
+
+    // As we throttle groups persisting (not saving each change), we persist the groups when the user switch away or close the tab,
+
+    document.addEventListener('visibilitychange', function (event) {
+        // fires when user switches tabs, apps, goes to homescreen, etc.
+        if (document.visibilityState == 'hidden') {
+
+            persistGroupsUnthrottled(groupsMap.GROUPS);
+        }
+    });
+
+    window.addEventListener('beforeunload', function (event) {
+        // fires when user close tab. The browser won't launch a standard fetch on close,
+        // so we use sendBeacon to send the groups blindly
+        beaconGroups(groupsMap.GROUPS);
+    });
 
     // Dropping an image on the page will create an imported image block and group with the image
 

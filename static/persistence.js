@@ -55,9 +55,18 @@ const PACKAGED_GROUPS_SCHEMA = {
     "additionalProperties": false
 }
 
-export { persistGroups, persistImage, loadGroups, shareResult, downloadEsquisseJson, handleEsquisseJsonUpload };
+export { persistGroups, beaconGroups, persistGroupsUnthrottled, persistImage, loadGroups, shareResult, downloadEsquisseJson, handleEsquisseJsonUpload };
 
-async function persistGroups(groups) {
+const persistGroups = throttle(persistGroupsUnthrottled, 30000, 10)
+
+function beaconGroups(groups) {
+
+    const packagedGroups = packageGroups(groups);
+
+    navigator.sendBeacon('/persist', JSON.stringify({ groups: packagedGroups, id: ID }));
+}
+
+async function persistGroupsUnthrottled(groups) {
 
     const packagedGroups = packageGroups(groups);
 
@@ -619,7 +628,6 @@ function base64UnicodeDecode(base64String) {
     return utf8Decoder.decode(new Uint8Array(charCodeArray));
 }
 
-
 function fileToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -630,4 +638,27 @@ function fileToBase64(file) {
         reader.onerror = reject;
         reader.readAsDataURL(file);
     });
+}
+
+
+function throttle(func, timeFrame, overrideThreshold) {
+    var lastTime = 0;
+    var callSkippedCounter = 0;
+    return function (...args) {
+        var now = new Date();
+
+        if (callSkippedCounter > overrideThreshold) {
+            // Reset skipped calls counter and invoke the function
+            callSkippedCounter = 0;
+            func(...args);
+            lastTime = now;
+        } else if (now - lastTime >= timeFrame) {
+            // Regular throttling behavior
+            func(...args);
+            lastTime = now;
+        } else {
+            // Increment the skipped calls counter
+            callSkippedCounter++;
+        }
+    };
 }
