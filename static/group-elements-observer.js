@@ -43,6 +43,14 @@ function onGroupChanged(mutationsList) {
                 renderDataFlow();
                 previousOrder = currentOrder;
             }
+
+            const groupElementAddedOrRemoved = new CustomEvent("group-element-added-or-removed", {
+                detail: "",
+                bubbles: true,
+                cancelable: true
+            });
+
+            document.dispatchEvent(groupElementAddedOrRemoved);
         }
     }
 };

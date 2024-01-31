@@ -16,10 +16,13 @@ import { initGroupObservation } from "./group-elements-observer.js";
 import { initMeshBackground } from "./mesh-background.js";
 import { displayAlert } from "./ui-utils.js";
 
+import { setAccessibleDescriptions, setTooltips } from "./tooltips.js"
+
 const SETTINGS = {
 
     qualityEnabled: false,
     dataFlowEnabled: false,
+    tooltipsEnabled: false,
 
 }
 
@@ -170,6 +173,29 @@ async function init() {
 
     });
 
+    const tooltipsSwitch = settingsMenu.querySelector('.tooltips-switch');
+
+    tooltipsSwitch.addEventListener('sl-change', event => {
+        console.log(event.target.checked ? 'tooltips-switch checked' : 'tooltips-switch un-checked');
+
+        if (event.target.checked) {
+            SETTINGS.tooltipsEnabled = true;
+            setTooltips(SETTINGS.tooltipsEnabled);
+        }
+        else {
+            SETTINGS.tooltipsEnabled = false;
+            setTooltips(SETTINGS.tooltipsEnabled);
+        }
+    });
+
+    document.addEventListener('group-element-added-or-removed', event => {
+
+        setAccessibleDescriptions();
+
+        setTooltips(SETTINGS.tooltipsEnabled);
+
+    });
+
     document.getElementById('share-btn').addEventListener('click', function () {
         // Check if the Web Share API is supported
         if (navigator.share) {
@@ -250,4 +276,5 @@ async function init() {
 
     initMeshBackground();
     initGroupObservation();
+    setAccessibleDescriptions();
 }
