@@ -14,6 +14,9 @@
     --group-break-color-code-button: #929292;
     --group-break-color-code-border: #ffffff;
 
+    --tooltip-color: rgb(254, 253, 226);
+    --tooltip-border-color: rgb(253, 251, 191);
+
     --group-static-color-code: rgb(154, 123, 212);
     --group-text-color-code: rgb(186, 226, 127);
     --group-image-color-code: rgb(233, 107, 168);
@@ -958,8 +961,35 @@ sl-drawer .drop-zone#upload-json-zone {
         outline: none;
         border: none;
     }
+}
 
+/* Tooltips */
 
+.tippy-box[data-theme~="esquisse"] {
+    background-color: var(--tooltip-color);
+    color: rgb(45, 41, 41);
+    font-size: 0.8rem;
+    border-color: var(--tooltip-border-color);
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 0.3rem;
+    line-height: 1.5;
+    white-space: normal;
+    outline: 0;
+}
 
+.tippy-box[data-theme~='esquisse'][data-placement^="top"]>.tippy-arrow::before {
+    bottom: -9px;
+    left: 0;
+    border-width: 8px 8px 0;
+    border-top-color: var(--tooltip-border-color);
+    transform-origin: center top;
+}
 
+.tippy-box[data-theme~='esquisse'][data-placement^="bottom"]>.tippy-arrow::before {
+    top: -9px;
+    left: 0;
+    border-width: 0 8px 8px;
+    border-bottom-color: var(--tooltip-border-color);
+    transform-origin: center bottom;
 }
