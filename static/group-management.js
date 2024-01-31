@@ -41,7 +41,7 @@ const GROUP_HTML = {
                 <button class="tool-btn delete-btn" aria-label="Delete"><img src="/icons/delete.svg"></button>
             </div>
             <input type="text" class="group-name" placeholder="Name of this block">
-            <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
+            <textarea class="data-text" placeholder="Data you want to use: text, #name or [another name] to get results from another block"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
 
             <div class="function-buttons-container">
@@ -80,9 +80,9 @@ const GROUP_HTML = {
             </div>
 
             <input type="text" class="group-name" placeholder="Name of this block">
-            <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
+            <textarea class="data-text" placeholder="Data you want to use: text, #name or [another name] to get results from another block"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
-            <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
+            <textarea class="transform-text" placeholder="Instructions to transform data into result"></textarea>
 
             <div class="function-buttons-container">
                 <button class="tool-btn list-mode-btn"><img alt="List mode" src="/icons/list-mode.svg"></button>
@@ -102,9 +102,9 @@ const GROUP_HTML = {
             </div>
 
             <input type="text" class="group-name" placeholder="Name of this Block">
-            <textarea class="data-text" placeholder="Data you want to use or #name reference to another block result"></textarea>
+            <textarea class="data-text" placeholder="Data you want to use: visual keywords, #name or [another name] to get results from another block"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
-            <textarea class="transform-text" placeholder="Instructions to Transform data into result"></textarea>
+            <textarea class="transform-text" placeholder="Visual keywords like 'oil painting', 'vector logo', etc. "></textarea>
 
             <div class="function-buttons-container">
                 <button class="tool-btn controlnet-btn" aria-label="Controlnet"><img src="/icons/controlnet.svg"></button>
