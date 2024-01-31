@@ -11,6 +11,8 @@ let CREATOR = null;
 const VERSION = "2023-11-05";
 let APP_VERSION_TIMESTAMP;
 
+let PENDING_CHANGES = 0;
+
 const PACKAGED_GROUPS_SCHEMA = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
@@ -55,16 +57,30 @@ const PACKAGED_GROUPS_SCHEMA = {
     "additionalProperties": false
 }
 
-export { persistGroups, beaconGroups, persistGroupsUnthrottled, persistImage, loadGroups, shareResult, downloadEsquisseJson, handleEsquisseJsonUpload };
+export { persistGroups, beaconGroups, persistGroupsOnHide, persistImage, loadGroups, shareResult, downloadEsquisseJson, handleEsquisseJsonUpload };
 
-const persistGroups = throttle(persistGroupsUnthrottled, 30000, 10)
+const persistGroups = throttle(persistGroupsUnthrottled, 30000, 10, setPendingChanges)
+
+function persistGroupsOnHide(groups) {
+    if (document.visibilityState == 'hidden' && PENDING_CHANGES > 0) {
+        persistGroupsUnthrottled(groupsMap.GROUPS);
+    }
+}
 
 function beaconGroups(groups) {
 
-    const packagedGroups = packageGroups(groups);
+    if (PENDING_CHANGES > 0) {
+        const packagedGroups = packageGroups(groups);
 
-    navigator.sendBeacon('/persist', JSON.stringify({ groups: packagedGroups, id: ID }));
+        navigator.sendBeacon('/persist', JSON.stringify({ groups: packagedGroups, id: ID }));
+    }
 }
+
+function setPendingChanges(value) {
+    PENDING_CHANGES = value;
+    console.log("Pending changes:", PENDING_CHANGES)
+}
+
 
 async function persistGroupsUnthrottled(groups) {
 
@@ -641,15 +657,17 @@ function fileToBase64(file) {
 }
 
 
-function throttle(func, timeFrame, overrideThreshold) {
-    var lastTime = 0;
-    var callSkippedCounter = 0;
+function throttle(func, timeFrame, overrideThreshold, setGlobal) {
+    let lastTime = 0;
+    let callSkippedCounter = 0;
+    setGlobal(callSkippedCounter);
     return function (...args) {
-        var now = new Date();
+        let now = new Date();
 
         if (callSkippedCounter > overrideThreshold) {
             // Reset skipped calls counter and invoke the function
             callSkippedCounter = 0;
+            setGlobal(callSkippedCounter);
             func(...args);
             lastTime = now;
         } else if (now - lastTime >= timeFrame) {
@@ -659,6 +677,7 @@ function throttle(func, timeFrame, overrideThreshold) {
         } else {
             // Increment the skipped calls counter
             callSkippedCounter++;
+            setGlobal(callSkippedCounter);
         }
     };
 }

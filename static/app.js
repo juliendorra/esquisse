@@ -5,7 +5,7 @@ import { addMiniviewButtonsListeners } from "./reordering.js";
 
 import { GROUP_TYPE, getGroupIdFromElement } from "./group-utils.js";
 
-import { loadGroups, shareResult, downloadEsquisseJson, handleEsquisseJsonUpload, beaconGroups, persistGroupsUnthrottled } from "./persistence.js";
+import { loadGroups, shareResult, downloadEsquisseJson, handleEsquisseJsonUpload, beaconGroups, persistGroupsOnHide } from "./persistence.js";
 
 import { groupsMap, createGroupAndAddGroupElement } from "./group-management.js";
 
@@ -43,10 +43,7 @@ async function init() {
 
     document.addEventListener('visibilitychange', function (event) {
         // fires when user switches tabs, apps, goes to homescreen, etc.
-        if (document.visibilityState == 'hidden') {
-
-            persistGroupsUnthrottled(groupsMap.GROUPS);
-        }
+        persistGroupsOnHide(groupsMap.GROUPS)
     });
 
     window.addEventListener('beforeunload', function (event) {
