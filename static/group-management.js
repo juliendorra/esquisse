@@ -752,8 +752,11 @@ function displayFormattedResults(groupElement) {
 
         resultElement.style.display = 'none';
 
+        let existingSelectPosition;
+
         const existingSlSelect = groupElement.querySelector("sl-select");
         if (existingSlSelect) {
+            existingSelectPosition = existingSlSelect.value;
             existingSlSelect.remove();
         }
 
@@ -768,6 +771,13 @@ function displayFormattedResults(groupElement) {
             optionElement.textContent = item;
             selectElement.appendChild(optionElement);
         });
+
+        // keeping the position in the list if possible. 
+        // This is useful for users when using list format to split a list items through several blocks
+        // Ex: list generated => reference the full list and pick item 1 in a static text block, item 2 into another, etc.
+        if (existingSelectPosition && existingSelectPosition <= group.listItems.length - 1) {
+            selectElement.value = existingSelectPosition;
+        }
 
         handleListSelectionChange(selectElement, group, group.listItems);
 

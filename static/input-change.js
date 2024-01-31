@@ -164,17 +164,6 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
         if (isUndirected) updateGroupsReferencingIt(group.id);
     }
 
-    // if the text result is displayed formated ex. as a list, display the new result as formatted
-
-    const isFormattedTextResult =
-        (group.type === GROUP_TYPE.STATIC || group.type === GROUP_TYPE.TEXT)
-        && group.resultDisplayFormat
-        && group.resultDisplayFormat !== RESULT_DISPLAY_FORMAT.TEXT;
-
-    if (isFormattedTextResult) {
-        displayFormattedResults(groupElement);
-    }
-
     group.data = data;
     group.transform = transform;
 
@@ -248,7 +237,22 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
             group,
             groups
         });
+    }
 
+    // if the text result is displayed formated as a list, 
+    // display the new result as formatted
+    const isFormattedTextResult =
+        (group.type === GROUP_TYPE.STATIC || group.type === GROUP_TYPE.TEXT)
+        && group.resultDisplayFormat
+        && group.resultDisplayFormat !== RESULT_DISPLAY_FORMAT.TEXT;
+
+    // when displaying the result as a list, we will update the groups referencing the group
+    if (isFormattedTextResult) {
+        displayFormattedResults(groupElement);
+    }
+    else if (isUndirected) {
+        console.log("[INPUT CHANGE] Undirected update, Now updating dataText of groups referencing results from: ", group.name)
+        updateGroupsReferencingIt(group.id);
     }
 }
 
@@ -343,11 +347,6 @@ async function sendRequestsForGroup({
 
             groupElement.querySelector(".refresh-btn").style.display = "block";
 
-            if (isUndirected) {
-                console.log("[FETCH] Undirected update, Now updating dataText of groups referencing results from: ", group.name)
-                updateGroupsReferencingIt(group.id);
-            }
-
             const downloadButton = groupElement.querySelector(".download-btn");
             downloadButton.style.display = "block";
             downloadButton.href = blobUrl;
@@ -405,12 +404,8 @@ async function sendRequestsForGroup({
             resultParagraph.textContent = group.result;
             groupElement.querySelector(".refresh-btn").style.display = "block";
 
-            if (isUndirected) {
-                console.log("[FETCH] Undirected update, Now updating dataText of groups referencing results from: ", group.name)
-                updateGroupsReferencingIt(group.id);
-            }
-
             delete REQUEST_QUEUE[group.id];
+
             groupElement.classList.remove("waiting");
             removeGlobalWaitingIndicator();
 
