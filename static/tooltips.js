@@ -11,25 +11,29 @@ const TOOLTIPS =
     fr:
         [
             {
-                "selector": ".entry-btn",
-                "text": "Entrée : rend le champ de données un champ de saisie éphémère. Il sera vide lorsque l'application sera rechargée, prêt pour qu'un utilisateur le remplisse. La transformation est rendue en lecture seule et sauvegardée pour une utilisation ultérieure."
+                selector: ".entry-btn",
+                text: "Entrée : rend le champ de données un champ de saisie éphémère. Il sera vide lorsque l'application sera rechargée, prêt pour qu'un utilisateur le remplisse. La transformation est rendue en lecture seule et sauvegardée pour une utilisation ultérieure."
             },
             {
-                "selector": ".lock-btn",
-                "text": "Verrouiller : rend les champs de données et de transformation en lecture seule. Les deux sont sauvegardés pour une utilisation ultérieure"
+                selector: ".lock-btn",
+                text: "Verrouiller : rend les champs de données et de transformation en lecture seule. Les deux sont sauvegardés pour une utilisation ultérieure"
             },
             {
-                "selector": ".list-mode-btn",
-                "text": "Mode liste : affiche un résultat texte semblable à une liste comme un menu déroulant, afin que vous puissiez choisir l'une des réponses"
+                selector: ".list-mode-btn",
+                text: "Mode liste : affiche un résultat texte semblable à une liste comme un menu déroulant, afin que vous puissiez choisir l'une des réponses"
             },
             {
-                "selector": ".refresh-btn",
-                "text": "Actualiser : demande à générer un nouveau résultat"
+                selector: ".refresh-btn",
+                text: "Actualiser : demande la généreration d'un nouveau résultat"
             },
             {
-                "selector": ".controlnet-btn",
-                "text": "Mode Controlnet : la structure de l'image référencée dans le champ de données sera utilisée pour contraindre l'image. Lorsqu'il est désactivé, l'image est utilisée comme un point de départ (image vers image). Notez que seule la première image référencée est utilisée dans les deux cas."
-            }
+                selector: ".controlnet-btn",
+                text: "Mode Controlnet : la structure de l'image référencée dans le champ de données sera utilisée pour contraindre l'image. Lorsqu'il est désactivé, l'image est utilisée comme un point de départ (image vers image). Notez que seule la première image référencée est utilisée dans les deux cas."
+            },
+            {
+                selector: ".clear-btn",
+                text: "Supprime : supprime l'image importée du bloc"
+            },
         ]
     ,
 
@@ -55,7 +59,11 @@ const TOOLTIPS =
             {
                 selector: ".controlnet-btn",
                 text: "Controlnet mode: the structure of the image referenced in the data field will be used to constrain the image. When off, the image is used as a starting point (image-to-image). Note that only the first image referenced is used in both case."
-            }
+            },
+            {
+                selector: ".clear-btn",
+                text: "Clear: remove the imported image from the block."
+            },
         ]
 }
 
