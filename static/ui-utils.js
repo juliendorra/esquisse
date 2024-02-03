@@ -1,4 +1,6 @@
-export { displayAlert, removeGlobalWaitingIndicator, createZoomedImage };
+import hotkeys from 'https://cdn.jsdelivr.net/npm/hotkeys-js@3/+esm';
+
+export { displayAlert, removeGlobalWaitingIndicator, createZoomedImage, setShortcuts };
 
 function displayAlert({ issue, action, variant = "warning", icon = "exclamation-triangle", duration = 3000 }) {
 
@@ -52,4 +54,36 @@ function createZoomedImage(event) {
 
     document.body.appendChild(clonedImage);
 
+}
+
+function setShortcuts() {
+
+    hotkeys(
+        'ctrl+d+e',
+        (event) => {
+            console.log("Click circles activated")
+            document.removeEventListener("click", showClickCircle)
+            document.addEventListener("click", showClickCircle)
+        })
+}
+
+function showClickCircle(event) {
+    const clickCircle = document.createElement("div");
+
+    clickCircle.className = "click-circle";
+    document.body.appendChild(clickCircle);
+
+    document.querySelector(".click-circle");
+    const circleRadius = 0.5 * parseInt(
+        getComputedStyle(clickCircle)
+            .getPropertyValue("--circle-diameter")
+            .slice(0, -2)
+    );
+
+    clickCircle.style.left = `${event.clientX - circleRadius}px`;
+    clickCircle.style.top = `${event.clientY - circleRadius}px`;
+    clickCircle.style.animation = `fade-out-opacity .2s  linear`;
+    clickCircle.onanimationend = () => {
+        document.body.removeChild(clickCircle);
+    }
 }

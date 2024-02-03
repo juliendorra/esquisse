@@ -51,6 +51,24 @@ body {
     width: 100%;
 }
 
+.click-circle {
+    --circle-diameter: 50px;
+    width: var(--circle-diameter);
+    height: var(--circle-diameter);
+    background-color: transparent;
+    position: fixed;
+    border-radius: 50%;
+    border: 2px solid rgb(47, 47, 47);
+    opacity: 1;
+    z-index: 9999;
+}
+
+@keyframes fade-out-opacity {
+    to {
+        opacity: 0;
+    }
+}
+
 
 canvas#mesh-background,
 img#mesh-background-clone {

@@ -1,4 +1,3 @@
-
 import { renderDataFlow } from "./flow-visualization.js";
 
 import { addMiniviewButtonsListeners } from "./reordering.js";
@@ -14,9 +13,9 @@ import { handleDroppedImage, handleInputChange } from "./input-change.js";
 import { initGroupObservation } from "./group-elements-observer.js";
 
 import { initMeshBackground } from "./mesh-background.js";
-import { displayAlert } from "./ui-utils.js";
 
-import { setAccessibleDescriptions, setTooltips } from "./tooltips.js"
+import { displayAlert, setShortcuts } from "./ui-utils.js";
+import { setAccessibleDescriptions, setTooltips } from "./tooltips.js";
 
 const SETTINGS = {
 
@@ -276,5 +275,7 @@ async function init() {
 
     initMeshBackground();
     initGroupObservation();
+
     setAccessibleDescriptions();
+    setShortcuts();
 }
