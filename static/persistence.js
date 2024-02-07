@@ -46,7 +46,10 @@ const PACKAGED_GROUPS_SCHEMA = {
                     "resultDisplayFormat": {
                         "type": "string",
                         "enum": Object.values(RESULT_DISPLAY_FORMAT)
-                    }
+                    },
+                    "hashImportedImage": {
+                        "type": "string"
+                    },
                 },
                 "required": ["name", "data", "transform", "type", "interactionState"],
                 "additionalProperties": false
@@ -481,6 +484,8 @@ async function handleEsquisseJsonUpload(file) {
                         variant: "warning"
                     }
                 );
+
+                console.log("[IMPORTING APP] Invalid json: ", validationResult)
 
                 return;
             }
