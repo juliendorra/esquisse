@@ -77,7 +77,14 @@
         </div>
 
         <div>
-            <sl-button id="create-new-app-btn" href="/app">
+            <a href="/results" target="_blank" class="settings-link">
+                Your results <sl-icon slot="icon" name="arrow-up-right-square"></sl-icon>
+            </a>
+        </div>
+
+
+        <div>
+            <sl-button id="create-new-app-btn" class="settings-menu-button" href="/app">
                 <sl-icon slot="prefix" name="plus-circle"></sl-icon>
                 Create new app
             </sl-button>
@@ -104,14 +111,14 @@
         <h3>Share</h3>
 
         <div>
-            <sl-button id="share-btn">
+            <sl-button id="share-btn" class="settings-menu-button">
                 <sl-icon slot="prefix" name="person-arms-up"></sl-icon>
                 Share this app
             </sl-button>
         </div>
 
         <div>
-            <sl-button id="download-json-btn">
+            <sl-button id="download-json-btn" class="settings-menu-button">
                 <sl-icon slot="prefix" name="file-earmark-arrow-down"></sl-icon>
                 Download app as file
             </sl-button>
@@ -121,7 +128,7 @@
             to load your app from file
         </div>
 
-        <button class="footer-btn close-settings-menu-btn" slot="footer">Close</button>
+        <button class="footer-btn close-settings-menu-btn" slot="footer"><span class="text-btn">Close</span><span class="icon-btn"><img src="/icons/settings.svg"></span></button>
     </sl-drawer>
 
     <script type="module" src="/app.js"></script>

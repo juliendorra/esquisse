@@ -672,12 +672,21 @@ img.result.zoomed {
 
 /* Settings Menu */
 
+sl-drawer {
+    --footer-spacing: 0.55rem;
+}
+
 sl-drawer div {
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
+}
+
+sl-drawer h3 {
+    margin-block-start: 1.5em;
 }
 
 sl-drawer .settings-menu-top {
-    margin-top: 0.75em;
+    margin-top: 0.25;
+    margin-bottom: 0.5em;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -696,6 +705,10 @@ sl-drawer .settings-link {
     font-size: 110%;
     color: var(--sl-color-primary-600);
     text-decoration: none;
+}
+
+sl-drawer div:has(sl-switch) {
+    margin-bottom: 1.3rem;
 }
 
 sl-drawer sl-button {
@@ -741,6 +754,18 @@ sl-drawer .drop-zone#upload-json-zone {
     align-items: center;
     align-content: middle;
     text-align: center;
+}
+
+sl-drawer::part(footer) {
+    background-color: var(--neutral-color);
+    box-shadow: 0 6px 1rem 0.5rem rgba(0, 0, 0, 0.09);
+}
+
+
+.close-settings-menu-btn {
+    position: relative;
+    bottom: 0.28rem;
+    height: 2.25rem;
 }
 
 /* END Settings Menu */
