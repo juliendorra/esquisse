@@ -43,6 +43,9 @@ const PACKAGED_GROUPS_SCHEMA = {
                         "type": "string",
                         "enum": Object.values(INTERACTION_STATE)
                     },
+                    "controlnetEnabled": {
+                        "type": "boolean",
+                    },
                     "resultDisplayFormat": {
                         "type": "string",
                         "enum": Object.values(RESULT_DISPLAY_FORMAT)
