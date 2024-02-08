@@ -224,14 +224,18 @@ textarea {
 
     -webkit-touch-callout: none;
     -webkit-user-select: none;
+    -webkit-user-drag: none;
     user-select: none;
+    user-drag: none;
 }
 
 .group-header small,
 .group-header button {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
+    -webkit-user-drag: none;
     user-select: none;
+    user-drag: none;
 }
 
 .group-header small {
@@ -275,7 +279,10 @@ textarea {
 .group-header .drag-handle {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
+    -webkit-user-drag: none;
     user-select: none;
+    user-drag: none;
+
 
     cursor: grab !important;
 
@@ -312,7 +319,9 @@ textarea {
 
     -webkit-touch-callout: none;
     -webkit-user-select: none;
+    -webkit-user-drag: none;
     user-select: none;
+    user-drag: none;
 }
 
 .tool-btn.selected {
@@ -378,7 +387,9 @@ textarea {
 
     -webkit-touch-callout: none;
     -webkit-user-select: none;
+    -webkit-user-drag: none;
     user-select: none;
+    user-drag: none;
 }
 
 .delete-btn {
@@ -407,6 +418,7 @@ textarea {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
+    user-drag: none;
 }
 
 .group-name,
@@ -577,7 +589,9 @@ img.result.zoomed {
     cursor: pointer;
 
     -webkit-user-select: none;
+    -webkit-user-drag: none;
     user-select: none;
+    user-drag: none;
 
     font-weight: 500;
 
@@ -606,6 +620,12 @@ img.result.zoomed {
     padding-left: 0.3rem;
     height: 0.8rem;
     vertical-align: text-bottom;
+
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+    user-select: none;
+    user-drag: none;
+
 }
 
 .footer-btn text-btn.hidden {
