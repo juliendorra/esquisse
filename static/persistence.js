@@ -70,6 +70,7 @@ const persistGroups = throttle(persistGroupsUnthrottled, 30000, 10, setPendingCh
 function persistGroupsOnHide(groups) {
     if (document.visibilityState == 'hidden' && PENDING_CHANGES > 0) {
         persistGroupsUnthrottled(groupsMap.GROUPS);
+        setPendingChanges(0);
     }
 }
 
