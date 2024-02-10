@@ -180,7 +180,25 @@ function renderBackground() {
         SHADER_MATERIAL.uniforms.divWidth.value[index] = width;
         SHADER_MATERIAL.uniforms.divHeight.value[index] = height;
 
-        const color = getComputedStyle(div).borderColor.split('(')[1].split(')')[0].split(',');
+        const colorStyle = getComputedStyle(div, null).borderColor
+
+        const colorNumberPattern = /([\.\d]+)/g;
+
+        const color = colorStyle.match(colorNumberPattern).slice(0, 3);
+
+        for (const channel of color) {
+
+            const channelInt = parseInt(channel);
+
+            const isValidChannelValue =
+                Number.isInteger(channelInt)
+                && channelInt >= 0
+                && channelInt <= 255
+
+            if (!isValidChannelValue) {
+                channel = 255
+            }
+        }
 
         SHADER_MATERIAL.uniforms.divColors.value[index].set(
             parseFloat(color[0]) / 255.0,
