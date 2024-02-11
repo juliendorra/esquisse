@@ -28,11 +28,27 @@ const TOOLTIPS =
             },
             {
                 selector: ".controlnet-btn",
-                text: "Mode Controlnet : la structure de l'image référencée dans le champ de données sera utilisée pour contraindre l'image. Lorsqu'il est désactivé, l'image est utilisée comme un point de départ (image vers image). Notez que seule la première image référencée est utilisée dans les deux cas."
+                text: "Mode Controlnet : la structure de l'image référencée dans le champ de données sera utilisée pour contraindre l'image.<br /><br />Lorsqu'il est désactivé, l'image est utilisée comme un point de départ (image vers image). Notez que seule la première image référencée est utilisée dans les deux cas."
             },
             {
                 selector: ".clear-btn",
                 text: "Supprime : supprime l'image importée du bloc"
+            },
+            {
+                selector: ".group:first-child > .group-name",
+                text: "Nom du premier bloc : Le nom du premier bloc (en haut à gauche) est automatiquement utilisé comme nom de votre application.<br /><br />Renommer vos blocs facilitera également leur référencement et l'utilisation de leurs résultats dans d'autres blocs."
+            },
+            {
+                selector: ".group:not(:first-child) > .group-name",
+                text: "Nom : Renommer vos blocs facilitera également leur référencement et l'utilisation de leurs résultats dans d'autres blocs."
+            },
+            {
+                selector: ".group > .data-text",
+                text: "Exemple, 'Avec le personnage #personnage et le lieu [lieu de départ]'<br /><br />Vous pouvez référencer des blocs textes mais aussi une image pour par exemple la faire décrire"
+            },
+            {
+                selector: ".group > .transform-text",
+                text: "Exemple, 'écris un poème de 8 lignes.'"
             },
         ]
     ,
@@ -58,11 +74,27 @@ const TOOLTIPS =
             },
             {
                 selector: ".controlnet-btn",
-                text: "Controlnet mode: the structure of the image referenced in the data field will be used to constrain the image. When off, the image is used as a starting point (image-to-image). Note that only the first image referenced is used in both case."
+                text: "Controlnet mode: the structure of the image referenced in the data field will be used to constrain the image.<br /><br />When off, the image is used as a starting point (image-to-image). Note that only the first image referenced is used in both case."
             },
             {
                 selector: ".clear-btn",
                 text: "Clear: remove the imported image from the block."
+            },
+            {
+                selector: ".group:first-child > .group-name",
+                text: "Name of the first block: The name of the first (top-left) block is automatically used as the name of your app.<br /><br />Renaming your blocks will also make it easier to reference them and to use their results in other blocks. "
+            },
+            {
+                selector: ".group:not(:first-child) > .group-name",
+                text: "Name: renaming your blocks will make it easier to reference them and to use their results in other blocks. "
+            },
+            {
+                selector: ".group > .data-text",
+                text: "Example, 'With the character #character and the place [place of departure]'<br /><br />You can reference text blocks but also an image too, for example, describe it."
+            },
+            {
+                selector: ".group > .transform-text",
+                text: "Example, 'write an 8 line poem.'"
             },
         ]
 }
@@ -100,6 +132,7 @@ function setTooltips(tooltipsEnabled) {
                     {
                         content: tooltip.text,
                         theme: 'esquisse',
+                        allowHTML: true,
                     }
                 )
             );
