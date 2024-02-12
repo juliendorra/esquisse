@@ -395,7 +395,7 @@ textarea {
 .delete-btn {
     padding: 0.1rem 0.3rem 0.15rem 0.3rem;
     border: none;
-    background-color: none;
+    background-color: transparent;
     cursor: pointer;
     position: relative;
     right: -0.5rem;
@@ -974,13 +974,13 @@ sl-drawer::part(footer) {
     textarea[readonly],
     input[readonly] {
 
-        background-color: none;
+        background-color: transparent;
         background: none;
     }
 
     .group-name {
         font-size: 200%;
-        background-color: none;
+        background-color: transparent;
         background: none;
     }
 
