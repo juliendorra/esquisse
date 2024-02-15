@@ -86,10 +86,13 @@ const GROUP_HTML = {
 
             <div class="function-buttons-container">
                 <button class="tool-btn list-mode-btn"><img alt="List mode" src="/icons/list-mode.svg"></button>
+
                 <div class="group-btn">
+                <button class="tool-btn open-btn" aria-label="Entry"><img src="/icons/open.svg"></button>
                 <button class="tool-btn entry-btn" aria-label="Entry"><img src="/icons/entry.svg"></button>
                 <button class="tool-btn lock-btn" aria-label="Lock"><img src="/icons/lock.svg"></button>
                 </div>
+
                 <button class="tool-btn refresh-btn" aria-label="Refresh"><img src="/icons/refresh.svg"></button>
             </div>
             `,
@@ -107,11 +110,18 @@ const GROUP_HTML = {
             <textarea class="transform-text" placeholder="Visual keywords like 'oil painting', 'vector logo', etc. "></textarea>
 
             <div class="function-buttons-container">
-                <button class="tool-btn controlnet-btn" aria-label="Controlnet"><img src="/icons/controlnet.svg"></button>
+
                 <div class="group-btn">
+                <button class="tool-btn image-to-image-btn" aria-label="Image to image"><img src="/icons/image-to-image.svg"></button>
+                <button class="tool-btn controlnet-btn" aria-label="Controlnet"><img src="/icons/controlnet.svg"></button>
+                </div>
+
+                <div class="group-btn">
+                <button class="tool-btn open-btn" aria-label="Entry"><img src="/icons/open.svg"></button>
                 <button class="tool-btn entry-btn" aria-label="Entry"><img src="/icons/entry.svg"></button>
                 <button class="tool-btn lock-btn" aria-label="Lock"><img src="/icons/lock.svg"></button>
                 </div>
+
                 <button class="tool-btn refresh-btn" aria-label="Refresh"><img src="/icons/refresh.svg"></button>
             </div>
 
@@ -201,6 +211,18 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
     const resultElement = groupElement.querySelector(".result");
     if (resultElement) {
         resultElement.style.display = 'none';
+    }
+
+    // Initially set image to image button to selected
+    const imageToImageButton = groupElement.querySelector(".image-to-image-btn");
+    if (imageToImageButton) {
+        imageToImageButton.classList.add("selected");
+    }
+
+    // Initially set interaction state button to open
+    const openButton = groupElement.querySelector(".open-btn");
+    if (openButton) {
+        openButton.classList.add("selected");
     }
 
     // Initially hide the download button
@@ -353,22 +375,36 @@ function addEventListenersToGroup(groupElement) {
         persistGroups(groupsMap.GROUPS);
     });
 
-    groupElement.querySelector(".controlnet-btn")?.addEventListener("click", (event) => {
-        group.controlnetEnabled = group.controlnetEnabled === true ? false : true;
+    groupElement.querySelector(".image-to-image-btn")?.addEventListener("click", (event) => {
+        group.controlnetEnabled = false;
 
         displayControlnetStatus(groupElement, group.controlnetEnabled)
 
         persistGroups(groupsMap.GROUPS);
     });
 
+    groupElement.querySelector(".controlnet-btn")?.addEventListener("click", (event) => {
+        group.controlnetEnabled = true;
+
+        displayControlnetStatus(groupElement, group.controlnetEnabled)
+
+        persistGroups(groupsMap.GROUPS);
+    });
+
+    groupElement.querySelector(".open-btn")?.addEventListener("click", (event) => {
+        group.interactionState = INTERACTION_STATE.OPEN;
+        displayGroupInteractionState(groupElement, group.interactionState);
+        persistGroups(groups);
+    });
+
     groupElement.querySelector(".lock-btn")?.addEventListener("click", (event) => {
-        group.interactionState = group.interactionState === INTERACTION_STATE.LOCKED ? INTERACTION_STATE.OPEN : INTERACTION_STATE.LOCKED;
+        group.interactionState = INTERACTION_STATE.LOCKED;
         displayGroupInteractionState(groupElement, group.interactionState);
         persistGroups(groups);
     });
 
     groupElement.querySelector(".entry-btn")?.addEventListener("click", (event) => {
-        group.interactionState = group.interactionState === INTERACTION_STATE.ENTRY ? INTERACTION_STATE.OPEN : INTERACTION_STATE.ENTRY;
+        group.interactionState = INTERACTION_STATE.ENTRY;
         displayGroupInteractionState(groupElement, group.interactionState);
         persistGroups(groups);
     });
@@ -413,41 +449,54 @@ function displayGroupInteractionState(groupElement, interactionState) {
     const dataElement = groupElement.querySelector(".data-text");
     const transformElement = groupElement.querySelector(".transform-text");
 
+    const openButton = groupElement.querySelector(".open-btn");
+    const entryButton = groupElement.querySelector(".entry-btn");
+    const lockButton = groupElement.querySelector(".lock-btn");
+
     switch (interactionState) {
         case INTERACTION_STATE.OPEN:
             groupNameElement?.removeAttribute("readonly");
             dataElement?.removeAttribute("readonly");
             transformElement?.removeAttribute("readonly");
+
+            openButton?.classList.add("selected")
+            entryButton?.classList.remove("selected")
+            lockButton?.classList.remove("selected")
             break;
         case INTERACTION_STATE.ENTRY:
             groupNameElement?.setAttribute("readonly", "readonly");
             dataElement?.removeAttribute("readonly");
             transformElement?.setAttribute("readonly", "readonly");
+
+            openButton?.classList.remove("selected")
+            entryButton?.classList.add("selected")
+            lockButton?.classList.remove("selected")
             break;
         case INTERACTION_STATE.LOCKED:
             groupNameElement?.setAttribute("readonly", "readonly");
             dataElement?.setAttribute("readonly", "readonly");
             transformElement?.setAttribute("readonly", "readonly");
+
+            openButton?.classList.remove("selected")
+            entryButton?.classList.remove("selected")
+            lockButton?.classList.add("selected")
             break;
     }
-
-    const lockButton = groupElement.querySelector(".lock-btn");
-
-    if (lockButton && interactionState === INTERACTION_STATE.LOCKED) { lockButton.classList.add("selected"); }
-    else if (lockButton) { lockButton.classList.remove("selected"); }
-
-    const entryButton = groupElement.querySelector(".entry-btn");
-
-    if (entryButton && interactionState === INTERACTION_STATE.ENTRY) { entryButton.classList.add("selected"); }
-    else if (entryButton) { entryButton.classList.remove("selected"); }
 }
 
 function displayControlnetStatus(groupElement, controlnetEnabled) {
 
-    const controlnetButton = groupElement.querySelector(".controlnet-btn")
+    const controlnetButton = groupElement.querySelector(".controlnet-btn");
+    const imageToImageButton = groupElement.querySelector(".image-to-image-btn");
 
-    if (controlnetButton && controlnetEnabled) { controlnetButton.classList.add("selected"); }
-    else if (controlnetButton) { controlnetButton.classList.remove("selected"); }
+    if (controlnetButton && controlnetEnabled) {
+        controlnetButton.classList.add("selected");
+        imageToImageButton.classList.remove("selected");
+    }
+    else if (controlnetButton) {
+        controlnetButton.classList.remove("selected");
+        imageToImageButton.classList.add("selected");
+    }
 
 }
 
