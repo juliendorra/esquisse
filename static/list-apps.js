@@ -1,6 +1,12 @@
 import { GROUP_TYPE } from "./group-utils.js";
 import Macy from 'https://cdn.jsdelivr.net/npm/macy@2.5.1/+esm';
 
+const APP_HEADER = `
+<button class="tool-btn delete-btn" aria-label="Delete"><img src="/icons/delete.svg"></button>
+`
+
+let macyInstance;
+
 if (document.readyState === "loading") {
     window.addEventListener("DOMContentLoaded", init);
 } else {
@@ -16,6 +22,20 @@ async function init() {
     if (pathParts.length === 3 && pathParts[1] === 'apps') {
         username = pathParts[2];
     }
+
+    macyInstance = Macy({
+        container: '.apps-list',
+        trueOrder: true,
+        waitForImages: false,
+        margin: 24,
+        columns: 4,
+        breakAt: {
+            1400: 4,
+            1000: 3,
+            940: 2,
+            520: 1
+        }
+    });
 
     const payload = username ? { username } : {};
 
@@ -42,23 +62,22 @@ async function init() {
 };
 
 function createAppsList(apps, username) {
-    // Create the container for the list
-    const container = document.createElement('div');
-    container.className = 'apps-list-container';
 
     // Add a title
-    const title = document.createElement('h2');
+    const title = document.querySelector(".apps-page-title");
     title.textContent = username ? `${username}'s apps` : 'Your apps';
-    title.classList.add("apps-page-title")
-    container.appendChild(title);
 
     // Create the list
-    const list = document.createElement('ul');
-    list.classList.add("apps-list");
+    const appList = document.querySelector(".apps-list");
 
     for (const app of apps) {
 
+        if (app.groupstypes.length === 0) { continue }
+
         console.log(app);
+
+        const groupIcons = document.createElement('div');
+        groupIcons.classList.add("group-icons");
 
         const groupIconImgElements = app.groupstypes.map(
             (type, index) => {
@@ -122,41 +141,72 @@ function createAppsList(apps, username) {
                 return wrapper;
             });
 
+        groupIconImgElements.forEach(element => {
+            groupIcons.appendChild(element)
+        });
 
-        const listItem = document.createElement('li');
+        const appAsListItem = document.createElement('li');
+        const header = document.createElement('div');
         const link = document.createElement('a');
         const appName = document.createElement('div');
 
-        appName.textContent = app.name;
         appName.classList.add("app-name");
+        appName.textContent = app.name;
 
         link.href = app.link;
         link.appendChild(appName);
+        link.appendChild(groupIcons);
 
-        groupIconImgElements.forEach(element => {
-            link.appendChild(element)
-        });
+        header.innerHTML = APP_HEADER;
+        header.classList.add("app-header");
 
-        listItem.appendChild(link);
+        appAsListItem.appendChild(header);
+        appAsListItem.appendChild(link);
 
-        list.appendChild(listItem);
+        const deleteButton = header.querySelector(".delete-btn");
+        deleteButton.addEventListener("click", (event) => { deleteApp(app.appid, appAsListItem) });
+
+        appList.appendChild(appAsListItem);
+
+        macyInstance.recalculate();
     }
 
-    container.appendChild(list);
-    document.body.appendChild(container);
+}
 
-    Macy({
-        container: '.apps-list',
-        trueOrder: true,
-        waitForImages: false,
-        margin: 24,
-        columns: 4,
-        breakAt: {
-            1400: 4,
-            1000: 3,
-            940: 2,
-            520: 1
+async function deleteApp(appid, appListItemElement) {
+
+    console.log("[DELETING] Persisting as empty app on server, appid: ", appid);
+
+    const body = JSON.stringify(
+        {
+            id: appid,
+            groups: { "version": "2023-11-05", "groups": [] },
         }
-    });
+    );
+
+    try {
+        const response = await fetch(
+            '/persist',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: body,
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // remove app from the list
+        appListItemElement.remove();
+
+        macyInstance.recalculate(true);
+
+    } catch (error) {
+        console.error("Error in persisting groups", error);
+    }
 
 }

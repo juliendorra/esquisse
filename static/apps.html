@@ -75,6 +75,14 @@
             visibility: hidden;
         }
 
+        img {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -webkit-user-drag: none;
+            user-select: none;
+            user-drag: none;
+        }
+
         .no-scroll {
             overflow: hidden;
             /* Prevent vertical movement */
@@ -99,8 +107,13 @@
 
         .apps-list li {
             background-color: white;
-            border-radius: 2em;
-            padding: 2em;
+            border-radius: 1em;
+
+            padding-left: 0.75em;
+            padding-right: 0.75em;
+            padding-bottom: 1.5em;
+            padding-top: 0.7em;
+
             box-sizing: border-box;
             margin-bottom: 1em;
         }
@@ -115,8 +128,58 @@
             }
         }
 
+        .tool-btn {
+            padding: 0.3rem 0.4rem 0.25rem 0.4rem;
+            align-self: flex-end;
+
+            border-radius: 0.3rem;
+            border: 1px solid #cccccc;
+            cursor: pointer;
+            background-color: transparent;
+
+            border-color: var(--light-border);
+            background-color: transparent;
+            transition: background-color 0.1s;
+
+        }
+
+        .tool-btn:last-child {
+            margin-left: 0.5em;
+        }
+
+        .tool-btn.selected {
+            box-shadow: inset 0.25em 0.3em var(--light-border);
+        }
+
+        .tool-btn:hover {
+            background-color: var(--neutral-color);
+        }
+
+        .app-header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 0.75rem;
+        }
+
+        .apps-list li .app-header .tool-btn img {
+            height: 0.55rem;
+        }
+
+        .apps-list a {
+            text-decoration: none;
+            color: var(--apps-app-title-link-color);
+        }
+
         .apps-list .app-name {
             margin-bottom: 0.8em;
+            text-align: center;
+        }
+
+        .group-icons {
+            padding-left: 0.5em;
+            padding-right: 0.5em;
         }
 
         .apps-list .group-type-icon {
@@ -124,16 +187,15 @@
             margin-left: 0.25rem;
             vertical-align: text-bottom;
         }
-
-        .apps-list a {
-            text-decoration: none;
-            color: var(--apps-app-title-link-color);
-        }
     </style>
 </head>
 
 <body>
 
+    <div class="apps-list-container">
+        <h2 class="apps-page-title"></h2>
+        <li class="apps-list"></li>
+    </div>
 
 
     <script type="module" src="/list-apps.js"></script>
