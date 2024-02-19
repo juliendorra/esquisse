@@ -464,7 +464,9 @@ function downloadEsquisseJson(groups) {
     const a = document.createElement('a');
     a.href = url;
 
-    a.download = `${groups.values().next().value.name}.esquisse.json`;
+    const appName = groups.values().next().value?.name ? groups.values().next().value.name : 'Unnamed App';
+
+    a.download = `${appName}.esquisse.json`;
     a.click();
 
     URL.revokeObjectURL(url);
