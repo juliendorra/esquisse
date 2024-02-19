@@ -40,7 +40,7 @@ const TOOLTIPS =
             },
             {
                 selector: ".clear-btn",
-                text: "Supprime : supprime l'image importée du bloc".
+                text: "Supprime : supprime l'image importée du bloc."
             },
             {
                 selector: ".group:first-child > .group-name",
