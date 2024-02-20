@@ -266,7 +266,15 @@ async function handlePersist(ctx) {
         return;
     }
 
-    if (!(await checkAppIsByUser(appid, username))) {
+    const appIsByCurrentUser = await checkAppIsByUser(appid, username);
+
+    if (!appIsByCurrentUser && body.groups.groups.length === 0) {
+        ctx.response.status = 403;
+        ctx.response.body = ("Cannot persist an empty app that the user didn't created");
+        return;
+    }
+
+    if (!appIsByCurrentUser) {
         appid = nanoidForApp(); // Generate new ID if the existing ID belongs to another user
     }
 
