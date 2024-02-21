@@ -63,7 +63,7 @@ async function init(hideDeletedApps = true) {
         const appListData = await response.json();
 
         // Create the list of apps
-        createAppsList(appListData.apps, appListData.appscreator, hideDeletedApps);
+        createAppsList(appListData.apps, appListData.appscreator, appListData.currentuser, hideDeletedApps);
 
         const deletedAppsSwitch = document.querySelector(".deleted-apps-switch");
 
@@ -104,11 +104,11 @@ async function init(hideDeletedApps = true) {
     }
 };
 
-async function createAppsList(apps, username, hideDeletedApps = true) {
+async function createAppsList(apps, appscreator, currentuser, hideDeletedApps = true) {
 
     // Add a title
     const title = document.querySelector(".apps-page-title");
-    title.textContent = username ? `${username}'s apps` : 'Your apps';
+    title.textContent = appscreator !== currentuser ? `${appscreator}'s apps` : 'Your apps';
 
     // Create the list
     const appList = document.querySelector(".apps-list");
@@ -195,7 +195,10 @@ async function createAppsList(apps, username, hideDeletedApps = true) {
         appName.classList.add("app-name");
         appName.textContent = app.name;
 
-        header.innerHTML = app.isdeleted ? DELETED_APP_HEADER : LIVE_APP_HEADER;
+        if (appscreator === currentuser) {
+            header.innerHTML = app.isdeleted ? DELETED_APP_HEADER : LIVE_APP_HEADER;
+        }
+
         header.classList.add("app-header");
         appAsListItem.appendChild(header);
 
