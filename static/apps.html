@@ -95,10 +95,31 @@
             padding: 3em 10vw;
         }
 
-        .apps-page-title {
+        .apps-page-header {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
 
             color: white;
+            font-size: 1.5em;
+            margin-block-start: 0.83em;
+            margin-block-end: 0.83em;
 
+        }
+
+        .deleted-apps-switch {
+            font-size: 75%;
+        }
+
+        sl-switch {
+            --width: 3rem;
+            --height: 1.5rem;
+            --thumb-size: 1.5rem;
+        }
+
+        sl-icon {
+            vertical-align: text-bottom;
         }
 
         .apps-list {
@@ -193,7 +214,15 @@
 <body>
 
     <div class="apps-list-container">
-        <h2 class="apps-page-title"></h2>
+        <div class="apps-page-header">
+            <span class="apps-page-title"></span>
+
+            <div class="deleted-apps-switch">
+                <sl-switch class="quality-switch"></sl-switch>
+                &nbsp;Show&nbsp;deleted&nbsp;apps
+            </div>
+
+        </div>
         <li class="apps-list"></li>
     </div>
 

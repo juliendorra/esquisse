@@ -1,8 +1,11 @@
 import { GROUP_TYPE } from "./group-utils.js";
 import Macy from 'https://cdn.jsdelivr.net/npm/macy@2.5.1/+esm';
 
-const APP_HEADER = `
+const LIVE_APP_HEADER = `
 <button class="tool-btn delete-btn" aria-label="Delete"><img src="/icons/delete.svg"></button>
+`
+const DELETED_APP_HEADER = `
+<button class="tool-btn recover-app-btn" aria-label="Recover app"><img src="/icons/recover-app.svg"></button>
 `
 
 let macyInstance;
@@ -55,13 +58,43 @@ async function init() {
         const apps = await response.json();
 
         // Create the list of apps
-        createAppsList(apps, username);
+        createAppsList(apps, username, true);
+
+        const deletedAppsSwitch = document.querySelector(".deleted-apps-switch");
+
+        deletedAppsSwitch.addEventListener('sl-change', (event) => {
+
+            const appList = document.querySelector(".apps-list");
+
+            const deletedApps = appList.querySelectorAll("li[data-status='deleted-app']");
+            const liveApps = appList.querySelectorAll("li[data-status='live-app']");
+
+            if (event.target.checked) {
+                for (const appElement of deletedApps) {
+                    appElement.style.display = "list-item";
+                }
+                for (const appElement of liveApps) {
+                    appElement.style.display = "none";
+                }
+                macyInstance.recalculate(true);
+            }
+            else {
+                for (const appElement of deletedApps) {
+                    appElement.style.display = "none";
+                }
+                for (const appElement of liveApps) {
+                    appElement.style.display = "list-item";
+                }
+                macyInstance.recalculate(true);
+            }
+        });
+
     } catch (error) {
         console.error('There has been a problem with your fetch operation:', error);
     }
 };
 
-function createAppsList(apps, username) {
+async function createAppsList(apps, username, hideDeletedApps = true) {
 
     // Add a title
     const title = document.querySelector(".apps-page-title");
@@ -70,9 +103,9 @@ function createAppsList(apps, username) {
     // Create the list
     const appList = document.querySelector(".apps-list");
 
-    for (const app of apps) {
+    appList.textContent = '';
 
-        if (app.groupstypes.length === 0) { continue }
+    for (const app of apps) {
 
         console.log(app);
 
@@ -147,28 +180,42 @@ function createAppsList(apps, username) {
 
         const appAsListItem = document.createElement('li');
         const header = document.createElement('div');
-        const link = document.createElement('a');
         const appName = document.createElement('div');
 
         appName.classList.add("app-name");
         appName.textContent = app.name;
 
-        link.href = app.link;
-        link.appendChild(appName);
-        link.appendChild(groupIcons);
-
-        header.innerHTML = APP_HEADER;
+        header.innerHTML = app.isdeleted ? DELETED_APP_HEADER : LIVE_APP_HEADER;
         header.classList.add("app-header");
-
         appAsListItem.appendChild(header);
-        appAsListItem.appendChild(link);
+
+        if (app.isdeleted) {
+            appAsListItem.appendChild(appName);
+            appAsListItem.appendChild(groupIcons);
+        }
+        else {
+            const link = document.createElement('a');
+            link.href = app.link;
+            link.appendChild(appName);
+            link.appendChild(groupIcons);
+            appAsListItem.appendChild(link);
+        }
 
         const deleteButton = header.querySelector(".delete-btn");
-        deleteButton.addEventListener("click", (event) => { deleteApp(app.appid, appAsListItem) });
+        deleteButton?.addEventListener("click", (event) => { deleteApp(app.appid, appAsListItem) });
+
+        const recoverAppButton = header.querySelector(".recover-app-btn");
+        recoverAppButton?.addEventListener("click", (event) => { recoverApp(app.appid, appAsListItem) });
+
+        appAsListItem.dataset.status = app.isdeleted ? "deleted-app" : "live-app";
+
+        if (app.isdeleted && hideDeletedApps) {
+            appAsListItem.style.display = "none";
+        }
 
         appList.appendChild(appAsListItem);
 
-        macyInstance.recalculate();
+        macyInstance.recalculate(true);
     }
 
 }

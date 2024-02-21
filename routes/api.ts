@@ -457,23 +457,44 @@ async function handleListApps(ctx) {
 
     const apps = await retrieveAppsByUser(targetUsername);
 
-    const appsInformations = apps.map(
-        (app) => {
+    const appsPromises = apps.map(
+        async (app) => {
 
-            const groupstypes = app.groups.map(group => group.type);
+            // by default we are using the last version of the groups from the app
+            let groups = app.groups;
 
-            // console.log(groupstypes);
+            const isdeleted = app.groups.length === 0 ? true : false;
+
+            // for deleted apps (emptied apps), retrieve the last non empty version
+            if (isdeleted) {
+                const versions = await retrieveMultipleLastAppVersions(app.appid, 10);
+                if (versions) {
+                    for (const version of versions) {
+                        if (version.value.groups.length > 0) {
+                            // we found a non-empty version, let's use that
+                            groups = version.value.groups;
+                            break;
+                        }
+                    }
+                }
+                // if we didn't find a non-empty version, we'll just fallback on the empty (deleted) last version
+            }
+
+            const groupstypes = groups.map(group => group.type);
 
             return {
-                name: app.groups[0]?.name || 'Unnamed App', // Name from the first group's name
+                name: groups[0]?.name || 'Unnamed App', // Name from the first group's name
                 appid: app.appid,
                 link: `/app/${app.appid}`,
                 groupstypes: groupstypes,
+                isdeleted: isdeleted,
             };
         }
     );
 
-    ctx.response.body = JSON.stringify(appsInformations);
+    const allApps = await Promise.all(appsPromises);
+
+    ctx.response.body = JSON.stringify(allApps);
 }
 
 // Handler for '/list-users' endpoint
