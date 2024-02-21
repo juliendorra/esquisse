@@ -13,10 +13,10 @@ let macyInstance;
 if (document.readyState === "loading") {
     window.addEventListener("DOMContentLoaded", init);
 } else {
-    init();
+    init(true);
 }
 
-async function init() {
+async function init(hideDeletedApps = true) {
 
     const path = window.location.pathname;
     const pathParts = path.split('/');
@@ -58,7 +58,7 @@ async function init() {
         const apps = await response.json();
 
         // Create the list of apps
-        createAppsList(apps, username, true);
+        createAppsList(apps, username, hideDeletedApps);
 
         const deletedAppsSwitch = document.querySelector(".deleted-apps-switch");
 
@@ -205,12 +205,15 @@ async function createAppsList(apps, username, hideDeletedApps = true) {
         deleteButton?.addEventListener("click", (event) => { deleteApp(app.appid, appAsListItem) });
 
         const recoverAppButton = header.querySelector(".recover-app-btn");
-        recoverAppButton?.addEventListener("click", (event) => { recoverApp(app.appid, appAsListItem) });
+        recoverAppButton?.addEventListener("click", (event) => { recoverApp(app.appid, appAsListItem, app.recoverablegroups) });
 
         appAsListItem.dataset.status = app.isdeleted ? "deleted-app" : "live-app";
 
-        if (app.isdeleted && hideDeletedApps) {
-            appAsListItem.style.display = "none";
+        if (hideDeletedApps) {
+            appAsListItem.style.display = app.isdeleted ? "none" : "list-item";
+        }
+        else {
+            appAsListItem.style.display = !app.isdeleted ? "none" : "list-item";
         }
 
         appList.appendChild(appAsListItem);
@@ -248,12 +251,71 @@ async function deleteApp(appid, appListItemElement) {
         }
 
         // remove app from the list
-        appListItemElement.remove();
 
-        macyInstance.recalculate(true);
+        const scroll_y = window.scrollY;
+
+        appListItemElement.classList.add("just-deleted");
+
+        init(true);
+
+        setTimeout(() => {
+            window.scroll({
+                top: scroll_y
+            });
+        },
+            700
+        )
 
     } catch (error) {
         console.error("Error in persisting groups", error);
     }
 
+}
+
+async function recoverApp(appid, appListItemElement, recoverablegroups) {
+
+    console.log("[RECOVERING] Persisting the last non-empty version on server, appid: ", appid);
+
+    const body = JSON.stringify(
+        {
+            id: appid,
+            groups: { "version": "2023-11-05", "groups": recoverablegroups },
+        }
+    );
+
+    try {
+        const response = await fetch(
+            '/persist',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: body,
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // remove app from the list
+
+        const scroll_y = window.scrollY;
+
+        appListItemElement.classList.add("just-deleted");
+
+        init(false);
+
+        setTimeout(() => {
+            window.scroll({
+                top: scroll_y
+            });
+        },
+            700
+        )
+
+    } catch (error) {
+        console.error("Error in persisting groups", error);
+    }
 }

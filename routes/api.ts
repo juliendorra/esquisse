@@ -488,6 +488,7 @@ async function handleListApps(ctx) {
                 link: `/app/${app.appid}`,
                 groupstypes: groupstypes,
                 isdeleted: isdeleted,
+                recoverablegroups: isdeleted ? groups : null,
             };
         }
     );
