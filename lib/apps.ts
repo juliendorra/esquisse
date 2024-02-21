@@ -79,7 +79,7 @@ async function storeApp(app: Apps): Promise<any> {
 
 // findHistory()  supports pagination and filtering starting kvdex v0.27.0
 
-async function retrieveMultipleLastAppVersions(appid: string, limit = 5): Promise<Apps | null> {
+async function retrieveMultipleLastAppVersions(appid: string, limit = 5): Promise<Apps[] | any[]> {
     try {
         const history = await db.apps.findHistory(
             appid,
@@ -89,13 +89,12 @@ async function retrieveMultipleLastAppVersions(appid: string, limit = 5): Promis
             });
 
         // [ { type, timestamp, value: { version, appid, timestamp, username, groups:[...] } }, ... ]
-        console.log("All versions: ", history);
-
-        return history.result;
+        // console.log("All versions: ", history);
+        return history.result.length > 0 ? history.result : [];
 
     } catch (error) {
         console.error("Error retrieving all versions for url ID: ", appid, "Error: ", error);
-        return null;
+        return [];
     }
 }
 
@@ -223,7 +222,7 @@ async function retrieveAppsByUser(username: string): Promise<Apps[] | []> {
 
         // console.log(`Retrieved apps for user ${username}: `, apps.result);
 
-        // document is { id, versionstamp,  value }
+        // document is { id, versionstamp,  value: { version, appid, timestamp, username, groups:[...] } } }
         // returning an array of apps objects
         return apps.result.map(doc => doc.value);
 
