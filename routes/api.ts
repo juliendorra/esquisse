@@ -461,10 +461,13 @@ async function handleListApps(ctx) {
 
     for (const app of apps) {
 
+        const isdeleted = app.groups.length === 0 ? true : false;
+
+        // we don't show the deleted apps of an user to another user
+        if (isdeleted && username !== targetUsername) { continue; }
+
         // by default we are using the last version of the groups from the app
         let groups = app.groups;
-
-        const isdeleted = app.groups.length === 0 ? true : false;
 
         // for deleted apps (emptied apps), retrieve the last non empty version
         if (isdeleted) {
