@@ -8,6 +8,10 @@ const DELETED_APP_HEADER = `
 <button class="tool-btn recover-app-btn" aria-label="Recover app"><img src="/icons/recover-app.svg"></button>
 `
 
+const DELETED_APP_SWITCH = `
+<sl-switch class="quality-switch"></sl-switch>&nbsp;Show&nbsp;deleted&nbsp;apps
+`
+
 let macyInstance;
 
 if (document.readyState === "loading") {
@@ -55,39 +59,45 @@ async function init(hideDeletedApps = true) {
             throw new Error('Network response was not ok');
         }
 
-        const apps = await response.json();
+        //   { currentuser, appscreator, apps }
+        const appListData = await response.json();
 
         // Create the list of apps
-        createAppsList(apps, username, hideDeletedApps);
+        createAppsList(appListData.apps, appListData.appscreator, hideDeletedApps);
 
         const deletedAppsSwitch = document.querySelector(".deleted-apps-switch");
 
-        deletedAppsSwitch.addEventListener('sl-change', (event) => {
+        if (appListData.appscreator === appListData.currentuser) {
 
-            const appList = document.querySelector(".apps-list");
+            deletedAppsSwitch.innerHTML = DELETED_APP_SWITCH;
 
-            const deletedApps = appList.querySelectorAll("li[data-status='deleted-app']");
-            const liveApps = appList.querySelectorAll("li[data-status='live-app']");
+            deletedAppsSwitch.addEventListener('sl-change', (event) => {
 
-            if (event.target.checked) {
-                for (const appElement of deletedApps) {
-                    appElement.style.display = "list-item";
+                const appList = document.querySelector(".apps-list");
+
+                const deletedApps = appList.querySelectorAll("li[data-status='deleted-app']");
+                const liveApps = appList.querySelectorAll("li[data-status='live-app']");
+
+                if (event.target.checked) {
+                    for (const appElement of deletedApps) {
+                        appElement.style.display = "list-item";
+                    }
+                    for (const appElement of liveApps) {
+                        appElement.style.display = "none";
+                    }
+                    macyInstance.recalculate(true);
                 }
-                for (const appElement of liveApps) {
-                    appElement.style.display = "none";
+                else {
+                    for (const appElement of deletedApps) {
+                        appElement.style.display = "none";
+                    }
+                    for (const appElement of liveApps) {
+                        appElement.style.display = "list-item";
+                    }
+                    macyInstance.recalculate(true);
                 }
-                macyInstance.recalculate(true);
-            }
-            else {
-                for (const appElement of deletedApps) {
-                    appElement.style.display = "none";
-                }
-                for (const appElement of liveApps) {
-                    appElement.style.display = "list-item";
-                }
-                macyInstance.recalculate(true);
-            }
-        });
+            });
+        };
 
     } catch (error) {
         console.error('There has been a problem with your fetch operation:', error);

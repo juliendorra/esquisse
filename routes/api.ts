@@ -457,45 +457,51 @@ async function handleListApps(ctx) {
 
     const apps = await retrieveAppsByUser(targetUsername);
 
-    const appsPromises = apps.map(
-        async (app) => {
+    let allApps = [];
 
-            // by default we are using the last version of the groups from the app
-            let groups = app.groups;
+    for (const app of apps) {
 
-            const isdeleted = app.groups.length === 0 ? true : false;
+        // by default we are using the last version of the groups from the app
+        let groups = app.groups;
 
-            // for deleted apps (emptied apps), retrieve the last non empty version
-            if (isdeleted) {
-                const versions = await retrieveMultipleLastAppVersions(app.appid, 10);
-                if (versions) {
-                    for (const version of versions) {
-                        if (version.value.groups.length > 0) {
-                            // we found a non-empty version, let's use that
-                            groups = version.value.groups;
-                            break;
-                        }
+        const isdeleted = app.groups.length === 0 ? true : false;
+
+        // for deleted apps (emptied apps), retrieve the last non empty version
+        if (isdeleted) {
+            const versions = await retrieveMultipleLastAppVersions(app.appid, 10);
+            if (versions) {
+                for (const version of versions) {
+                    if (version.value.groups.length > 0) {
+                        // we found a non-empty version, let's use that
+                        groups = version.value.groups;
+                        break;
                     }
                 }
-                // if we didn't find a non-empty version, we'll just fallback on the empty (deleted) last version
             }
+            // if we didn't find a non-empty version, we'll just fallback on the empty (deleted) last version
+        }
 
-            const groupstypes = groups.map(group => group.type);
+        const groupstypes = groups.map(group => group.type);
 
-            return {
+        allApps.push(
+            {
                 name: groups[0]?.name || 'Unnamed App', // Name from the first group's name
                 appid: app.appid,
                 link: `/app/${app.appid}`,
                 groupstypes: groupstypes,
                 isdeleted: isdeleted,
                 recoverablegroups: isdeleted ? groups : null,
-            };
+            }
+        );
+    }
+
+    ctx.response.body = JSON.stringify(
+        {
+            currentuser: username,
+            appscreator: targetUsername,
+            apps: allApps,
         }
     );
-
-    const allApps = await Promise.all(appsPromises);
-
-    ctx.response.body = JSON.stringify(allApps);
 }
 
 // Handler for '/list-users' endpoint
