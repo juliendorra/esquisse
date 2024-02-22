@@ -316,21 +316,18 @@ async function recoverApp(appid, appListItemElement, recoverablegroups) {
 
         // remove app from the list
 
-        const scroll_y = window.scrollY;
-
         appListItemElement.classList.add("just-deleted");
 
-        init(false);
+        appListItemElement.addEventListener("transitionend",
+            () => {
+                appListItemElement.remove();
+                const scrollY = window.scrollY;
+                init(false, scrollY);
+            })
 
-        setTimeout(() => {
-            window.scroll({
-                top: scroll_y
-            });
-        },
-            700
-        )
 
     } catch (error) {
         console.error("Error in persisting groups", error);
     }
 }
+
