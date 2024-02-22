@@ -46,10 +46,13 @@ const GROUP_HTML = {
 
             <div class="function-buttons-container">
                 <button class="tool-btn list-mode-btn" aria-label="List mode"><img src="/icons/list-mode.svg"></button>
+            
                 <div class="group-btn">
+                <button class="tool-btn open-btn" aria-label="Entry"><img src="/icons/open.svg"></button>
                 <button class="tool-btn entry-btn" aria-label="Entry"><img src="/icons/entry.svg"></button>
                 <button class="tool-btn lock-btn" aria-label="Lock"><img src="/icons/lock.svg"></button>
                 </div>
+
             </div>
             `,
 
