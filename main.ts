@@ -5,6 +5,7 @@ import {
   handleLoad, handleLoadVersion, handleLoadVersions,
   handleLoadResult,
   handlePersist, handlePersistImage,
+  handleClone,
   handlePersistResult, handleListApps,
   handleListUsers, handleBulkCreateUsers
 } from './routes/api.ts';
@@ -23,6 +24,7 @@ router
   .post('/persist-image', handlePersistImage)
   .post('/persist-result', handlePersistResult)
   .post('/persist', handlePersist)
+  .post('/clone', handleClone)
   .post('/list-apps', handleListApps)
   .post('/load-versions', handleLoadVersions)
   .post('/load-version', handleLoadVersion)
@@ -61,7 +63,7 @@ const routePrefixes = [
 const exactRoutes = [
   '/',
   '/stability', '/chatgpt',
-  '/persist', '/persist-result', '/persist-image',
+  '/persist', '/persist-result', '/persist-image', '/clone',
   '/load', '/load-version', '/load-versions', '/load-result',
   "/app", "/apps", "/list-apps",
   "/results",

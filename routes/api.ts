@@ -20,6 +20,7 @@ export {
     handleLoad, handleLoadVersion, handleLoadVersions,
     handleLoadResult,
     handlePersist, handlePersistImage,
+    handleClone,
     handlePersistResult, handleListApps,
     handleListUsers, handleBulkCreateUsers
 }
@@ -330,6 +331,59 @@ async function handlePersistImage(ctx) {
 
     ctx.response.status = 200;
     ctx.response.body = { imageHash: imageHash };
+}
+
+// Handler for '/clone' endpoint
+async function handleClone(ctx) {
+
+    const responseBody = ctx.request.body;
+    const body = await responseBody.json();
+
+    const username = ctx.state.user?.username;
+
+    let appid = body.id;
+    const timestamp = new Date().toISOString();
+
+    if (!appid) {
+        ctx.response.status = 404;
+        ctx.response.body = 'No ID. Need an app ID to clone app';
+        return;
+    }
+    else if (!await checkAppIdExists(appid)) {
+        ctx.response.status = 404;
+        ctx.response.body = 'No app Found, wrong ID';
+        return;
+    }
+
+    const appIsByCurrentUser = await checkAppIsByUser(appid, username);
+
+    if (!appIsByCurrentUser) {
+        ctx.response.status = 403;
+        ctx.response.body = ("Cannot clone an app that the user didn't created");
+        return;
+    }
+
+    const cloneappid = nanoidForApp(); // Generate new ID for the cloned app
+
+    const version = await retrieveLatestAppVersion(appid);
+
+    if (!version) {
+        ctx.response.status = 404;
+        ctx.response.body = 'Failed to retrieve app data';
+        return;
+    }
+
+    const groups = version.value;
+
+    groups.appid = cloneappid;
+    groups.timestamp = timestamp;
+    groups.username = username;
+
+    console.log("App data to store: ", groups);
+
+    await storeApp(groups);
+
+    ctx.response.body = JSON.stringify({ id: appid, username: username });
 }
 
 // utils for handlePersistImage
