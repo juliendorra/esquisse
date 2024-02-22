@@ -365,12 +365,8 @@ async function cloneApp(appid, appListItemElement) {
 
         appListItemElement.classList.add("just-cloned");
 
-        appListItemElement.addEventListener("transitionend",
-            () => {
-                appListItemElement.remove();
-                const scrollY = window.scrollY;
-                init(true, scrollY);
-            })
+        const scrollY = window.scrollY;
+        init(true, scrollY);
 
     } catch (error) {
         console.error("Error in persisting groups", error);
