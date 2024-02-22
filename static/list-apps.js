@@ -2,7 +2,8 @@ import { GROUP_TYPE } from "./group-utils.js";
 import Macy from 'https://cdn.jsdelivr.net/npm/macy@2.5.1/+esm';
 
 const LIVE_APP_HEADER = `
-<button class="tool-btn delete-btn" aria-label="Delete"><img src="/icons/delete.svg"></button>
+<button class="tool-btn clone-app-btn" aria-label="Clone"><img src="/icons/clone.svg"></button>
+<button class="tool-btn delete-app-btn" aria-label="Delete"><img src="/icons/delete.svg"></button>
 `
 const DELETED_APP_HEADER = `
 <button class="tool-btn recover-app-btn" aria-label="Recover app"><img src="/icons/recover-app.svg"></button>
@@ -221,11 +222,14 @@ async function createAppsList(apps, appscreator, currentuser, hideDeletedApps = 
             appAsListItem.appendChild(link);
         }
 
-        const deleteButton = header.querySelector(".delete-btn");
+        const deleteButton = header.querySelector(".delete-app-btn");
         deleteButton?.addEventListener("click", (event) => { deleteApp(app.appid, appAsListItem) });
 
         const recoverAppButton = header.querySelector(".recover-app-btn");
         recoverAppButton?.addEventListener("click", (event) => { recoverApp(app.appid, appAsListItem, app.recoverablegroups) });
+
+        const cloneAppButton = header.querySelector(".clone-app-btn");
+        cloneAppButton?.addEventListener("click", (event) => { cloneApp(app.appid, appAsListItem) });
 
         appAsListItem.dataset.status = app.isdeleted ? "deleted-app" : "live-app";
 
@@ -331,3 +335,42 @@ async function recoverApp(appid, appListItemElement, recoverablegroups) {
     }
 }
 
+async function cloneApp(appid, appListItemElement) {
+
+    console.log("[CLONING] requesting on clone from the server fo app: ", appid);
+
+    const body = JSON.stringify(
+        {
+            id: appid,
+        }
+    );
+
+    try {
+        const response = await fetch(
+            '/clone',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: body,
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        appListItemElement.classList.add("just-cloned");
+
+        appListItemElement.addEventListener("transitionend",
+            () => {
+                appListItemElement.remove();
+                const scrollY = window.scrollY;
+                init(true, scrollY);
+            })
+
+    } catch (error) {
+        console.error("Error in persisting groups", error);
+    }
+}
