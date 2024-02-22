@@ -20,7 +20,7 @@ if (document.readyState === "loading") {
     init(true);
 }
 
-async function init(hideDeletedApps = true, scrollY) {
+async function init(hideDeletedApps = true, scrollY = 0) {
 
     const path = window.location.pathname;
     const pathParts = path.split('/');
@@ -62,9 +62,6 @@ async function init(hideDeletedApps = true, scrollY) {
         //   { currentuser, appscreator, apps }
         const appListData = await response.json();
 
-        // Create the list of apps
-        createAppsList(appListData.apps, appListData.appscreator, appListData.currentuser, hideDeletedApps);
-
         const deletedAppsSwitch = document.querySelector(".deleted-apps-switch");
 
         if (appListData.appscreator === appListData.currentuser) {
@@ -98,6 +95,12 @@ async function init(hideDeletedApps = true, scrollY) {
                 }
             });
         };
+
+        // has the scrolled changed since a delete?
+        scrollY = scrollY !== window.scrollY ? window.scrollY : scrollY;
+
+        // Create the list of apps
+        createAppsList(appListData.apps, appListData.appscreator, appListData.currentuser, hideDeletedApps);
 
         window.scroll({
             top: scrollY
