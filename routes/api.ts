@@ -515,6 +515,9 @@ async function handleListApps(ctx) {
 
     for (const app of apps) {
 
+        // weak attempt to weed out malformed apps. Should validate against schema instead
+        if (!app.groups) { continue; }
+
         const isdeleted = app.groups.length === 0 ? true : false;
 
         // we don't show the deleted apps of an user to another user
