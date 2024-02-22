@@ -20,7 +20,7 @@ if (document.readyState === "loading") {
     init(true);
 }
 
-async function init(hideDeletedApps = true) {
+async function init(hideDeletedApps = true, scrollY) {
 
     const path = window.location.pathname;
     const pathParts = path.split('/');
@@ -98,6 +98,10 @@ async function init(hideDeletedApps = true) {
                 }
             });
         };
+
+        window.scroll({
+            top: scrollY
+        });
 
     } catch (error) {
         console.error('There has been a problem with your fetch operation:', error);
@@ -265,19 +269,14 @@ async function deleteApp(appid, appListItemElement) {
 
         // remove app from the list
 
-        const scroll_y = window.scrollY;
-
         appListItemElement.classList.add("just-deleted");
 
-        init(true);
-
-        setTimeout(() => {
-            window.scroll({
-                top: scroll_y
-            });
-        },
-            700
-        )
+        appListItemElement.addEventListener("transitionend",
+            () => {
+                appListItemElement.remove();
+                const scrollY = window.scrollY;
+                init(true, scrollY);
+            })
 
     } catch (error) {
         console.error("Error in persisting groups", error);
