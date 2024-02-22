@@ -123,6 +123,8 @@ async function createAppsList(apps, appscreator, currentuser, hideDeletedApps = 
 
     appList.textContent = '';
 
+    apps.sort(sortTextByAscendingOrder);
+
     for (const app of apps) {
 
         console.log(app);
@@ -374,3 +376,19 @@ async function cloneApp(appid, appListItemElement) {
         console.error("Error in persisting groups", error);
     }
 }
+
+// Utils
+
+function sortTextByAscendingOrder(a, b) {
+    const nameA = a.name.toUpperCase();
+    const nameB = b.name.toUpperCase();
+    if (nameA < nameB) {
+        return -1;
+    }
+    if (nameA > nameB) {
+        return 1;
+    }
+
+    // names are equal
+    return 0;
+};
