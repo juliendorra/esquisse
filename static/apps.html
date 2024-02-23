@@ -145,6 +145,15 @@
             transition: 0.5s;
         }
 
+        .apps-list li[data-status='deleted-app'] .app-name {
+            color: var(--title-text-color);
+            filter: grayscale(100%);
+        }
+
+        .apps-list li[data-status='deleted-app'] .group-icons img {
+            filter: grayscale(100%) brightness(150%) contrast(10%);
+        }
+
         .apps-list li.just-cloned {
             animation: popOut 0.12s ease-in-out;
         }
