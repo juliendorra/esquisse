@@ -8,7 +8,7 @@ import { captureThumbnail } from "./screen-capture.js"
 let ID = null;
 let CREATOR = null;
 
-const VERSION = "2023-11-05";
+const VERSION = "2024-03-14";
 let APP_VERSION_TIMESTAMP;
 
 let PENDING_CHANGES = 0;
