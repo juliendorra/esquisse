@@ -91,6 +91,41 @@
             width: 100%;
         }
 
+        .waiting * {
+            opacity: 0.8;
+            cursor: wait !important;
+        }
+
+        .fetching-indicator {
+            display: none;
+        }
+
+        .waiting.fetching-indicator {
+            display: block;
+            position: fixed;
+            z-index: 99;
+            width: 80vw;
+            margin-left: 10vw;
+            margin-top: 30vw;
+            height: 4ex;
+            border-radius: 10ex;
+            color: #f8a7ff;
+
+            background-image: repeating-linear-gradient(-270deg, #f8a7ff, #e2cbfe 45.38%, rgb(198, 154, 254) 57.56%, #f8a7ff);
+
+            animation: scrollingBackground 20s infinite linear;
+        }
+
+        @keyframes scrollingBackground {
+            0% {
+                background-position: 0 0
+            }
+
+            100% {
+                background-position: 1000vw 0
+            }
+        }
+
         .apps-list-container {
             padding: 3em 10vw;
         }
@@ -301,6 +336,7 @@
 </head>
 
 <body>
+    <div class="fetching-indicator"></div>
 
     <div class="apps-list-container">
         <div class="apps-page-header">

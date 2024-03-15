@@ -23,6 +23,8 @@ if (document.readyState === "loading") {
 
 async function init(hideDeletedApps = true, scrollY = 0) {
 
+    addGlobalWaitingIndicator();
+
     const path = window.location.pathname;
     const pathParts = path.split('/');
     let username = null;
@@ -125,6 +127,8 @@ async function init(hideDeletedApps = true, scrollY = 0) {
                 results: resultListData
             }
         );
+
+
 
         window.scroll({
             top: scrollY
@@ -265,7 +269,7 @@ async function createAppsList({ apps, appscreator, currentuser, hideDeletedApps 
                     if (isOverflowingOnRight(AppResultsList)) {
                         AppResultsList.classList.add("overflow-right");
                     }
-                    observer.disconnect();
+                    listObserver.disconnect();
                 }
             });
 
@@ -307,9 +311,10 @@ async function createAppsList({ apps, appscreator, currentuser, hideDeletedApps 
 
         appList.appendChild(appAsListItem);
 
-        macyInstance.recalculate(true);
     }
 
+    removeGlobalWaitingIndicator()
+    macyInstance.recalculate(true);
 }
 
 async function deleteApp(appid, appListItemElement) {
@@ -480,4 +485,20 @@ function isOverflowingOnLeft(element) {
 
 function isOverflowingOnRight(element) {
     return element.scrollLeft + element.clientWidth < element.scrollWidth;
+}
+
+function addGlobalWaitingIndicator() {
+    const fetchingIndicatorElement = document.querySelector(".fetching-indicator");
+    fetchingIndicatorElement.classList.add("waiting");
+}
+
+function removeGlobalWaitingIndicator() {
+
+    // is there any group or other active element waiting?
+    const waitingElement = document.querySelector(".waiting:not(.fetching-indicator)");
+
+    if (!waitingElement) {
+        const fetchingIndicatorElement = document.querySelector(".fetching-indicator");
+        fetchingIndicatorElement.classList.remove("waiting");
+    }
 }
