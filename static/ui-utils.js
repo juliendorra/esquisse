@@ -2,6 +2,7 @@ import hotkeys from 'https://cdn.jsdelivr.net/npm/hotkeys-js@3/+esm';
 
 export { displayAlert, removeGlobalWaitingIndicator, createZoomedImage, setShortcuts };
 
+// this function needs shoelace custom elements to be defined to works
 function displayAlert({ issue, action, variant = "warning", icon = "exclamation-triangle", duration = 3000 }) {
 
     const alert = document.createElement("sl-alert");
