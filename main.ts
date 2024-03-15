@@ -7,6 +7,7 @@ import {
   handlePersist, handlePersistImage,
   handleClone,
   handlePersistResult, handleListApps,
+  handleListResults,
   handleListUsers, handleBulkCreateUsers
 } from './routes/api.ts';
 import { handleUserFacingURLs, handleStaticFiles } from './routes/user-facing-and-static.ts';
@@ -26,6 +27,7 @@ router
   .post('/persist', handlePersist)
   .post('/clone', handleClone)
   .post('/list-apps', handleListApps)
+  .get('/list-results', handleListResults)
   .post('/load-versions', handleLoadVersions)
   .post('/load-version', handleLoadVersion)
   .post('/load-result', handleLoadResult)
@@ -66,7 +68,7 @@ const exactRoutes = [
   '/persist', '/persist-result', '/persist-image', '/clone',
   '/load', '/load-version', '/load-versions', '/load-result',
   "/app", "/apps", "/list-apps",
-  "/results",
+  "/results", '/list-results',
   "/admin",
   "/list-users", "/bulk-create-users",
 ];

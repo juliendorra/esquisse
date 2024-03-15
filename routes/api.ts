@@ -13,6 +13,7 @@ import {
     storeResultMetadata, retrieveResultMetadata,
     checkAppIsByUser, retrieveAppsByUser,
 } from "../lib/apps.ts";
+import { retrieveResultsByUser } from "../lib/apps.ts";
 
 
 export {
@@ -22,6 +23,7 @@ export {
     handlePersist, handlePersistImage,
     handleClone,
     handlePersistResult, handleListApps,
+    handleListResults,
     handleListUsers, handleBulkCreateUsers
 }
 
@@ -562,6 +564,31 @@ async function handleListApps(ctx) {
             apps: allApps,
         }
     );
+}
+
+
+// Handler for '/list-results' endpoint
+async function handleListResults(ctx) {
+
+    const user = ctx.state.user;
+
+    console.log(ctx.state)
+
+    if (!user.username) {
+        ctx.response.status = 400;
+        ctx.response.body = "No user";
+        return;
+    }
+
+    const resultsMetadata = await retrieveResultsByUser(user.username);
+
+    if (!resultsMetadata) {
+        ctx.response.status = 404;
+        ctx.response.body = ("No metadata found for this result");
+        return;
+    }
+
+    ctx.response.body = JSON.stringify(resultsMetadata);
 }
 
 // Handler for '/list-users' endpoint
