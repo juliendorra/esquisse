@@ -175,6 +175,59 @@
             }
         }
 
+        .results-container {
+            position: relative;
+            margin-top: 1.5rem;
+        }
+
+        .results-container:has(> .results-list:empty) {
+            display: none;
+        }
+
+        .results-list {
+            list-style-type: none;
+            display: flex;
+            overflow: scroll;
+
+            margin-block-start: 0;
+            margin-block-end: 0;
+            margin-inline-start: 0px;
+            margin-inline-end: 0px;
+            padding-inline-start: 0;
+        }
+
+        .overflow-left {
+            border-left: 4px solid #cccccc93;
+        }
+
+        .overflow-right {
+            border-right: 4px solid #cccccc;
+        }
+
+
+        .results-list li {
+            background-color: white;
+            padding: 0;
+            max-width: fit-content;
+            border-radius: 0.3rem;
+            border: 1px solid #cccccc;
+
+            margin-bottom: 0;
+            margin-left: 0.7rem;
+        }
+
+        .results-list li:first-child {
+            margin-left: 0;
+        }
+
+
+        .results-list img {
+            padding: 0.2rem;
+            width: 5rem;
+            height: 5rem;
+            border-radius: 0.4em;
+        }
+
         @media (max-width: 600px) {
             .apps-list-container {
                 padding: 1em;

@@ -48,7 +48,8 @@ async function init(hideDeletedApps = true, scrollY = 0) {
     const payload = username ? { username } : {};
 
     try {
-        const response = await fetch('/list-apps', {
+
+        const responseApps = fetch('/list-apps', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -56,12 +57,26 @@ async function init(hideDeletedApps = true, scrollY = 0) {
             body: JSON.stringify(payload),
         });
 
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
+        const responseResults = fetch('/list-results', {
+            method: 'GET',
+        });
+
+        const [apps, results] = await Promise.allSettled([responseApps, responseResults]);
+
+        console.log(apps, results);
+
+        if (!results.status === 'fulfilled' || !results.value.ok) {
+            throw new Error(results);
         }
 
-        //   { currentuser, appscreator, apps }
-        const appListData = await response.json();
+        if (!apps.status === 'fulfilled' || !apps.value.ok) {
+            throw new Error(apps);
+        }
+
+        //  App data is: { currentuser, appscreator, apps }
+        const appListData = await apps.value.json();
+        // results data is [{resultid,username,timestamp,appid,appversiontimestamp},...]
+        const resultListData = await results.value.json();
 
         const deletedAppsSwitch = document.querySelector(".deleted-apps-switch");
 
@@ -101,18 +116,26 @@ async function init(hideDeletedApps = true, scrollY = 0) {
         scrollY = scrollY !== window.scrollY ? window.scrollY : scrollY;
 
         // Create the list of apps
-        createAppsList(appListData.apps, appListData.appscreator, appListData.currentuser, hideDeletedApps);
+        createAppsList(
+            {
+                apps: appListData.apps,
+                appscreator: appListData.appscreator,
+                currentuser: appListData.currentuser,
+                hideDeletedApps: hideDeletedApps,
+                results: resultListData
+            }
+        );
 
         window.scroll({
             top: scrollY
         });
 
     } catch (error) {
-        console.error('There has been a problem with your fetch operation:', error);
+        console.error('Error fetching apps:', JSON.stringify(error));
     }
 };
 
-async function createAppsList(apps, appscreator, currentuser, hideDeletedApps = true) {
+async function createAppsList({ apps, appscreator, currentuser, hideDeletedApps = true, results }) {
 
     // Add a title
     const title = document.querySelector(".apps-page-title");
@@ -224,6 +247,45 @@ async function createAppsList(apps, appscreator, currentuser, hideDeletedApps = 
             appAsListItem.appendChild(link);
         }
 
+        const AppResultsListHTML = getAppResultsListHTML(app.appid, results);
+
+        appAsListItem.innerHTML += AppResultsListHTML;
+
+        const AppResultsList = appAsListItem.querySelector(".results-list");
+
+        const listObserver = new MutationObserver(
+            (mutations) => {
+                if (document.contains(AppResultsList)) {
+                    AppResultsList.classList.remove("overflow-left");
+                    AppResultsList.classList.remove("overflow-right");
+
+                    if (isOverflowingOnLeft(AppResultsList)) {
+                        AppResultsList.classList.add("overflow-left");
+                    }
+                    if (isOverflowingOnRight(AppResultsList)) {
+                        AppResultsList.classList.add("overflow-right");
+                    }
+                    observer.disconnect();
+                }
+            });
+
+        listObserver.observe(document, { attributes: false, childList: true, characterData: false, subtree: true });
+
+        AppResultsList.addEventListener(
+            "scroll",
+            (event) => {
+                event.currentTarget.classList.remove("overflow-left");
+                event.currentTarget.classList.remove("overflow-right");
+
+                if (isOverflowingOnLeft(event.currentTarget)) {
+                    event.currentTarget.classList.add("overflow-left");
+                }
+                if (isOverflowingOnRight(event.currentTarget)) {
+                    event.currentTarget.classList.add("overflow-right");
+                }
+            }
+        );
+
         const deleteButton = header.querySelector(".delete-app-btn");
         deleteButton?.addEventListener("click", (event) => { deleteApp(app.appid, appAsListItem) });
 
@@ -233,6 +295,7 @@ async function createAppsList(apps, appscreator, currentuser, hideDeletedApps = 
         const cloneAppButton = header.querySelector(".clone-app-btn");
         cloneAppButton?.addEventListener("click", (event) => { cloneApp(app.appid, appAsListItem) });
 
+        appAsListItem.dataset.appid = app.appid;
         appAsListItem.dataset.status = app.isdeleted ? "deleted-app" : "live-app";
 
         if (hideDeletedApps) {
@@ -373,6 +436,28 @@ async function cloneApp(appid, appListItemElement) {
     }
 }
 
+function getResultHTML(resultId) {
+
+    return `<li>
+                <a href="/result/${resultId}">
+                <img src="/thumbnail/${resultId}" class="result-preview">
+                </a>
+             </li>
+            `
+}
+
+
+// [{"resultid":"4xmk5m1jzz4tjyc2n","username":"julien","timestamp":"2024-02-22T10:18:50.525Z","appid":"h2jvvdx4tx6x1m","appversiontimestamp":"2024-02-09T09:32:33.920Z"},{"resultid":"bpdhvv8vztqjmtg7p","username":"julien","timestamp":"2024-01-29T08:41:19.907Z","appid":"6mjv7hmw2pys3z","appversiontimestamp":"2024-01-28T22:16:13.893Z"},]
+
+function getAppResultsListHTML(appid, results) {
+
+    const appResults = results.filter(result => result.appid === appid);
+
+    const resultsListItems = appResults.map(result => getResultHTML(result.resultid));
+
+    return `<div class="results-container"><ul class="results-list">${resultsListItems.join("")}</ul></div>`
+}
+
 // Utils
 
 function sortTextByAscendingOrder(a, b) {
@@ -388,3 +473,11 @@ function sortTextByAscendingOrder(a, b) {
     // names are equal
     return 0;
 };
+
+function isOverflowingOnLeft(element) {
+    return element.scrollLeft > 0;
+}
+
+function isOverflowingOnRight(element) {
+    return element.scrollLeft + element.clientWidth < element.scrollWidth;
+}
