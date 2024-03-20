@@ -22,6 +22,7 @@ export {
     handleLoadResult,
     handlePersist, handlePersistImage,
     handleClone,
+    handleRecover,
     handlePersistResult, handleListApps,
     handleListResults,
     handleListUsers, handleBulkCreateUsers
@@ -384,6 +385,67 @@ async function handleClone(ctx) {
     console.log("App data to store: ", groups);
 
     await storeApp(groups);
+
+    ctx.response.body = JSON.stringify({ id: appid, username: username });
+}
+// Handler for '/recover' endpoint
+async function handleRecover(ctx) {
+
+    const responseBody = ctx.request.body;
+    const body = await responseBody.json();
+
+    const username = ctx.state.user?.username;
+
+    let appid = body.id;
+    const timestamp = new Date().toISOString();
+
+    if (!appid) {
+        ctx.response.status = 404;
+        ctx.response.body = 'No ID. Need an app ID to recover app';
+        return;
+    }
+    else if (!await checkAppIdExists(appid)) {
+        ctx.response.status = 404;
+        ctx.response.body = 'No app Found, wrong ID';
+        return;
+    }
+
+    const appIsByCurrentUser = await checkAppIsByUser(appid, username);
+
+    if (!appIsByCurrentUser) {
+        ctx.response.status = 403;
+        ctx.response.body = ("Cannot recover an app that the user didn't created");
+        return;
+    }
+
+    let groups;
+
+    const versions = await retrieveMultipleLastAppVersions(appid, 10);
+    if (versions) {
+        for (const version of versions) {
+            if (version.value.groups.length > 0) {
+                // we found a non-empty version, let's use that
+                groups = version.value.groups;
+                break;
+            }
+        }
+    }
+
+    if (!groups) {
+        ctx.response.status = 404;
+        ctx.response.body = 'Failed to retrieve non-empty app groups data';
+        return;
+    }
+    let app = {
+        appid: appid,
+        timestamp: timestamp,
+        username: username,
+        groups: groups,
+    }
+
+    console.log("App data to store: ", app);
+
+    await storeApp(app);
 
     ctx.response.body = JSON.stringify({ id: appid, username: username });
 }

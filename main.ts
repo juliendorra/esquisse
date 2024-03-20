@@ -6,6 +6,7 @@ import {
   handleLoadResult,
   handlePersist, handlePersistImage,
   handleClone,
+  handleRecover,
   handlePersistResult, handleListApps,
   handleListResults,
   handleListUsers, handleBulkCreateUsers
@@ -26,6 +27,7 @@ router
   .post('/persist-result', handlePersistResult)
   .post('/persist', handlePersist)
   .post('/clone', handleClone)
+  .post('/recover', handleRecover)
   .post('/list-apps', handleListApps)
   .get('/list-results', handleListResults)
   .post('/load-versions', handleLoadVersions)
@@ -65,7 +67,7 @@ const routePrefixes = [
 const exactRoutes = [
   '/',
   '/stability', '/chatgpt',
-  '/persist', '/persist-result', '/persist-image', '/clone',
+  '/persist', '/persist-result', '/persist-image', '/clone', '/recover',
   '/load', '/load-version', '/load-versions', '/load-result',
   "/app", "/apps", "/list-apps",
   "/results", '/list-results',
