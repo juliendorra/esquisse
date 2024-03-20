@@ -18,12 +18,11 @@ let macyInstance;
 if (document.readyState === "loading") {
     window.addEventListener("DOMContentLoaded", init);
 } else {
+    addGlobalWaitingIndicator();
     init(true);
 }
 
 async function init(hideDeletedApps = true, scrollY = 0) {
-
-    addGlobalWaitingIndicator();
 
     const path = window.location.pathname;
     const pathParts = path.split('/');
@@ -128,8 +127,6 @@ async function init(hideDeletedApps = true, scrollY = 0) {
             }
         );
 
-
-
         window.scroll({
             top: scrollY
         });
@@ -139,7 +136,7 @@ async function init(hideDeletedApps = true, scrollY = 0) {
     }
 };
 
-async function createAppsList({ apps, appscreator, currentuser, hideDeletedApps = true, results }) {
+function createAppsList({ apps, appscreator, currentuser, hideDeletedApps = true, results }) {
 
     // Add a title
     const title = document.querySelector(".apps-page-title");
@@ -152,19 +149,16 @@ async function createAppsList({ apps, appscreator, currentuser, hideDeletedApps 
 
     apps.sort(sortTextByAscendingOrder);
 
+    let allAppAsListItemsHTML = [];
+
     for (const app of apps) {
 
-        console.log(app);
+        // console.log(app);
 
-        const groupIcons = document.createElement('div');
-        groupIcons.classList.add("group-icons");
-
-        const groupIconImgElements = app.groupstypes.map(
+        const groupIconImgHTML = app.groupstypes.map(
             (type, index) => {
 
                 let icon;
-
-                let brElement;
 
                 switch (type) {
 
@@ -192,129 +186,157 @@ async function createAppsList({ apps, appscreator, currentuser, hideDeletedApps 
                 };
 
                 const iconpath = "/icons/"
+                const iconElementHTML = `<img src="${iconpath}${icon}" class="group-type-icon">`;
 
-                const iconElement = document.createElement("img");
-                iconElement.src = iconpath + icon;
-                iconElement.classList.add("group-type-icon");
-
-                let wrapper = document.createElement("span");
+                let wrapper;
 
                 if (index === 0 && type === GROUP_TYPE.BREAK) {
 
-                    wrapper.appendChild(iconElement)
-                    wrapper.appendChild(document.createElement("br"))
-
+                    wrapper = `
+                            <span>${iconElementHTML}</span>
+                            <br />
+                            `
                 }
                 else if (index !== 0 && type === GROUP_TYPE.BREAK) {
 
-                    wrapper.appendChild(document.createElement("br"))
-                    wrapper.appendChild(iconElement)
-                    wrapper.appendChild(document.createElement("br"))
-
+                    wrapper = `
+                            <br />
+                            <span>${iconElementHTML}</span>
+                            <br />
+                            `
                 }
                 else {
-
-                    wrapper.appendChild(iconElement)
-
+                    wrapper = `<span>${iconElementHTML}</span>`
                 }
 
                 return wrapper;
             });
 
-        groupIconImgElements.forEach(element => {
-            groupIcons.appendChild(element)
-        });
+        const appNameHTML = `<div class="app-name">${app.name}</div>`
 
-        const appAsListItem = document.createElement('li');
-        const header = document.createElement('div');
-        const appName = document.createElement('div');
+        const groupIconsHTML = `<div class="group-icons">${groupIconImgHTML.join("")}</div>`
 
-        appName.classList.add("app-name");
-        appName.textContent = app.name;
+        let headerHTML = "";
 
         if (appscreator === currentuser) {
-            header.innerHTML = app.isdeleted ? DELETED_APP_HEADER : LIVE_APP_HEADER;
+            headerHTML = `<div class="app-header">${app.isdeleted ? DELETED_APP_HEADER : LIVE_APP_HEADER}</div>`
         }
 
-        header.classList.add("app-header");
-        appAsListItem.appendChild(header);
+        let AppResultsListHTML = "";
+
+        if (results.length > 0) {
+            AppResultsListHTML = getAppResultsListHTML(app.appid, results);
+        }
+
+        let appAsListItemHTML = "";
 
         if (app.isdeleted) {
-            appAsListItem.appendChild(appName);
-            appAsListItem.appendChild(groupIcons);
+
+            appAsListItemHTML = ` 
+            <li data-appid="${app.appid}" data-status="${app.isdeleted ? 'deleted-app' : 'live-app'}">
+            ${headerHTML}
+            ${appNameHTML}
+            ${groupIconsHTML}
+            ${AppResultsListHTML}
+            </li> 
+            `
         }
         else {
-            const link = document.createElement('a');
-            link.href = app.link;
-            link.appendChild(appName);
-            link.appendChild(groupIcons);
-            appAsListItem.appendChild(link);
+            appAsListItemHTML = ` 
+
+            <li data-appid="${app.appid}" data-status="${app.isdeleted ? 'deleted-app' : 'live-app'}">
+            ${headerHTML}
+            <a href="${app.link}">
+            ${appNameHTML}
+            ${groupIconsHTML}
+            </a>
+            ${AppResultsListHTML}
+            </li> 
+            `
         }
 
-        const AppResultsListHTML = getAppResultsListHTML(app.appid, results);
-
-        appAsListItem.innerHTML += AppResultsListHTML;
-
-        const AppResultsList = appAsListItem.querySelector(".results-list");
-
-        const listObserver = new MutationObserver(
-            (mutations) => {
-                if (document.contains(AppResultsList)) {
-                    AppResultsList.classList.remove("overflow-left");
-                    AppResultsList.classList.remove("overflow-right");
-
-                    if (isOverflowingOnLeft(AppResultsList)) {
-                        AppResultsList.classList.add("overflow-left");
-                    }
-                    if (isOverflowingOnRight(AppResultsList)) {
-                        AppResultsList.classList.add("overflow-right");
-                    }
-                    listObserver.disconnect();
-                }
-            });
-
-        listObserver.observe(document, { attributes: false, childList: true, characterData: false, subtree: true });
-
-        AppResultsList.addEventListener(
-            "scroll",
-            (event) => {
-                event.currentTarget.classList.remove("overflow-left");
-                event.currentTarget.classList.remove("overflow-right");
-
-                if (isOverflowingOnLeft(event.currentTarget)) {
-                    event.currentTarget.classList.add("overflow-left");
-                }
-                if (isOverflowingOnRight(event.currentTarget)) {
-                    event.currentTarget.classList.add("overflow-right");
-                }
-            }
-        );
-
-        const deleteButton = header.querySelector(".delete-app-btn");
-        deleteButton?.addEventListener("click", (event) => { deleteApp(app.appid, appAsListItem) });
-
-        const recoverAppButton = header.querySelector(".recover-app-btn");
-        recoverAppButton?.addEventListener("click", (event) => { recoverApp(app.appid, appAsListItem, app.recoverablegroups) });
-
-        const cloneAppButton = header.querySelector(".clone-app-btn");
-        cloneAppButton?.addEventListener("click", (event) => { cloneApp(app.appid, appAsListItem) });
-
-        appAsListItem.dataset.appid = app.appid;
-        appAsListItem.dataset.status = app.isdeleted ? "deleted-app" : "live-app";
-
-        if (hideDeletedApps) {
-            appAsListItem.style.display = app.isdeleted ? "none" : "list-item";
-        }
-        else {
-            appAsListItem.style.display = !app.isdeleted ? "none" : "list-item";
-        }
-
-        appList.appendChild(appAsListItem);
+        allAppAsListItemsHTML.push(appAsListItemHTML)
 
     }
 
-    removeGlobalWaitingIndicator()
+    appList.innerHTML = allAppAsListItemsHTML.join("");
+
+    removeGlobalWaitingIndicator();
+
+    addEventListeners(appList)
+
+    hideApps(appList, hideDeletedApps);
+
     macyInstance.recalculate(true);
+
+}
+
+function addEventListeners(appListElement) {
+
+    const appItems = appListElement.querySelectorAll("li");
+
+    for (const appAsListItem of appItems) {
+
+        const appResultsList = appAsListItem.querySelector(".results-list");
+
+        if (appResultsList) {
+
+            // wait for the repaint before calculating overflows
+
+            requestAnimationFrame(
+                () => {
+                    appResultsList.classList.remove("overflow-left");
+                    appResultsList.classList.remove("overflow-right");
+
+                    if (isOverflowingOnLeft(appResultsList)) {
+                        appResultsList.classList.add("overflow-left");
+                    }
+                    if (isOverflowingOnRight(appResultsList)) {
+                        appResultsList.classList.add("overflow-right");
+                    }
+                }
+            )
+
+            appResultsList.addEventListener(
+                "scroll",
+                (event) => {
+                    event.currentTarget.classList.remove("overflow-left");
+                    event.currentTarget.classList.remove("overflow-right");
+
+                    if (isOverflowingOnLeft(event.currentTarget)) {
+                        event.currentTarget.classList.add("overflow-left");
+                    }
+                    if (isOverflowingOnRight(event.currentTarget)) {
+                        event.currentTarget.classList.add("overflow-right");
+                    }
+                }
+            );
+        }
+
+        const cloneAppButton = appAsListItem.querySelector(".clone-app-btn");
+        cloneAppButton?.addEventListener("click", (event) => { cloneApp(appAsListItem.dataset.appid, appAsListItem) });
+
+        const deleteButton = appAsListItem.querySelector(".delete-app-btn");
+        deleteButton?.addEventListener("click", (event) => { deleteApp(appAsListItem.dataset.appid, appAsListItem) });
+
+        const recoverAppButton = appAsListItem.querySelector(".recover-app-btn");
+        recoverAppButton?.addEventListener("click", (event) => { recoverApp(appAsListItem.dataset.appid, appAsListItem) });
+
+    }
+}
+
+function hideApps(appListElement, hideDeletedApps) {
+
+    const appItems = appListElement.querySelectorAll("li");
+
+    for (const appAsListItem of appItems) {
+        if (hideDeletedApps) {
+            appAsListItem.style.display = appAsListItem.dataset.status === "deleted-app" ? "none" : "list-item";
+        }
+        else {
+            appAsListItem.style.display = appAsListItem.dataset.status === "live-app" ? "none" : "list-item";
+        }
+    }
 }
 
 async function deleteApp(appid, appListItemElement) {
@@ -324,7 +346,7 @@ async function deleteApp(appid, appListItemElement) {
     const body = JSON.stringify(
         {
             id: appid,
-            groups: { "version": "2023-11-05", "groups": [] },
+            groups: { version: "2024-03-14", groups: [] },
         }
     );
 
@@ -361,20 +383,19 @@ async function deleteApp(appid, appListItemElement) {
 
 }
 
-async function recoverApp(appid, appListItemElement, recoverablegroups) {
+async function recoverApp(appid, appListItemElement) {
 
-    console.log("[RECOVERING] Persisting the last non-empty version on server, appid: ", appid);
+    console.log("[RECOVERING] Recovering to the last non-empty version on server, appid: ", appid);
 
     const body = JSON.stringify(
         {
             id: appid,
-            groups: { "version": "2023-11-05", "groups": recoverablegroups },
         }
     );
 
     try {
         const response = await fetch(
-            '/persist',
+            '/recover',
             {
                 method: 'POST',
                 headers: {
@@ -401,7 +422,7 @@ async function recoverApp(appid, appListItemElement, recoverablegroups) {
 
 
     } catch (error) {
-        console.error("Error in persisting groups", error);
+        console.error("Error in recovering groups", error);
     }
 }
 
@@ -460,7 +481,7 @@ function getAppResultsListHTML(appid, results) {
 
     const resultsListItems = appResults.map(result => getResultHTML(result.resultid));
 
-    return `<div class="results-container"><ul class="results-list">${resultsListItems.join("")}</ul></div>`
+    return `<div class="results-container"><ul class="results-list">${resultsListItems.join("")}</ul></div>`;
 }
 
 // Utils
