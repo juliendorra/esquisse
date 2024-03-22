@@ -94,6 +94,10 @@ app.use(async (ctx, next) => {
       return;
     }
     ctx.state.user = authResult; // { isAuthenticated,  isAdmin, username}
+
+    // sending the authenticated username back to the client, as validation
+    // needed as we use the browser basic auth, which keeps username out of JavaScript reach
+    ctx.response.headers.set("X-username", authResult.username);
   }
   await next();
 });
