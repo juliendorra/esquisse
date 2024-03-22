@@ -7,6 +7,7 @@ import { captureThumbnail } from "./screen-capture.js"
 
 let ID = null;
 let CREATOR = null;
+let USERNAME = null;
 
 const VERSION = "2024-03-14";
 let APP_VERSION_TIMESTAMP;
@@ -267,6 +268,7 @@ async function loadGroups(importedGroups) {
 
             decodedGroups = appVersion.value;
             CREATOR = decodedGroups.username;
+            USERNAME = response.headers.get("x-username") || null;
 
         } catch (error) {
             console.error("[LOADING] Error loading groups from server", error);
@@ -275,9 +277,12 @@ async function loadGroups(importedGroups) {
         }
     }
     else {
-
         return createBlankApp();
     }
+
+    const userIsAppAuthor = CREATOR === USERNAME;
+
+    console.log("Is the current user the author of the app? ", userIsAppAuthor)
 
     // using the decoded group data to create each group
 
@@ -290,6 +295,16 @@ async function loadGroups(importedGroups) {
         await Promise.all(
             decodedGroups.groups.map(
                 async ({ name, data, transform, type, interactionState, controlnetEnabled, resultDisplayFormat, hashImportedImage }) => {
+
+                    let interactionStateAfterAuthorCheck
+
+                    if (userIsAppAuthor) {
+                        interactionStateAfterAuthorCheck = interactionState
+                    }
+                    else {
+                        interactionStateAfterAuthorCheck = interactionState === INTERACTION_STATE.ENTRY ? INTERACTION_STATE.ENTRY : INTERACTION_STATE.LOCKED
+                    }
+
                     const group = {
                         id: generateUniqueGroupID(groups),
                         name,
@@ -298,7 +313,7 @@ async function loadGroups(importedGroups) {
                         type: type || GROUP_TYPE.TEXT,
                         result: null,
                         lastRequestTime: 0,
-                        interactionState: interactionState || INTERACTION_STATE.OPEN,
+                        interactionState: interactionStateAfterAuthorCheck,
                         controlnetEnabled: controlnetEnabled || undefined,
                         resultDisplayFormat: resultDisplayFormat || undefined,
                         hashImportedImage: hashImportedImage || undefined,
