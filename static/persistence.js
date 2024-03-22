@@ -274,33 +274,6 @@ async function loadGroups(importedGroups) {
             return createBlankApp();
         }
     }
-    else if (window.location.hash) {
-
-        const base64EncodedGroups = window.location.hash.slice(1);
-
-        console.log("[LOADING] hash based loading");
-
-        ID = null;
-
-        try {
-            // try to decode with the old, ASCII-only method
-            try {
-                decodedGroups = JSON.parse(atob(base64EncodedGroups));
-            } catch (e) {
-                // If there's an error, try decode UTF-8 characters
-                decodedGroups = JSON.parse(base64UnicodeDecode(base64EncodedGroups));
-            }
-
-            // If the version field is present, re-decode using proper utf8 handling
-            if (decodedGroups && decodedGroups.version) {
-                // the newest format is an object and not just a raw array. The groups array is in the groups property
-                decodedGroups = JSON.parse(base64UnicodeDecode(base64EncodedGroups));
-            }
-
-        } catch (error) {
-            console.error("[LOADING] Base64 decoding failed", error);
-        }
-    }
     else {
 
         return createBlankApp();
