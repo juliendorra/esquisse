@@ -458,11 +458,20 @@ async function handleDroppedImage(imageFile, group, groupElement) {
 
         displayAndStoreImportedImageBlob(groupElement, processedBlob, group);
 
-        const hashImportedImage = await persistImage(processedBlob);
+        let hashImportedImage;
 
-        if (hashImportedImage && hashImportedImage !== group.hashImportedImage) {
-            group.hashImportedImage = hashImportedImage;
+        // We don't persist the image if the block is set to Entry (ie. as a temporary input) 
+        if (group.interactionState === INTERACTION_STATE.ENTRY) {
+            hashImportedImage = "";
+        }
+        else {
+            hashImportedImage = await persistImage(processedBlob);
+        }
 
+        const previousHashImportedImage = group.hashImportedImage
+        group.hashImportedImage = hashImportedImage;
+
+        if (hashImportedImage && hashImportedImage !== previousHashImportedImage) {
             const groups = groupsMap.GROUPS;
             persistGroups(groups)
         }
@@ -497,8 +506,6 @@ function clearImportedImage(group, groupElement) {
     resultElement.style.display = 'none';
     resultElement.src = "";
     resultElement.removeEventListener('click', createZoomedImage);
-
-    functionButtonsContainer.style.display = 'none';
 
     group.result = undefined;
 
