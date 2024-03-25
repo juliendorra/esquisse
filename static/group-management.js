@@ -68,7 +68,13 @@ const GROUP_HTML = {
                 <div class="drop-zone">Drop image here<br/>or click to load</div>
             </div>
             <img class="result" alt="Imported image" style="display:none;">
-            <div class="function-buttons-container" style="display:none;">
+            <div class="function-buttons-container">
+
+                <div class="group-btn">
+                <button class="tool-btn open-btn" aria-label="Entry"><img src="/icons/open.svg"></button>
+                <button class="tool-btn entry-btn" aria-label="Entry"><img src="/icons/entry.svg"></button>
+                </div>
+                
                 <button class="tool-btn clear-btn" aria-label="Clear" ><img src="/icons/clear.svg"></button>
                 </div>
             </div>
