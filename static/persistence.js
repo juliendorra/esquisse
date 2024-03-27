@@ -66,7 +66,7 @@ const PACKAGED_GROUPS_SCHEMA = {
 
 export { persistGroups, beaconGroups, persistGroupsOnHide, persistImage, loadGroups, shareResult, downloadEsquisseJson, handleEsquisseJsonUpload };
 
-const persistGroups = throttle(persistGroupsUnthrottled, 30000, 10, setPendingChanges)
+const persistGroups = throttle(persistGroupsUnthrottled, 0, 1, setPendingChanges)
 
 function persistGroupsOnHide(groups) {
     if (document.visibilityState == 'hidden' && PENDING_CHANGES > 0) {
@@ -139,7 +139,8 @@ function packageGroups(groups) {
             interactionState,
             controlnetEnabled,
             resultDisplayFormat,
-            hashImportedImage,
+            // We don't package the hashImportedImage value if the block is set to Entry (ie. as a temporary input) 
+            hashImportedImage: interactionState === INTERACTION_STATE.ENTRY ? "" : hashImportedImage,
         }));
     return packagedGroups;
 }
