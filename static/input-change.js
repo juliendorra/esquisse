@@ -9,7 +9,7 @@ import { displayAlert, removeGlobalWaitingIndicator, createZoomedImage } from ".
 export {
     nameChangeHandler, handleInputChange,
     handleListSelectionChange,
-    handleImportedImage, handleDroppedImage, clearImportedImage
+    handleImportedImage, handleDroppedImage, hashAndPersist, clearImportedImage
 };
 
 const DELAY = 5000;
@@ -456,34 +456,27 @@ async function handleDroppedImage(imageFile, group, groupElement) {
     try {
         const processedBlob = await processImage(imageFile);
 
-        displayAndStoreImportedImageBlob(groupElement, processedBlob, group);
-
-        let hashImportedImage;
-
-        // We don't persist the image if the block is set to Entry (ie. as a temporary input) 
-        if (group.interactionState === INTERACTION_STATE.ENTRY) {
-            hashImportedImage = "";
-        }
-        else {
-            hashImportedImage = await persistImage(processedBlob);
-        }
+        displayAndAddToGroupImportedImageBlob(groupElement, processedBlob, group);
 
         const previousHashImportedImage = group.hashImportedImage
-        group.hashImportedImage = hashImportedImage;
 
-        if (hashImportedImage && hashImportedImage !== previousHashImportedImage) {
+        group.hashImportedImage = await hashAndPersist(group.interactionState, processedBlob);
+
+
+        if (group.hashImportedImage && group.hashImportedImage !== previousHashImportedImage) {
             const groups = groupsMap.GROUPS;
             persistGroups(groups)
         }
 
         updateGroupsReferencingIt(group.id);
+
     } catch (error) {
         console.error(error);
         // Handle the error appropriately
     }
 }
 
-function displayAndStoreImportedImageBlob(groupElement, processedBlob, group) {
+function displayAndAddToGroupImportedImageBlob(groupElement, processedBlob, group) {
     const resultElement = groupElement.querySelector(".result");
     const functionButtonsContainer = groupElement.querySelector(".function-buttons-container");
 
@@ -498,10 +491,24 @@ function displayAndStoreImportedImageBlob(groupElement, processedBlob, group) {
     group.result = processedBlob;
 }
 
+async function hashAndPersist(interactionState, importedImageBlob) {
+
+    let hashImportedImage;
+
+    // We don't persist the image if the block is set as a temporary input
+    if (interactionState === INTERACTION_STATE.ENTRY) {
+        hashImportedImage = "";
+    }
+    else {
+        hashImportedImage = await persistImage(importedImageBlob);
+    }
+
+    return hashImportedImage;
+}
+
 function clearImportedImage(group, groupElement) {
 
     const resultElement = groupElement.querySelector(".result");
-    const functionButtonsContainer = groupElement.querySelector(".function-buttons-container");
 
     resultElement.style.display = 'none';
     resultElement.src = "";
@@ -509,8 +516,14 @@ function clearImportedImage(group, groupElement) {
 
     group.result = undefined;
 
-    updateGroupsReferencingIt(group.id);
+    const previousHashImportedImage = group.hashImportedImage
+    group.hashImportedImage = "";
 
+    if (previousHashImportedImage) {
+        const groups = groupsMap.GROUPS;
+        persistGroups(groups);
+    }
+    updateGroupsReferencingIt(group.id);
 }
 
 
