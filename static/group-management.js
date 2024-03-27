@@ -4,7 +4,7 @@ import Graph from "https://cdn.jsdelivr.net/npm/graph-data-structure@3.5.0/+esm"
 
 import { displayAlert } from "./ui-utils.js";
 
-import { nameChangeHandler, handleInputChange, handleListSelectionChange, handleImportedImage, handleDroppedImage, clearImportedImage } from "./input-change.js";
+import { nameChangeHandler, handleInputChange, handleListSelectionChange, handleImportedImage, handleDroppedImage, hashAndPersist, clearImportedImage } from "./input-change.js";
 import { onDragStart, onDragEnd } from "./reordering.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 
@@ -400,9 +400,18 @@ function addEventListenersToGroup(groupElement) {
         persistGroups(groupsMap.GROUPS);
     });
 
-    groupElement.querySelector(".open-btn")?.addEventListener("click", (event) => {
+    groupElement.querySelector(".open-btn")?.addEventListener("click", async (event) => {
+
+        const previousInteractionState = group.interactionState;
+
         group.interactionState = INTERACTION_STATE.OPEN;
+
         displayGroupInteractionState(groupElement, group.interactionState);
+
+        if (previousInteractionState === INTERACTION_STATE.ENTRY && group.type === GROUP_TYPE.IMPORTED_IMAGE) {
+            group.hashImportedImage = await hashAndPersist(group.interactionState, group.result)
+        }
+
         persistGroups(groups);
     });
 
@@ -671,7 +680,6 @@ function getParallelTasks(graph, nodeList) {
     return parallelTasks;
 }
 
-
 function displayCombinedReferencedResult(groupElement, combinedReferencedResults) {
     const refResultTextarea = groupElement.querySelector(".referenced-result-text");
     const dataText = groupElement.querySelector(".data-text");
@@ -733,7 +741,6 @@ function displayDataTextReferenceStatus({
         }
     }
 }
-
 
 function parseResultsAsList(text) {
     // Define regular expressions for different list formats
