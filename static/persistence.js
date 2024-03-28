@@ -2,7 +2,7 @@ import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, generateUniqueGro
 import { groupsMap, createGroupInLocalDataStructures, addGroupElement, displayGroupInteractionState, displayControlnetStatus, updateGroups, } from "./group-management.js"
 import { updateReferenceGraph } from "./reference-graph.js";
 import Validator from 'https://esm.run/jsonschema';
-import { displayAlert, removeGlobalWaitingIndicator, createZoomedImage } from "./ui-utils.js";
+import { displayAlert, removeGlobalWaitingIndicator, createZoomedImage, showAddBlocksButtons, hideAddBlocksButtons } from "./ui-utils.js";
 import { captureThumbnail } from "./screen-capture.js"
 
 let ID = null;
@@ -105,13 +105,15 @@ async function persistGroupsUnthrottled(groups) {
     if (!isFreshApp && isNewByDifferentUser) {
         displayAlert(
             {
-                issue: `Remix of ${previousCreator}'s app saved to your apps`,
+                issue: `Clone of ${previousCreator}'s app saved to your apps`,
                 action: `You can modify it and come back to it anytime using this page url. ${previousCreator}'s app won't be modified`,
                 variant: "success",
                 icon: "copy",
                 duration: 5000
             }
         );
+
+        showAddBlocksButtons();
     }
 
     console.log("[PERSIST] Rewriting URL with ID")
@@ -285,6 +287,9 @@ async function loadGroups(importedGroups) {
 
     console.log("Is the current user the author of the app? ", userIsAppAuthor)
 
+    if (userIsAppAuthor) { showAddBlocksButtons(); }
+    else { hideAddBlocksButtons(); };
+
     // using the decoded group data to create each group
 
     try {
@@ -304,6 +309,7 @@ async function loadGroups(importedGroups) {
                     }
                     else {
                         interactionStateAfterAuthorCheck = interactionState === INTERACTION_STATE.ENTRY ? INTERACTION_STATE.ENTRY : INTERACTION_STATE.LOCKED
+
                     }
 
                     const group = {

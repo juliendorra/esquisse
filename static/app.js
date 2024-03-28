@@ -4,7 +4,7 @@ import { addMiniviewButtonsListeners } from "./reordering.js";
 
 import { GROUP_TYPE, getGroupIdFromElement } from "./group-utils.js";
 
-import { loadGroups, shareResult, downloadEsquisseJson, handleEsquisseJsonUpload, beaconGroups, persistGroupsOnHide } from "./persistence.js";
+import { loadGroups, shareResult, downloadEsquisseJson, handleEsquisseJsonUpload, beaconGroups, persistGroupsOnHide, persistGroups } from "./persistence.js";
 
 import { groupsMap, createGroupAndAddGroupElement } from "./group-management.js";
 
@@ -112,6 +112,10 @@ async function init() {
 
     addMiniviewButtonsListeners();
 
+    document.querySelector(".clone-app-btn").addEventListener('click', (event) => {
+        persistGroups(groupsMap.GROUPS);
+    });
+
     document
         .querySelector(".add-break-group-btn")
         .addEventListener("click", () => createGroupAndAddGroupElement(GROUP_TYPE.BREAK));
@@ -135,6 +139,7 @@ async function init() {
     document.querySelector(".share-result-btn").addEventListener('click', (event) => {
         shareResult(groupsMap.GROUPS, event.currentTarget);
     });
+
 
     // Settings Menu Listeners
 

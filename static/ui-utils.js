@@ -1,6 +1,6 @@
 import hotkeys from 'https://cdn.jsdelivr.net/npm/hotkeys-js@3/+esm';
 
-export { displayAlert, removeGlobalWaitingIndicator, createZoomedImage, setShortcuts };
+export { displayAlert, hideAddBlocksButtons, showAddBlocksButtons, removeGlobalWaitingIndicator, createZoomedImage, setShortcuts };
 
 // this function needs shoelace custom elements to be defined to works
 function displayAlert({ issue, action, variant = "warning", icon = "exclamation-triangle", duration = 3000 }) {
@@ -24,6 +24,16 @@ function displayAlert({ issue, action, variant = "warning", icon = "exclamation-
     customElements.whenDefined('sl-alert').then(() => {
         alert.toast();
     });
+}
+
+function hideAddBlocksButtons() {
+    document.querySelector(".add-block-tools").style.display = "none";
+    document.querySelector(".edit-app-tools").style.display = "inline";
+}
+
+function showAddBlocksButtons() {
+    document.querySelector(".add-block-tools").style.display = "inline";
+    document.querySelector(".edit-app-tools").style.display = "none";
 }
 
 function removeGlobalWaitingIndicator() {
