@@ -677,11 +677,17 @@ img.result.zoomed {
     border-color: var(--group-image-color-code);
 }
 
-.footer-btn:nth-last-of-type(3) {
+.add-block-tools {
     margin-right: 2rem;
 }
 
-.share-result-btn {
+.edit-app-tools {
+    margin-right: 2rem;
+}
+
+/* this push the last flex item to the right, because 
+"Prior to alignment via justify-content and align-self, any positive free space is distributed to auto margins in that dimension." */
+.share-settings-tools {
     margin-left: auto;
 }
 
