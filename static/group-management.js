@@ -50,7 +50,6 @@ const GROUP_HTML = {
                 <div class="group-btn">
                 <button class="tool-btn open-btn" aria-label="Entry"><img src="/icons/open.svg"></button>
                 <button class="tool-btn entry-btn" aria-label="Entry"><img src="/icons/entry.svg"></button>
-                <button class="tool-btn lock-btn" aria-label="Lock"><img src="/icons/lock.svg"></button>
                 </div>
 
             </div>
@@ -99,7 +98,6 @@ const GROUP_HTML = {
                 <div class="group-btn">
                 <button class="tool-btn open-btn" aria-label="Entry"><img src="/icons/open.svg"></button>
                 <button class="tool-btn entry-btn" aria-label="Entry"><img src="/icons/entry.svg"></button>
-                <button class="tool-btn lock-btn" aria-label="Lock"><img src="/icons/lock.svg"></button>
                 </div>
 
                 <button class="tool-btn refresh-btn" aria-label="Refresh"><img src="/icons/refresh.svg"></button>
@@ -128,7 +126,6 @@ const GROUP_HTML = {
                 <div class="group-btn">
                 <button class="tool-btn open-btn" aria-label="Entry"><img src="/icons/open.svg"></button>
                 <button class="tool-btn entry-btn" aria-label="Entry"><img src="/icons/entry.svg"></button>
-                <button class="tool-btn lock-btn" aria-label="Lock"><img src="/icons/lock.svg"></button>
                 </div>
 
                 <button class="tool-btn refresh-btn" aria-label="Refresh"><img src="/icons/refresh.svg"></button>
