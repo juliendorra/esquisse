@@ -10,6 +10,7 @@
   },
   "imports": {
     "https://deno.land/x/oak/mod.ts": "https://deno.land/x/oak@v13.1.0/mod.ts",
-    "https://deno.land/x/kvdex/mod.ts": "https://deno.land/x/kvdex@v0.31.2/mod.ts"
+    "https://deno.land/x/kvdex/mod.ts": "https://deno.land/x/kvdex@v0.31.2/mod.ts",
+    "https://deno.land/x/s3_lite_client/mod.ts": "https://deno.land/x/s3_lite_client@0.6.2/mod.ts"
   }
 }
