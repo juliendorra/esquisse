@@ -64,7 +64,11 @@ const PACKAGED_GROUPS_SCHEMA = {
     "additionalProperties": false
 }
 
-export { persistGroups, beaconGroups, persistGroupsOnHide, persistImage, loadGroups, shareResult, downloadEsquisseJson, handleEsquisseJsonUpload };
+export { getAppMetaData, persistGroups, beaconGroups, persistGroupsOnHide, persistImage, loadGroups, shareResult, downloadEsquisseJson, handleEsquisseJsonUpload };
+
+function getAppMetaData() {
+    return { ID, CREATOR, USERNAME, APP_VERSION_TIMESTAMP, PENDING_CHANGES }
+}
 
 const persistGroups = throttle(persistGroupsUnthrottled, 0, 1, setPendingChanges)
 
