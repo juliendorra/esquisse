@@ -133,21 +133,23 @@ function packageGroups(groups) {
 
     packagedGroups.version = VERSION;
 
-    // we store the groups array in the groups property
-    packagedGroups.groups = Array.from(groups
-        .values())
-        .map(({ name, data, transform, type, interactionState, controlnetEnabled, resultDisplayFormat, hashImportedImage }) => ({
-            name,
-            // We don't package the data text if the block is set to Entry (ie. as a temporary input) 
-            data: interactionState === INTERACTION_STATE.ENTRY ? "" : data,
-            transform,
-            type,
-            interactionState,
-            controlnetEnabled,
-            resultDisplayFormat,
-            // We don't package the hashImportedImage value if the block is set to Entry (ie. as a temporary input) 
-            hashImportedImage: interactionState === INTERACTION_STATE.ENTRY ? "" : hashImportedImage,
-        }));
+    // Convert the Map's values to an array and sort them based on their index property
+    let sortedGroups = Array.from(groups.values()).sort((a, b) => a.index - b.index);
+
+    // Now, map the sorted groups to the desired structure
+    packagedGroups.groups = sortedGroups.map((group) => ({
+        name: group.name,
+        // We don't package the data text if the block is set to Entry (i.e., as a temporary input)
+        data: group.interactionState === INTERACTION_STATE.ENTRY ? "" : group.data,
+        transform: group.transform,
+        type: group.type,
+        interactionState: group.interactionState,
+        controlnetEnabled: group.controlnetEnabled,
+        resultDisplayFormat: group.resultDisplayFormat,
+        // We don't package the hashImportedImage value if the block is set to Entry (i.e., as a temporary input)
+        hashImportedImage: group.interactionState === INTERACTION_STATE.ENTRY ? "" : group.hashImportedImage,
+    }));
+
     return packagedGroups;
 }
 
@@ -304,7 +306,9 @@ async function loadGroups(importedGroups) {
 
         await Promise.all(
             decodedGroups.groups.map(
-                async ({ name, data, transform, type, interactionState, controlnetEnabled, resultDisplayFormat, hashImportedImage }) => {
+                async (
+                    { name, data, transform, type, interactionState, controlnetEnabled, resultDisplayFormat, hashImportedImage },
+                    index) => {
 
                     let interactionStateAfterAuthorCheck
 
@@ -318,6 +322,7 @@ async function loadGroups(importedGroups) {
 
                     const group = {
                         id: generateUniqueGroupID(groups),
+                        index: index,
                         name,
                         data,
                         transform,
