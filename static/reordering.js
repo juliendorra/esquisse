@@ -1,5 +1,5 @@
 import { Sortable, MultiDrag } from 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/+esm';
-import { rebuildGroupsInNewOrder } from './group-management.js';
+import { indexGroupsInNewOrder } from './group-management.js';
 
 export { onDragStart, onDragEnd, addMiniviewButtonsListeners, applyScale };
 
@@ -119,7 +119,7 @@ function onEndSortable(event) {
         Sortable.utils.deselect(element);
     });
 
-    rebuildGroupsInNewOrder();
+    indexGroupsInNewOrder();
 
     applyScale();
 }

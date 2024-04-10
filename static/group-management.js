@@ -20,7 +20,7 @@ let ONGOING_UPDATES = new Map();
 
 export {
     groupsMap, createGroupInLocalDataStructures,
-    addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, displayGroupInteractionState, displayControlnetStatus, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, rebuildGroupsInNewOrder
+    addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, displayGroupInteractionState, displayControlnetStatus, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, indexGroupsInNewOrder
 };
 
 const GROUP_HTML = {
@@ -143,9 +143,12 @@ function createGroupInLocalDataStructures(groupType) {
 
     const id = generateUniqueGroupID(groups);
 
+    console.log("[CREATING NEW GROUP] groups are already ", groups.size);
+
     const group = {
         id,
         name: groupType + "-" + id,
+        index: groups.size,
         data: "",
         transform: "",
         type: groupType,
@@ -154,7 +157,7 @@ function createGroupInLocalDataStructures(groupType) {
         interactionState: INTERACTION_STATE.OPEN,
     };
 
-    console.log("[GROUP MANAGEMENT] New group in data:", group);
+    console.log("[CREATING NEW GROUP] New group in data:", group);
 
     groups.set(group.id, group);
 
@@ -866,27 +869,20 @@ function displayFormattedResults(groupElement) {
     }
 }
 
-function rebuildGroupsInNewOrder() {
-    // Intermediary Map to store the reordered groups
-
-    const newGroups = new Map();
+function indexGroupsInNewOrder() {
 
     const groupElements = document.querySelectorAll('.container .group');
 
-    groupElements.forEach(element => {
+    console.log("[REORDERING GROUPS] ", groupsMap.GROUPS, "According to elements ", groupElements);
+
+    groupElements.forEach((element, index) => {
 
         const id = element.getAttribute('data-id');
 
-        // Retrieve the group object from groupsMap.GROUPS
-        // to set it into the newGroups map
-        newGroups.set(id, groupsMap.GROUPS.get(id));
+        console.log("[REORDERING GROUPS] new index: ", index, "old index: ", groupsMap.GROUPS.get(id).index, "Group is: ", groupsMap.GROUPS.get(id));
+
+        groupsMap.GROUPS.get(id).index = index;
     });
-
-    console.log("[REORDERING GROUPS] Old group: ", groupsMap.GROUPS, " New groups ", newGroups);
-
-    groupsMap.GROUPS = newGroups;
-
-    console.log("[REORDERING GROUPS] reordered groups as: ", groupsMap.GROUPS);
 
     document.title = `${groupsMap.GROUPS.values().next().value.name} · Esquisse AI`;
 
