@@ -165,7 +165,7 @@ function createGroupInLocalDataStructures(groupType) {
     // as the graph is used by the updateGroups function
     updateReferenceGraph(groups);
 
-    return group;
+    return groups.get(group.id);
 }
 
 function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
