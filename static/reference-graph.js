@@ -30,7 +30,7 @@ function updateReferenceGraph(groups) {
 
 function buildReverseReferenceGraph(groups) {
 
-    console.log("Building the invert dependency graph from the groups structure")
+    console.log("[GRAPH] Building the invert dependency graph from the groups structure")
 
     // Builds the graph of 'group as a result' =>> groups that reference them to use their result
     //
@@ -58,12 +58,12 @@ function buildReverseReferenceGraph(groups) {
             console.log(referencedGroupName, referencedGroup)
 
             if (referencedGroup) {
-                console.log("named reference to existing group, added to invert dependency graph", referencedGroupName, referencedGroup)
+                console.log("[GRAPH] named reference to existing group, added to invert dependency graph", referencedGroupName, referencedGroup)
 
                 graph.addEdge(referencedGroup.id, group.id)
             }
             else {
-                console.log("named reference to unexisting group, not added to invert dependency graph", referencedGroupName)
+                console.log("[GRAPH] named reference to unexisting group, not added to invert dependency graph", referencedGroupName)
             }
         }
     }
