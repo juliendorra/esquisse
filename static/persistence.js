@@ -320,12 +320,14 @@ async function loadGroups(importedGroups) {
 
                     }
 
+                    const id = generateUniqueGroupID(groups);
+
                     const group = {
-                        id: generateUniqueGroupID(groups),
+                        id: id,
                         index: index,
-                        name,
-                        data,
-                        transform,
+                        name: name || type + "-" + id,
+                        data: data || "",
+                        transform: transform || "",
                         type: type || GROUP_TYPE.TEXT,
                         result: null,
                         lastRequestTime: 0,
