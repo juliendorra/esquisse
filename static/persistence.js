@@ -4,6 +4,7 @@ import { updateReferenceGraph } from "./reference-graph.js";
 import Validator from 'https://esm.run/jsonschema';
 import { displayAlert, removeGlobalWaitingIndicator, createZoomedImage, showAddBlocksButtons, hideAddBlocksButtons } from "./ui-utils.js";
 import { captureThumbnail } from "./screen-capture.js"
+import { fetchWithCheck } from "./network.js";
 
 let ID = null;
 let CREATOR = null;
@@ -158,7 +159,7 @@ async function persistOnServer(packagedGroups, existingId = null) {
     console.log("[PERSIST] Persisting on server", packagedGroups);
 
     try {
-        const response = await fetch('/persist', {
+        const response = await fetchWithCheck('/persist', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -193,7 +194,7 @@ async function persistImage(imageBlob) {
     console.log("[PERSIST] Persist image on server");
 
     try {
-        const response = await fetch('/persist-image', {
+        const response = await fetchWithCheck('/persist-image', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -249,7 +250,7 @@ async function loadGroups(importedGroups) {
         ID = urlPath.split('/')[2];
 
         try {
-            const response = await fetch('/load', {
+            const response = await fetchWithCheck('/load', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -357,7 +358,7 @@ async function loadGroups(importedGroups) {
                         const imageUrl = `/imported-image/${urlEncodedHash}`
 
                         try {
-                            const response = await fetch(imageUrl);
+                            const response = await fetchWithCheck(imageUrl);
 
                             if (!response.ok) {
 
@@ -606,7 +607,7 @@ async function persistResultOnServer(packagedResult) {
     console.log("[PERSIST] Persist result on server", packagedResult);
 
     try {
-        const response = await fetch('/persist-result', {
+        const response = await fetchWithCheck('/persist-result', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

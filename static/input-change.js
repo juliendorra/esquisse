@@ -5,6 +5,7 @@ import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 import { persistGroups, persistImage } from "./persistence.js";
 import { SETTINGS } from "./app.js";
 import { displayAlert, removeGlobalWaitingIndicator, createZoomedImage } from "./ui-utils.js";
+import { fetchWithCheck } from "./network.js";
 
 export {
     nameChangeHandler, handleInputChange,
@@ -289,7 +290,7 @@ async function sendRequestsForGroup({
         fetchingIndicatorElement.classList.add("waiting");
 
         try {
-            const response = await fetch("/stability", fetchOptions);
+            const response = await fetchWithCheck("/stability", fetchOptions);
 
             if (!response.ok) {
 
@@ -385,7 +386,7 @@ async function sendRequestsForGroup({
         fetchingIndicatorElement.classList.add("waiting");
 
         try {
-            const response = await fetch("/chatgpt", fetchOptions);
+            const response = await fetchWithCheck("/chatgpt", fetchOptions);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status} `);
