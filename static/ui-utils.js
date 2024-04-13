@@ -3,7 +3,7 @@ import hotkeys from 'https://cdn.jsdelivr.net/npm/hotkeys-js@3/+esm';
 export { displayAlert, hideAddBlocksButtons, showAddBlocksButtons, removeGlobalWaitingIndicator, createZoomedImage, setShortcuts };
 
 // this function needs shoelace custom elements to be defined to works
-function displayAlert({ issue, action, variant = "warning", icon = "exclamation-triangle", duration = 3000 }) {
+async function displayAlert({ issue, action, variant = "warning", icon = "exclamation-triangle", duration = 3000 }) {
 
     const alert = document.createElement("sl-alert");
 
@@ -21,9 +21,20 @@ function displayAlert({ issue, action, variant = "warning", icon = "exclamation-
 
     document.body.appendChild(alert);
 
-    customElements.whenDefined('sl-alert').then(() => {
-        alert.toast();
-    });
+    await customElements.whenDefined('sl-alert');
+    alert.toast();
+
+    return alert;
+}
+
+function hideAddBlocksButtons() {
+    document.querySelector(".add-block-tools").style.display = "none";
+    document.querySelector(".edit-app-tools").style.display = "inline";
+}
+
+function showAddBlocksButtons() {
+    document.querySelector(".add-block-tools").style.display = "inline";
+    document.querySelector(".edit-app-tools").style.display = "none";
 }
 
 function hideAddBlocksButtons() {
