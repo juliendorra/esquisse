@@ -415,12 +415,6 @@ function addEventListenersToGroup(groupElement) {
         persistGroups(groups);
     });
 
-    groupElement.querySelector(".lock-btn")?.addEventListener("click", (event) => {
-        group.interactionState = INTERACTION_STATE.LOCKED;
-        displayGroupInteractionState(groupElement, group.interactionState);
-        persistGroups(groups);
-    });
-
     groupElement.querySelector(".entry-btn")?.addEventListener("click", (event) => {
         group.interactionState = INTERACTION_STATE.ENTRY;
         displayGroupInteractionState(groupElement, group.interactionState);
