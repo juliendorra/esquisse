@@ -20,7 +20,7 @@ let ONGOING_UPDATES = new Map();
 
 export {
     groupsMap, createGroupInLocalDataStructures,
-    addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, displayGroupInteractionState, displayControlnetStatus, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, indexGroupsInNewOrder
+    addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, displayAllGroupsInteractionState, displayGroupInteractionState, displayControlnetStatus, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, indexGroupsInNewOrder
 };
 
 const GROUP_HTML = {
@@ -454,6 +454,22 @@ function deleteGroup(groupElement) {
 function setGroupResultDisplayFormat(groupElement, resultDisplayFormat) {
     const group = groupsMap.GROUPS.get(getGroupIdFromElement(groupElement));
     group.resultDisplayFormat = resultDisplayFormat;
+}
+
+function displayAllGroupsInteractionState() {
+
+    groupsMap.GROUPS
+
+    const groupElements = document.querySelectorAll('.container .group');
+
+    for (const groupElement of groupElements) {
+
+        const id = groupElement.getAttribute('data-id');
+
+        const interactionState = groupsMap.GROUPS.get(id).interactionState;
+
+        displayGroupInteractionState(groupElement, interactionState);
+    }
 }
 
 function displayGroupInteractionState(groupElement, interactionState) {

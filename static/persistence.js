@@ -1,5 +1,5 @@
 import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, generateUniqueGroupID } from "./group-utils.js";
-import { groupsMap, createGroupInLocalDataStructures, addGroupElement, displayGroupInteractionState, displayControlnetStatus, updateGroups, } from "./group-management.js"
+import { groupsMap, createGroupInLocalDataStructures, addGroupElement, displayAllGroupsInteractionState, displayGroupInteractionState, displayControlnetStatus, updateGroups, } from "./group-management.js"
 import { updateReferenceGraph } from "./reference-graph.js";
 import Validator from 'https://esm.run/jsonschema';
 import { displayAlert, removeGlobalWaitingIndicator, createZoomedImage, showAddBlocksButtons, hideAddBlocksButtons } from "./ui-utils.js";
@@ -118,6 +118,7 @@ async function persistGroupsUnthrottled(groups) {
             }
         );
 
+        displayAllGroupsInteractionState();
         showAddBlocksButtons();
     }
 
