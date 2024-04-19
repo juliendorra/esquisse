@@ -290,7 +290,7 @@ async function loadGroups(importedGroups) {
         return createBlankApp();
     }
 
-    const userIsAppAuthor = CREATOR === USERNAME;
+    const userIsAppAuthor = CREATOR === USERNAME || importedGroups;
 
     console.log("Is the current user the author of the app? ", userIsAppAuthor)
 
