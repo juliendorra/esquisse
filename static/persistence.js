@@ -287,6 +287,7 @@ async function loadGroups(importedGroups) {
         }
     }
     else {
+        showAddBlocksButtons();
         return createBlankApp();
     }
 
