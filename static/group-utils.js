@@ -1,4 +1,4 @@
-export { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, getGroupIdFromElement, getGroupElementFromId, getGroupFromName, generateUniqueGroupID };
+export { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, getGroupIdFromElement, getGroupElementFromId, getGroupFromName, generateGroupUUID, generateUniqueGroupName };
 
 const GROUP_TYPE = {
     STATIC: "static",
@@ -43,12 +43,24 @@ function getGroupFromName(name, groups) {
     return undefined
 }
 
-function generateUniqueGroupID(groups) {
+function generateGroupUUID(groups) {
+
+    return crypto.randomUUID();
+}
+
+function generateUniqueGroupName(groupType, groups) {
+
     let name = "";
     let unique = false;
+
+    const names = Array.from(groups)
+        .map(
+            ([key, value]) => { value.name }
+        );
+
     while (!unique) {
-        name = `${randomInt(1, 9999)}`;
-        if (!groups.has(name)) {
+        name = `${groupType}-${randomInt(1, 999)}`;
+        if (!names.includes(name)) {
             unique = true;
         }
     }

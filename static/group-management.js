@@ -1,4 +1,4 @@
-import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, getGroupIdFromElement, getGroupElementFromId, getGroupFromName, generateUniqueGroupID } from "./group-utils.js";
+import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, getGroupIdFromElement, getGroupElementFromId, getGroupFromName, generateGroupUUID, generateUniqueGroupName } from "./group-utils.js";
 
 import Graph from "https://cdn.jsdelivr.net/npm/graph-data-structure@3.5.0/+esm";
 
@@ -141,13 +141,14 @@ function createGroupInLocalDataStructures(groupType) {
 
     const groups = groupsMap.GROUPS;
 
-    const id = generateUniqueGroupID(groups);
+    const id = generateGroupUUID();
+    const name = generateUniqueGroupName(groupType, groups);
 
     console.log("[CREATING NEW GROUP] groups are already ", groups.size);
 
     const group = {
-        id,
-        name: groupType + "-" + id,
+        id: id,
+        name: name,
         index: groups.size,
         data: "",
         transform: "",

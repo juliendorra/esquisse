@@ -14,6 +14,7 @@ type Apps = {
     version: string;
     username: string;
     groups: Array<{
+        id: string;
         name: string;
         data?: string;
         transform?: string;

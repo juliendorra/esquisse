@@ -1,4 +1,4 @@
-import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, generateUniqueGroupID } from "./group-utils.js";
+import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, generateGroupUUID, generateUniqueGroupName } from "./group-utils.js";
 import { groupsMap, createGroupInLocalDataStructures, addGroupElement, displayAllGroupsInteractionState, displayGroupInteractionState, displayControlnetStatus, updateGroups, } from "./group-management.js"
 import { updateReferenceGraph } from "./reference-graph.js";
 import Validator from 'https://esm.run/jsonschema';
@@ -140,6 +140,7 @@ function packageGroups(groups) {
 
     // Now, map the sorted groups to the desired structure
     packagedGroups.groups = sortedGroups.map((group) => ({
+        id: group.id,
         name: group.name,
         // We don't package the data text if the block is set to Entry (i.e., as a temporary input)
         data: group.interactionState === INTERACTION_STATE.ENTRY ? "" : group.data,
@@ -310,15 +311,13 @@ async function loadGroups(importedGroups) {
         await Promise.all(
             decodedGroups.groups.map(
                 async (
-                    { name, data, transform, type, interactionState, controlnetEnabled, resultDisplayFormat, hashImportedImage },
+                    { id, name, data, transform, type, interactionState, controlnetEnabled, resultDisplayFormat, hashImportedImage },
                     index) => {
 
-                    const id = generateUniqueGroupID(groups);
-
                     const group = {
-                        id: id,
+                        id: id || generateGroupUUID(),
                         index: index,
-                        name: name || type + "-" + id,
+                        name: name || generateUniqueGroupName(type, groups),
                         data: data || "",
                         transform: transform || "",
                         type: type || GROUP_TYPE.TEXT,
