@@ -8,7 +8,7 @@ import { nameChangeHandler, handleInputChange, handleListSelectionChange, handle
 import { onDragStart, onDragEnd } from "./reordering.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 
-import { persistGroups } from "./persistence.js";
+import { persistGroups, getAppMetaData } from "./persistence.js";
 
 
 const groupsMap = {
@@ -465,7 +465,20 @@ function displayGroupInteractionState(groupElement, interactionState) {
     const entryButton = groupElement.querySelector(".entry-btn");
     const lockButton = groupElement.querySelector(".lock-btn");
 
-    switch (interactionState) {
+    const { CREATOR, USERNAME, ID } = getAppMetaData();
+
+    const userIsAppAuthor = CREATOR === USERNAME || ID === null;
+
+    let interactionStateAfterAuthorCheck
+
+    if (userIsAppAuthor) {
+        interactionStateAfterAuthorCheck = interactionState
+    }
+    else {
+        interactionStateAfterAuthorCheck = interactionState === INTERACTION_STATE.ENTRY ? INTERACTION_STATE.ENTRY : INTERACTION_STATE.LOCKED
+    }
+
+    switch (interactionStateAfterAuthorCheck) {
         case INTERACTION_STATE.OPEN:
             groupNameElement?.removeAttribute("readonly");
             dataElement?.removeAttribute("readonly");

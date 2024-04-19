@@ -312,16 +312,6 @@ async function loadGroups(importedGroups) {
                     { name, data, transform, type, interactionState, controlnetEnabled, resultDisplayFormat, hashImportedImage },
                     index) => {
 
-                    let interactionStateAfterAuthorCheck
-
-                    if (userIsAppAuthor) {
-                        interactionStateAfterAuthorCheck = interactionState
-                    }
-                    else {
-                        interactionStateAfterAuthorCheck = interactionState === INTERACTION_STATE.ENTRY ? INTERACTION_STATE.ENTRY : INTERACTION_STATE.LOCKED
-
-                    }
-
                     const id = generateUniqueGroupID(groups);
 
                     const group = {
@@ -333,7 +323,8 @@ async function loadGroups(importedGroups) {
                         type: type || GROUP_TYPE.TEXT,
                         result: null,
                         lastRequestTime: 0,
-                        interactionState: interactionStateAfterAuthorCheck,
+                        // Older apps might have an interaction state set to locked, which is now only a temp state when using another's app
+                        interactionState: interactionState === INTERACTION_STATE.LOCKED ? INTERACTION_STATE.OPEN : interactionState,
                         controlnetEnabled: controlnetEnabled || undefined,
                         resultDisplayFormat: resultDisplayFormat || undefined,
                         hashImportedImage: hashImportedImage || undefined,
@@ -411,7 +402,7 @@ async function loadGroups(importedGroups) {
                         }
                     }
 
-                    // displayGroupInteractionState display the right UI state based on the set group.interactionState
+                    // display the right UI state based on the interactionState and ownership/authorship of the app
                     displayGroupInteractionState(groupElement, group.interactionState);
 
                     displayControlnetStatus(groupElement, group.controlnetEnabled);
