@@ -8,7 +8,7 @@ import { nameChangeHandler, handleInputChange, handleListSelectionChange, handle
 import { onDragStart, onDragEnd } from "./reordering.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 
-import { persistGroups } from "./persistence.js";
+import { persistGroups, getAppMetaData } from "./persistence.js";
 
 
 const groupsMap = {
@@ -20,7 +20,7 @@ let ONGOING_UPDATES = new Map();
 
 export {
     groupsMap, createGroupInLocalDataStructures,
-    addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, displayGroupInteractionState, displayControlnetStatus, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, indexGroupsInNewOrder
+    addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, displayAllGroupsInteractionState, displayGroupInteractionState, displayControlnetStatus, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, indexGroupsInNewOrder
 };
 
 const GROUP_HTML = {
@@ -416,12 +416,6 @@ function addEventListenersToGroup(groupElement) {
         persistGroups(groups);
     });
 
-    groupElement.querySelector(".lock-btn")?.addEventListener("click", (event) => {
-        group.interactionState = INTERACTION_STATE.LOCKED;
-        displayGroupInteractionState(groupElement, group.interactionState);
-        persistGroups(groups);
-    });
-
     groupElement.querySelector(".entry-btn")?.addEventListener("click", (event) => {
         group.interactionState = INTERACTION_STATE.ENTRY;
         displayGroupInteractionState(groupElement, group.interactionState);
@@ -463,6 +457,22 @@ function setGroupResultDisplayFormat(groupElement, resultDisplayFormat) {
     group.resultDisplayFormat = resultDisplayFormat;
 }
 
+function displayAllGroupsInteractionState() {
+
+    groupsMap.GROUPS
+
+    const groupElements = document.querySelectorAll('.container .group');
+
+    for (const groupElement of groupElements) {
+
+        const id = groupElement.getAttribute('data-id');
+
+        const interactionState = groupsMap.GROUPS.get(id).interactionState;
+
+        displayGroupInteractionState(groupElement, interactionState);
+    }
+}
+
 function displayGroupInteractionState(groupElement, interactionState) {
     const groupNameElement = groupElement.querySelector(".group-name");
     const dataElement = groupElement.querySelector(".data-text");
@@ -472,7 +482,20 @@ function displayGroupInteractionState(groupElement, interactionState) {
     const entryButton = groupElement.querySelector(".entry-btn");
     const lockButton = groupElement.querySelector(".lock-btn");
 
-    switch (interactionState) {
+    const { CREATOR, USERNAME, ID } = getAppMetaData();
+
+    const userIsAppAuthor = CREATOR === USERNAME || ID === null;
+
+    let interactionStateAfterAuthorCheck
+
+    if (userIsAppAuthor) {
+        interactionStateAfterAuthorCheck = interactionState
+    }
+    else {
+        interactionStateAfterAuthorCheck = interactionState === INTERACTION_STATE.ENTRY ? INTERACTION_STATE.ENTRY : INTERACTION_STATE.LOCKED
+    }
+
+    switch (interactionStateAfterAuthorCheck) {
         case INTERACTION_STATE.OPEN:
             groupNameElement?.removeAttribute("readonly");
             dataElement?.removeAttribute("readonly");

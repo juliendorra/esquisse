@@ -1,5 +1,5 @@
 import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, generateGroupUUID, generateUniqueGroupName } from "./group-utils.js";
-import { groupsMap, createGroupInLocalDataStructures, addGroupElement, displayGroupInteractionState, displayControlnetStatus, updateGroups, } from "./group-management.js"
+import { groupsMap, createGroupInLocalDataStructures, addGroupElement, displayAllGroupsInteractionState, displayGroupInteractionState, displayControlnetStatus, updateGroups, } from "./group-management.js"
 import { updateReferenceGraph } from "./reference-graph.js";
 import Validator from 'https://esm.run/jsonschema';
 import { displayAlert, removeGlobalWaitingIndicator, createZoomedImage, showAddBlocksButtons, hideAddBlocksButtons } from "./ui-utils.js";
@@ -28,6 +28,9 @@ const PACKAGED_GROUPS_SCHEMA = {
             "items": {
                 "type": "object",
                 "properties": {
+                    "id": {
+                        "type": "string"
+                    },
                     "name": {
                         "type": "string"
                     },
@@ -99,6 +102,18 @@ async function persistGroupsUnthrottled(groups) {
 
     const packagedGroups = packageGroups(groups);
 
+    if (!arePackagedGroupsValid()) {
+        displayAlert(
+            {
+                issue: "Failed to prepare your app for saving",
+                action: "Copy the most important elements manually and refresh the page",
+                variant: "warning"
+            }
+        );
+        console.log("[IMPORTING APP] Invalid json: ", validationResult)
+        return;
+    }
+
     const previousId = ID;
     const previousCreator = CREATOR;
 
@@ -118,6 +133,7 @@ async function persistGroupsUnthrottled(groups) {
             }
         );
 
+        displayAllGroupsInteractionState();
         showAddBlocksButtons();
     }
 
@@ -129,7 +145,7 @@ async function persistGroupsUnthrottled(groups) {
 
 }
 
-function packageGroups(groups) {
+function packageGroups(groups, { packageIds = true } = { packageIds: true }) {
     let packagedGroups = {};
 
     packagedGroups.version = VERSION;
@@ -139,7 +155,7 @@ function packageGroups(groups) {
 
     // Now, map the sorted groups to the desired structure
     packagedGroups.groups = sortedGroups.map((group) => ({
-        id: group.id,
+        id: packageIds ? group.id : "",
         name: group.name,
         // We don't package the data text if the block is set to Entry (i.e., as a temporary input)
         data: group.interactionState === INTERACTION_STATE.ENTRY ? "" : group.data,
@@ -288,10 +304,11 @@ async function loadGroups(importedGroups) {
         }
     }
     else {
+        showAddBlocksButtons();
         return createBlankApp();
     }
 
-    const userIsAppAuthor = CREATOR === USERNAME;
+    const userIsAppAuthor = CREATOR === USERNAME || importedGroups;
 
     console.log("Is the current user the author of the app? ", userIsAppAuthor)
 
@@ -312,16 +329,6 @@ async function loadGroups(importedGroups) {
                     { id, name, data, transform, type, interactionState, controlnetEnabled, resultDisplayFormat, hashImportedImage },
                     index) => {
 
-                    let interactionStateAfterAuthorCheck
-
-                    if (userIsAppAuthor) {
-                        interactionStateAfterAuthorCheck = interactionState
-                    }
-                    else {
-                        interactionStateAfterAuthorCheck = interactionState === INTERACTION_STATE.ENTRY ? INTERACTION_STATE.ENTRY : INTERACTION_STATE.LOCKED
-
-                    }
-
                     const group = {
                         id: id || generateGroupUUID(),
                         index: index,
@@ -331,7 +338,8 @@ async function loadGroups(importedGroups) {
                         type: type || GROUP_TYPE.TEXT,
                         result: null,
                         lastRequestTime: 0,
-                        interactionState: interactionStateAfterAuthorCheck,
+                        // Older apps might have an interaction state set to locked, which is now only a temp state when using another's app
+                        interactionState: interactionState === INTERACTION_STATE.LOCKED ? INTERACTION_STATE.OPEN : interactionState,
                         controlnetEnabled: controlnetEnabled || undefined,
                         resultDisplayFormat: resultDisplayFormat || undefined,
                         hashImportedImage: hashImportedImage || undefined,
@@ -409,7 +417,7 @@ async function loadGroups(importedGroups) {
                         }
                     }
 
-                    // displayGroupInteractionState display the right UI state based on the set group.interactionState
+                    // display the right UI state based on the interactionState and ownership/authorship of the app
                     displayGroupInteractionState(groupElement, group.interactionState);
 
                     displayControlnetStatus(groupElement, group.controlnetEnabled);
@@ -459,9 +467,21 @@ async function loadGroups(importedGroups) {
 
 function downloadEsquisseJson(groups) {
 
-    const packagedGroups = packageGroups(groups);
+    const packagedGroups = packageGroups(groups, { packageIds: false });
 
     const jsonData = JSON.stringify(packagedGroups);
+
+    if (!arePackagedGroupsValid()) {
+        displayAlert(
+            {
+                issue: "Failed to create a valid file",
+                action: "Refresh the page and download the app file again",
+                variant: "warning"
+            }
+        );
+        console.log("[IMPORTING APP] Invalid json: ", validationResult)
+        return;
+    }
 
     const blob = new Blob([jsonData], { type: 'application/json' });
 
@@ -485,10 +505,7 @@ async function handleEsquisseJsonUpload(file) {
         try {
             const jsonData = JSON.parse(text);
 
-            const validator = new Validator.Validator();
-            const validationResult = validator.validate(jsonData, PACKAGED_GROUPS_SCHEMA);
-            if (!validationResult.valid) {
-
+            if (!arePackagedGroupsValid()) {
                 displayAlert(
                     {
                         issue: "Files is not a valid .esquisse.json",
@@ -496,9 +513,7 @@ async function handleEsquisseJsonUpload(file) {
                         variant: "warning"
                     }
                 );
-
                 console.log("[IMPORTING APP] Invalid json: ", validationResult)
-
                 return;
             }
 
@@ -509,6 +524,12 @@ async function handleEsquisseJsonUpload(file) {
         }
     };
     reader.readAsText(file);
+}
+
+function arePackagedGroupsValid(jsonData) {
+    const validator = new Validator.Validator();
+    const validationResult = validator.validate(jsonData, PACKAGED_GROUPS_SCHEMA);
+    return validationResult.valid;
 }
 
 async function shareResult(groups, ShareButtonElement) {
