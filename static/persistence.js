@@ -28,6 +28,9 @@ const PACKAGED_GROUPS_SCHEMA = {
             "items": {
                 "type": "object",
                 "properties": {
+                    "id": {
+                        "type": "string"
+                    },
                     "name": {
                         "type": "string"
                     },
@@ -99,6 +102,18 @@ async function persistGroupsUnthrottled(groups) {
 
     const packagedGroups = packageGroups(groups);
 
+    if (!arePackagedGroupsValid()) {
+        displayAlert(
+            {
+                issue: "Failed to prepare your app for saving",
+                action: "Copy the most important elements manually and refresh the page",
+                variant: "warning"
+            }
+        );
+        console.log("[IMPORTING APP] Invalid json: ", validationResult)
+        return;
+    }
+
     const previousId = ID;
     const previousCreator = CREATOR;
 
@@ -130,7 +145,7 @@ async function persistGroupsUnthrottled(groups) {
 
 }
 
-function packageGroups(groups) {
+function packageGroups(groups, { packageIds = true } = { packageIds: true }) {
     let packagedGroups = {};
 
     packagedGroups.version = VERSION;
@@ -140,7 +155,7 @@ function packageGroups(groups) {
 
     // Now, map the sorted groups to the desired structure
     packagedGroups.groups = sortedGroups.map((group) => ({
-        id: group.id,
+        id: packageIds ? group.id : "",
         name: group.name,
         // We don't package the data text if the block is set to Entry (i.e., as a temporary input)
         data: group.interactionState === INTERACTION_STATE.ENTRY ? "" : group.data,
@@ -452,9 +467,21 @@ async function loadGroups(importedGroups) {
 
 function downloadEsquisseJson(groups) {
 
-    const packagedGroups = packageGroups(groups);
+    const packagedGroups = packageGroups(groups, { packageIds: false });
 
     const jsonData = JSON.stringify(packagedGroups);
+
+    if (!arePackagedGroupsValid()) {
+        displayAlert(
+            {
+                issue: "Failed to create a valid file",
+                action: "Refresh the page and download the app file again",
+                variant: "warning"
+            }
+        );
+        console.log("[IMPORTING APP] Invalid json: ", validationResult)
+        return;
+    }
 
     const blob = new Blob([jsonData], { type: 'application/json' });
 
@@ -478,10 +505,7 @@ async function handleEsquisseJsonUpload(file) {
         try {
             const jsonData = JSON.parse(text);
 
-            const validator = new Validator.Validator();
-            const validationResult = validator.validate(jsonData, PACKAGED_GROUPS_SCHEMA);
-            if (!validationResult.valid) {
-
+            if (!arePackagedGroupsValid()) {
                 displayAlert(
                     {
                         issue: "Files is not a valid .esquisse.json",
@@ -489,9 +513,7 @@ async function handleEsquisseJsonUpload(file) {
                         variant: "warning"
                     }
                 );
-
                 console.log("[IMPORTING APP] Invalid json: ", validationResult)
-
                 return;
             }
 
@@ -502,6 +524,12 @@ async function handleEsquisseJsonUpload(file) {
         }
     };
     reader.readAsText(file);
+}
+
+function arePackagedGroupsValid(jsonData) {
+    const validator = new Validator.Validator();
+    const validationResult = validator.validate(jsonData, PACKAGED_GROUPS_SCHEMA);
+    return validationResult.valid;
 }
 
 async function shareResult(groups, ShareButtonElement) {
