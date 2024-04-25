@@ -1,4 +1,4 @@
-import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, getGroupElementFromId, getGroupIdFromElement } from "./group-utils.js";
+import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, generateUniqueGroupName, getGroupIdFromElement } from "./group-utils.js";
 import { updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, groupsMap } from "./group-management.js"
 import { getReferencedResultsAndCombinedDataWithResults } from "./reference-matching.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
@@ -18,68 +18,69 @@ const DELAY = 5000;
 let REQUEST_QUEUE = {};
 
 function nameChangeHandler(group, groupNameElement, groups) {
-    return () => {
 
-        groups = groupsMap.GROUPS;
+    groups = groupsMap.GROUPS;
 
-        const previousUsersOfThisGroup = referencesGraph.IS_USED_BY_GRAPH.adjacent(group.id);
+    const previousUsersOfThisGroup = referencesGraph.IS_USED_BY_GRAPH.adjacent(group.id);
 
-        console.log(
-            previousUsersOfThisGroup.length > 0 ?
-                "[NAME CHANGED] previousUsersOfThisGroup were: " + previousUsersOfThisGroup
-                : "[NAME CHANGED] No other group used this group"
-        );
+    console.log(
+        previousUsersOfThisGroup.length > 0 ?
+            "[NAME CHANGED] previousUsersOfThisGroup were: " + previousUsersOfThisGroup
+            : "[NAME CHANGED] No other group used this group"
+    );
 
-        //Automatically deduplicate block names: add number like in Finder. Starts at 2. 
-        let baseName = groupNameElement.value.trim();
-        let counter = 2;
+    //Automatically deduplicate block names: add number like in Finder. Starts at 2. 
+    let baseName = groupNameElement.value.trim();
+    let counter = 2;
 
-        if (baseName == "") {
-            baseName = group.type + "-" + group.id
-        }
+    if (baseName == "") {
+        baseName = generateUniqueGroupName(group.type, groups);
+    }
 
-        let finalName = baseName;
+    let finalName = baseName;
 
-        // convert names to lowercase for case-insensitive comparison
+    // convert names to lowercase for case-insensitive comparison
 
-        while (
-            Array.from(
-                groups.values())
-                .filter(
-                    thisgroup => thisgroup.id !== group.id
-                ).some(
-                    thisgroup => thisgroup.name.toLowerCase() === finalName.toLowerCase()
-                )
-        ) {
-            finalName = `${baseName}-${counter}`;
-            counter++;
-        }
+    while (
+        Array.from(
+            groups.values())
+            .filter(
+                thisgroup => thisgroup.id !== group.id
+            ).some(
+                thisgroup => thisgroup.name.toLowerCase() === finalName.toLowerCase()
+            )
+    ) {
+        finalName = `${baseName}-${counter}`;
+        counter++;
+    }
 
-        console.log(`[NAME CHANGED] Group "${group.name}" name will now be: ${finalName}`);
+    console.log(`[NAME CHANGED] Group of id ${group.id}, is named "${group.name}" will be: ${finalName}`);
 
-        groups.get(group.id).name = finalName;
-        groupNameElement.value = finalName;
+    group.name = finalName;
 
-        // if this is the first group, rename the page using its new name
-        if (group.id === groups.keys().next().value) {
-            document.title = `${group.name} · Esquisse AI`;
-        }
+    console.log(`[NAME CHANGED] Group of id ${group.id}, is now named "${group.name}"`);
 
-        // save the new name
-        persistGroups(groups);
+    groupNameElement.value = finalName;
 
-        // we brute force rebuild the whole graph
-        // wasteful but this make sure of the graph reflecting user-facing structure
-        updateReferenceGraph(groups);
+    // if this is the first group, rename the page using its new name
+    if (group.id === groups.keys().next().value) {
+        document.title = `${group.name} · Esquisse AI`;
+    }
 
-        // update the groups using the new name in their reference
-        updateGroupsReferencingIt(group.id);
+    // save the new name
+    persistGroups(groups);
 
-        if (previousUsersOfThisGroup.length > 0)
-        // update the now orphans groups so they stop showing this group results
-        { updateGroups(previousUsersOfThisGroup, false); }
+    // we brute force rebuild the whole graph
+    // wasteful but this make sure of the graph reflecting user-facing structure
+    updateReferenceGraph(groups);
 
-    };
+    // update the groups using the new name in their reference
+    updateGroupsReferencingIt(group.id);
+
+    if (previousUsersOfThisGroup.length > 0)
+    // update the now orphans groups so they stop showing this group results
+    { updateGroups(previousUsersOfThisGroup, false); }
+
 }
 
 async function handleInputChange(groupElement, immediate = false, isRefresh = false, isUndirected = true, groups) {
