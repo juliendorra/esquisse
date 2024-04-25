@@ -303,7 +303,7 @@ function addEventListenersToGroup(groupElement) {
 
     // Persist and handle change when a group's name, data or transform changes
 
-    groupNameElement?.addEventListener("change", nameChangeHandler(group, groupNameElement, groups));
+    groupNameElement?.addEventListener("change", () => { nameChangeHandler(group, groupNameElement, groups); });
 
     dataElement?.addEventListener('change',
         () => {
