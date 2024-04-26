@@ -38,13 +38,20 @@ async function startWebcam(groupElement) {
         feed.dataset.active = 'true';  // Mark as active
         webcamStreams.set(groupElement, stream);
 
-        if (!webcamInterval) {
-            startCapture(groupElement);
-        }
+        feed.oncanplay = () => {
+            if (feed.readyState >= 2) {
+                captureAndHandle(feed, groupElement); // Capture immediately for this feed
+            }
+            if (!webcamInterval) {
+                startCapture();
+            }
+        };
     } catch (error) {
         console.error('Error starting webcam:', error);
     }
 }
+
+
 
 function stopWebcam(groupElement) {
     const feed = groupElement.querySelector('.webcam-feed');
@@ -68,19 +75,25 @@ function stopWebcam(groupElement) {
     }
 }
 
-function startCapture() {
+async function captureAndHandle(feed, groupElement) {
 
-    webcamInterval = setInterval(async () => {
-
-        document.querySelectorAll('.webcam-feed[data-active="true"]')
-            .forEach(async feed => {
-                const blob = await captureImageFromWebcam(feed);
-                const groupElement = feed.closest('.group'); // Adjust the selector to match your actual group element
-                handleDroppedImage(blob, groupElement);
-            });
-
-    }, INTERVAL);
+    if (feed.readyState >= 2) {
+        const blob = await captureImageFromWebcam(feed);
+        handleDroppedImage(blob, groupElement);
+    }
 }
+
+function startCapture() {
+    if (!webcamInterval) {
+        webcamInterval = setInterval(() => {
+            document.querySelectorAll('.webcam-feed[data-active="true"]').forEach(feed => {
+                const groupElement = feed.closest('.group');
+                captureAndHandle(feed, groupElement);
+            });
+        }, INTERVAL);
+    }
+}
+
 
 async function captureImageFromWebcam(feed) {
     const width = feed.videoWidth;
