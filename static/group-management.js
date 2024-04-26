@@ -365,7 +365,7 @@ function addEventListenersToGroup(groupElement) {
 
             const imageFile = event.dataTransfer.files[0];
 
-            handleDroppedImage(imageFile, group, groupElement)
+            handleDroppedImage(imageFile, groupElement)
         }
     );
 
