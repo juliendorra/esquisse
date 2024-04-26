@@ -487,7 +487,8 @@ textarea.referenced-result-text {
 }
 
 
-.drop-zone {
+.drop-zone,
+.video-zone {
     outline: 2px dashed #cccccc;
     outline-offset: -2px;
     padding: 1rem;
@@ -512,6 +513,12 @@ textarea.referenced-result-text {
     outline: 2px dashed #0000ff;
     outline-offset: -2px;
 }
+
+.webcam-feed {
+    width: 100%;
+    transform: scaleX(-1);
+}
+
 
 p.result {
     font-size: 0.85em;

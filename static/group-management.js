@@ -9,6 +9,7 @@ import { onDragStart, onDragEnd } from "./reordering.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 
 import { persistGroups, getAppMetaData } from "./persistence.js";
+import { initWebcamManagement } from "./webcam.js";
 
 
 const groupsMap = {
@@ -65,9 +66,15 @@ const GROUP_HTML = {
             <input type="text" class="group-name" placeholder="Name of this block">
             <div class="image-import-container">
                 <div class="drop-zone">Drop image here<br/>or click to load</div>
+                <div class="video-zone" style="display:none;"> 
+                <video class="webcam-feed"  autoplay></video>
+                </div>
+                
             </div>
             <img class="result" alt="Imported image" style="display:none;">
             <div class="function-buttons-container">
+
+                <button class="tool-btn webcam-mode-btn" aria-label="Webcam mode"><img src="/icons/webcam.svg"></button>            
 
                 <div class="group-btn">
                 <button class="tool-btn open-btn" aria-label="Entry"><img src="/icons/open.svg"></button>
@@ -369,6 +376,26 @@ function addEventListenersToGroup(groupElement) {
         }
     );
 
+    groupElement.querySelector('.webcam-mode-btn')?.addEventListener('click', (event) => {
+
+        // avoiding a simple inversion to handle null or undefined values
+        group.webcamEnabled = group.webcamEnabled ? false : true;
+
+        console.log("[WEBCAM MODE BUTTON] enabled ", group.webcamEnabled)
+
+        if (group.webcamEnabled) {
+            event.currentTarget.classList.add("selected");
+            groupElement.classList.add("active");
+            dropZone.style.display = 'none';
+        }
+        else {
+            event.currentTarget.classList.remove("selected");
+            groupElement.classList.remove("active");
+            dropZone.style.display = 'block';
+        }
+
+        initWebcamManagement(groupElement)
+    });
 
     /******** Tool buttons *************/
     groupElement.querySelector(".delete-btn").addEventListener("click", () => deleteGroup(groupElement));
