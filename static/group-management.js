@@ -9,7 +9,7 @@ import { onDragStart, onDragEnd } from "./reordering.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 
 import { persistGroups, getAppMetaData } from "./persistence.js";
-import { initWebcamManagement } from "./webcam.js";
+import { startWebcam, stopWebcam, captureAndHandle, } from "./webcam.js";
 
 
 const groupsMap = {
@@ -74,7 +74,11 @@ const GROUP_HTML = {
             <img class="result" alt="Imported image" style="display:none;">
             <div class="function-buttons-container">
 
-                <button class="tool-btn webcam-mode-btn" aria-label="Webcam mode"><img src="/icons/webcam.svg"></button>            
+                <button class="tool-btn capture-webcam-frame-btn" aria-label="Capture webcam frame" style="display:none;"><img src="/icons/capture-webcam-frame.svg"></button>
+
+                <button class="tool-btn stop-webcam-btn" aria-label="Stop webcam" style="display:none;"><img src="/icons/stop-webcam.svg"></button>
+
+                <button class="tool-btn start-webcam-btn" aria-label="Start webcam"><img src="/icons/start-webcam.svg"></button>
 
                 <div class="group-btn">
                 <button class="tool-btn open-btn" aria-label="Entry"><img src="/icons/open.svg"></button>
@@ -376,25 +380,62 @@ function addEventListenersToGroup(groupElement) {
         }
     );
 
-    groupElement.querySelector('.webcam-mode-btn')?.addEventListener('click', (event) => {
+    const startWebcamButton = groupElement.querySelector('.start-webcam-btn');
+    const stopWebcamButton = groupElement.querySelector('.stop-webcam-btn');
+    const captureWebcamFrameButton = groupElement.querySelector('.capture-webcam-frame-btn');
+
+    startWebcamButton?.addEventListener('click', (event) => {
+
+        group.webcamEnabled = true;
+
+        console.log("[WEBCAM MODE] enabled ", group.webcamEnabled)
+
+        groupElement.classList.add("active");
+        startWebcamButton.style.display = 'none';
+        stopWebcamButton.style.display = 'block';
+        captureWebcamFrameButton.style.display = 'block';
+        dropZone.style.display = 'none';
+
+        startWebcam(groupElement)
+    });
+
+    stopWebcamButton?.addEventListener('click', (event) => {
 
         // avoiding a simple inversion to handle null or undefined values
-        group.webcamEnabled = group.webcamEnabled ? false : true;
+        group.webcamEnabled = false;
 
-        console.log("[WEBCAM MODE BUTTON] enabled ", group.webcamEnabled)
+        console.log("[WEBCAM MODE] enabled ", group.webcamEnabled)
 
-        if (group.webcamEnabled) {
-            event.currentTarget.classList.add("selected");
-            groupElement.classList.add("active");
-            dropZone.style.display = 'none';
+        groupElement.classList.remove("active");
+        startWebcamButton.style.display = 'block';
+        stopWebcamButton.style.display = 'none';
+        captureWebcamFrameButton.style.display = 'none';
+        dropZone.style.display = 'block';
+
+        stopWebcam(groupElement)
+    });
+
+    captureWebcamFrameButton?.addEventListener('click', async (event) => {
+
+        console.log("[WEBCAM MODE] manually capturing a frame");
+
+        // the event target is lost after calling captureAndHandle, so we keed a reference
+        const thisButton = event.currentTarget;
+
+        if (!group.webcamEnabled) {
+            return;
         }
         else {
-            event.currentTarget.classList.remove("selected");
-            groupElement.classList.remove("active");
-            dropZone.style.display = 'block';
+            thisButton.classList.add("selected");
+            await captureAndHandle(groupElement);
+            setTimeout(() => {
+
+                thisButton.classList.remove("selected");
+
+            }, 300);
         }
 
-        initWebcamManagement(groupElement)
+
     });
 
     /******** Tool buttons *************/

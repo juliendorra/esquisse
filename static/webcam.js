@@ -7,15 +7,7 @@ let ctx = null;
 
 import { handleDroppedImage } from "./input-change.js"
 
-export { initWebcamManagement };
-
-function initWebcamManagement(groupElement) {
-    if (groupElement.classList.contains('active')) {
-        startWebcam(groupElement);
-    } else {
-        stopWebcam(groupElement);
-    }
-}
+export { startWebcam, stopWebcam, captureAndHandle };
 
 function initializeCanvas() {
     if (!globalCanvas) {
@@ -40,7 +32,7 @@ async function startWebcam(groupElement) {
 
         feed.oncanplay = () => {
             if (feed.readyState >= 2) {
-                captureAndHandle(feed, groupElement); // Capture immediately for this feed
+                captureAndHandle(groupElement); // Capture immediately)
             }
             if (!webcamInterval) {
                 startCapture();
@@ -50,8 +42,6 @@ async function startWebcam(groupElement) {
         console.error('Error starting webcam:', error);
     }
 }
-
-
 
 function stopWebcam(groupElement) {
     const feed = groupElement.querySelector('.webcam-feed');
@@ -75,25 +65,26 @@ function stopWebcam(groupElement) {
     }
 }
 
-async function captureAndHandle(feed, groupElement) {
+function startCapture() {
+    if (!webcamInterval) {
+        webcamInterval = setInterval(() => {
+            document.querySelectorAll('.group:has(.webcam-feed[data-active="true"])').forEach(groupElement => {
+                captureAndHandle(groupElement);
+            });
+        }, INTERVAL);
+    }
+}
+
+
+async function captureAndHandle(groupElement) {
+
+    const feed = groupElement.querySelector('.webcam-feed');
 
     if (feed.readyState >= 2) {
         const blob = await captureImageFromWebcam(feed);
         handleDroppedImage(blob, groupElement);
     }
 }
-
-function startCapture() {
-    if (!webcamInterval) {
-        webcamInterval = setInterval(() => {
-            document.querySelectorAll('.webcam-feed[data-active="true"]').forEach(feed => {
-                const groupElement = feed.closest('.group');
-                captureAndHandle(feed, groupElement);
-            });
-        }, INTERVAL);
-    }
-}
-
 
 async function captureImageFromWebcam(feed) {
     const width = feed.videoWidth;
