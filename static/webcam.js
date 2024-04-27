@@ -8,7 +8,7 @@ let lastManualCaptureTime = new Map();  // Tracks the last manual capture time f
 
 import { handleDroppedImage } from "./input-change.js"
 
-export { startWebcam, stopWebcam, captureAndHandle };
+export { startWebcam, stopWebcam, captureAndHandle, listVideoInputs };
 
 function initializeCanvas() {
     if (!globalCanvas) {
@@ -17,15 +17,14 @@ function initializeCanvas() {
     }
 }
 
-async function startWebcam(groupElement) {
+async function startWebcam(groupElement, deviceId = null) {
     initializeCanvas();
-
     const feed = groupElement.querySelector('.webcam-feed');
     const videoZone = groupElement.querySelector(".video-zone");
+    const constraints = { video: deviceId ? { deviceId: { exact: deviceId } } : true };
 
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
         feed.srcObject = stream;
         videoZone.style.display = 'block';
         feed.dataset.active = 'true';
@@ -43,6 +42,7 @@ async function startWebcam(groupElement) {
         console.error('Error starting webcam:', error);
     }
 }
+
 
 function stopWebcam(groupElement) {
     const feed = groupElement.querySelector('.webcam-feed');
@@ -98,4 +98,9 @@ async function captureImageFromWebcam(feed) {
     ctx.restore();
 
     return new Promise(resolve => globalCanvas.toBlob(resolve, 'image/jpeg'));
+}
+
+async function listVideoInputs() {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    return devices.filter(device => device.kind === 'videoinput');
 }
