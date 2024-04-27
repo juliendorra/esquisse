@@ -4,6 +4,7 @@ let webcamStreams = new Map();
 let webcamInterval = null;
 let globalCanvas = null;
 let ctx = null;
+let lastManualCaptureTime = new Map();  // Tracks the last manual capture time for each group
 
 import { handleDroppedImage } from "./input-change.js"
 
@@ -27,12 +28,12 @@ async function startWebcam(groupElement) {
 
         feed.srcObject = stream;
         videoZone.style.display = 'block';
-        feed.dataset.active = 'true';  // Mark as active
+        feed.dataset.active = 'true';
         webcamStreams.set(groupElement, stream);
 
         feed.oncanplay = () => {
             if (feed.readyState >= 2) {
-                captureAndHandle(groupElement); // Capture immediately)
+                captureAndHandle(groupElement);
             }
             if (!webcamInterval) {
                 startCapture();
@@ -49,16 +50,13 @@ function stopWebcam(groupElement) {
 
     const stream = webcamStreams.get(groupElement);
     if (stream) {
-        // Stop all tracks on this group's webcam stream
         stream.getTracks().forEach(track => track.stop());
-        // Remove stream from the map
         webcamStreams.delete(groupElement);
     }
     videoZone.style.display = 'none';
     feed.srcObject = null;
     feed.removeAttribute('data-active');
 
-    // Check if any active webcams are left
     if (webcamStreams.size === 0 && webcamInterval) {
         clearInterval(webcamInterval);
         webcamInterval = null;
@@ -66,23 +64,23 @@ function stopWebcam(groupElement) {
 }
 
 function startCapture() {
-    if (!webcamInterval) {
-        webcamInterval = setInterval(() => {
-            document.querySelectorAll('.group:has(.webcam-feed[data-active="true"])').forEach(groupElement => {
+    webcamInterval = setInterval(() => {
+        document.querySelectorAll('.group:has(.webcam-feed[data-active="true"])').forEach(groupElement => {
+            const lastCapture = lastManualCaptureTime.get(groupElement);
+            if (!lastCapture || Date.now() - lastCapture > INTERVAL) {
                 captureAndHandle(groupElement);
-            });
-        }, INTERVAL);
-    }
+            }
+        });
+    }, INTERVAL);
 }
 
-
 async function captureAndHandle(groupElement) {
-
     const feed = groupElement.querySelector('.webcam-feed');
 
     if (feed.readyState >= 2) {
         const blob = await captureImageFromWebcam(feed);
         handleDroppedImage(blob, groupElement);
+        lastManualCaptureTime.set(groupElement, Date.now());  // Set the time of manual capture
     }
 }
 
@@ -101,4 +99,3 @@ async function captureImageFromWebcam(feed) {
 
     return new Promise(resolve => globalCanvas.toBlob(resolve, 'image/jpeg'));
 }
-
