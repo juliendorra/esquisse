@@ -387,6 +387,7 @@ function addEventListenersToGroup(groupElement) {
     const startWebcamButton = groupElement.querySelector('.start-webcam-btn');
     const stopWebcamButton = groupElement.querySelector('.stop-webcam-btn');
     const captureWebcamFrameButton = groupElement.querySelector('.capture-webcam-frame-btn');
+    const webcamFeed = groupElement.querySelector('.webcam-feed');
 
     startWebcamButton?.addEventListener('click', async (event) => {
 
@@ -411,11 +412,24 @@ function addEventListenersToGroup(groupElement) {
         stopWebcam(groupElement)
     });
 
+    webcamFeed?.addEventListener('click', async (event) => {
+
+        console.log("[WEBCAM MODE] manually capturing a frame");
+
+        if (!group.webcamEnabled) {
+            return;
+        }
+        else {
+            await captureAndHandle(groupElement);
+        }
+
+    });
+
     captureWebcamFrameButton?.addEventListener('click', async (event) => {
 
         console.log("[WEBCAM MODE] manually capturing a frame");
 
-        // the event target is lost after calling captureAndHandle, so we keed a reference
+        // the event target is lost after calling captureAndHandle, so we keep a reference
         const thisButton = event.currentTarget;
 
         if (!group.webcamEnabled) {
@@ -430,7 +444,6 @@ function addEventListenersToGroup(groupElement) {
 
             }, 300);
         }
-
 
     });
 
