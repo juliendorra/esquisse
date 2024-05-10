@@ -9,7 +9,7 @@ import { onDragStart, onDragEnd } from "./reordering.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 
 import { persistGroups, getAppMetaData } from "./persistence.js";
-import { startWebcam, stopWebcam, captureAndHandle, listVideoInputs } from "./webcam.js";
+import { startWebcam, stopWebcam, switchWebcam, captureAndHandle } from "./webcam.js";
 
 
 const groupsMap = {
@@ -69,7 +69,7 @@ const GROUP_HTML = {
                 <div class="video-zone" style="display:none;"> 
                 <video class="webcam-feed"  autoplay></video>
                 <div class="device-selection" style="display:none;">
-                    <sl-select aria-label="Select a camera" placeholder="Select a camera">
+                    <sl-select aria-label="Select a camera" placeholder="Select a camera" size="small">
                     </sl-select>
                 </div>
             </div>
@@ -389,47 +389,24 @@ function addEventListenersToGroup(groupElement) {
     const captureWebcamFrameButton = groupElement.querySelector('.capture-webcam-frame-btn');
 
     startWebcamButton?.addEventListener('click', async (event) => {
+
         group.webcamEnabled = true;
-        startWebcamButton.style.display = 'none';
-        stopWebcamButton.style.display = 'block';
-        captureWebcamFrameButton.style.display = 'block';
-        dropZone.style.display = 'none';
 
-        const devices = await listVideoInputs();
-        const select = groupElement.querySelector('sl-select');
-        devices.forEach(device => {
-            let optionElement = document.createElement('sl-option');
-            optionElement.setAttribute('value', device.deviceId);
-            optionElement.textContent = device.label;
-            select.appendChild(optionElement);
-        });
+        console.log("[WEBCAM MODE] enabled ", group.webcamEnabled)
 
-        // Display device selection dropdown if more than one device is available
-        const deviceSelectionContainer = groupElement.querySelector('.device-selection');
-        deviceSelectionContainer.style.display = devices.length > 1 ? 'block' : 'none';
-
-        // Start webcam with the first available device
-        startWebcam(groupElement, select.value);
+        startWebcam(groupElement, undefined);
     });
 
-    groupElement.querySelector('sl-select')?.addEventListener('sl-change', event => {
-        const selectedDeviceId = event.detail.value;
-        stopWebcam(groupElement);
-        startWebcam(groupElement, selectedDeviceId);
+    groupElement.querySelector('.device-selection sl-select')?.addEventListener('sl-change', event => {
+        const selectedDeviceId = event.currentTarget.value;
+        switchWebcam(groupElement, selectedDeviceId);
     });
 
     stopWebcamButton?.addEventListener('click', (event) => {
 
-        // avoiding a simple inversion to handle null or undefined values
         group.webcamEnabled = false;
 
         console.log("[WEBCAM MODE] enabled ", group.webcamEnabled)
-
-        groupElement.classList.remove("active");
-        startWebcamButton.style.display = 'block';
-        stopWebcamButton.style.display = 'none';
-        captureWebcamFrameButton.style.display = 'none';
-        dropZone.style.display = 'block';
 
         stopWebcam(groupElement)
     });
