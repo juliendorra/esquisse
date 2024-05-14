@@ -80,6 +80,8 @@ const GROUP_HTML = {
 
                 <button class="tool-btn capture-webcam-frame-btn" aria-label="Capture webcam frame" style="display:none;"><img src="/icons/capture-webcam-frame.svg"></button>
 
+                <button class="tool-btn mirror-btn" aria-label="Mirror"><img src="/icons/mirror.svg"></button>
+
                 <button class="tool-btn stop-webcam-btn" aria-label="Stop webcam" style="display:none;"><img src="/icons/stop-webcam.svg"></button>
 
                 <button class="tool-btn start-webcam-btn" aria-label="Start webcam"><img src="/icons/start-webcam.svg"></button>
@@ -384,10 +386,13 @@ function addEventListenersToGroup(groupElement) {
         }
     );
 
+    /******** Webcam buttons *************/
+
     const startWebcamButton = groupElement.querySelector('.start-webcam-btn');
     const stopWebcamButton = groupElement.querySelector('.stop-webcam-btn');
     const captureWebcamFrameButton = groupElement.querySelector('.capture-webcam-frame-btn');
     const webcamFeed = groupElement.querySelector('.webcam-feed');
+    const mirrorButton = groupElement.querySelector('.mirror-btn');
 
     startWebcamButton?.addEventListener('click', async (event) => {
 
@@ -443,6 +448,24 @@ function addEventListenersToGroup(groupElement) {
                 thisButton.classList.remove("selected");
 
             }, 300);
+        }
+
+    });
+
+    mirrorButton?.addEventListener('click', async (event) => {
+
+        console.log("[WEBCAM MODE] toggling mirror");
+
+        // the event target is lost after calling captureAndHandle, so we keep a reference
+        const thisButton = event.currentTarget;
+
+        if (thisButton.classList.contains("selected")) {
+            thisButton.classList.remove("selected");
+            groupElement.classList.remove("mirrored-video");
+        }
+        else {
+            thisButton.classList.add("selected");
+            groupElement.classList.add("mirrored-video");
         }
 
     });

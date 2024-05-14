@@ -516,6 +516,9 @@ textarea.referenced-result-text {
 
 .webcam-feed {
     width: 100%;
+}
+
+.mirrored-video .webcam-feed {
     transform: scaleX(-1);
 }
 

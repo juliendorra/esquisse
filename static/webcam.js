@@ -151,16 +151,19 @@ function startCaptureInterval() {
 }
 
 async function captureAndHandle(groupElement) {
+
     const feed = groupElement.querySelector('.webcam-feed');
 
+    const isMirrored = groupElement.classList.contains("mirrored-video");
+
     if (feed.readyState >= 2) {
-        const blob = await captureImageFromWebcam(feed);
+        const blob = await captureImageFromWebcam(feed, isMirrored);
         handleDroppedImage(blob, groupElement);
         lastManualCaptureTime.set(groupElement, Date.now());  // Set the time of manual capture
     }
 }
 
-async function captureImageFromWebcam(feed) {
+async function captureImageFromWebcam(feed, captureMirrored = false) {
     const width = feed.videoWidth;
     const height = feed.videoHeight;
 
@@ -168,8 +171,12 @@ async function captureImageFromWebcam(feed) {
     globalCanvas.height = height;
 
     ctx.save();
-    ctx.scale(-1, 1);
-    ctx.translate(-width, 0);
+
+    if (captureMirrored) {
+        ctx.scale(-1, 1);
+        ctx.translate(-width, 0);
+    }
+
     ctx.drawImage(feed, 0, 0, width, height);
     ctx.restore();
 
