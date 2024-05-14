@@ -462,10 +462,12 @@ function addEventListenersToGroup(groupElement) {
         if (thisButton.classList.contains("selected")) {
             thisButton.classList.remove("selected");
             groupElement.classList.remove("mirrored-video");
+            flipImageResult(groupElement);
         }
         else {
             thisButton.classList.add("selected");
             groupElement.classList.add("mirrored-video");
+            flipImageResult(groupElement);
         }
 
     });

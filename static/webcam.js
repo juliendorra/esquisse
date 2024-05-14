@@ -9,7 +9,7 @@ let lastManualCaptureTime = new Map();  // Tracks the last manual capture time f
 
 import { handleDroppedImage } from "./input-change.js"
 
-export { turnIntoWebcamGroup, startWebcam, stopWebcam, switchWebcam, captureAndHandle, listVideoInputs };
+export { turnIntoWebcamGroup, startWebcam, stopWebcam, switchWebcam, captureAndHandle, flipImageResult, listVideoInputs };
 
 function initializeCanvas() {
     if (!globalCanvas) {
@@ -182,6 +182,42 @@ async function captureImageFromWebcam(feed, captureMirrored = false) {
 
     return new Promise(resolve => globalCanvas.toBlob(resolve, 'image/jpeg'));
 }
+
+async function flipImageResult(groupElement) {
+
+    const result = groupElement.querySelector('img.result');
+
+    if (!result) {
+        console.error("[FLIP CANVAS] No image result img src found in the group element.");
+        return;
+    }
+
+    const image = new Image();
+    image.src = result.src;
+
+    image.onload = async () => {
+        const width = image.width;
+        const height = image.height;
+
+        globalCanvas.width = width;
+        globalCanvas.height = height;
+
+        ctx.save();
+        ctx.scale(-1, 1);
+        ctx.drawImage(image, -width, 0, width, height);
+        ctx.restore();
+
+        globalCanvas.toBlob(flippedBlob => {
+            handleDroppedImage(flippedBlob, groupElement);
+        }, 'image/jpeg');
+    };
+
+    image.onerror = () => {
+        console.error("[FLIP CANVAS] Error loading the image.");
+        URL.revokeObjectURL(blobUrl);
+    };
+}
+
 
 async function listVideoInputs() {
     const devices = await navigator.mediaDevices.enumerateDevices();
