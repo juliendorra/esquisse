@@ -80,7 +80,7 @@ const GROUP_HTML = {
 
                 <button class="tool-btn capture-webcam-frame-btn" aria-label="Capture webcam frame" style="display:none;"><img src="/icons/capture-webcam-frame.svg"></button>
 
-                <button class="tool-btn mirror-btn" aria-label="Mirror"><img src="/icons/mirror.svg"></button>
+                <button class="tool-btn mirror-btn" aria-label="Mirror" style="display:none;"><img src="/icons/mirror.svg"></button>
 
                 <button class="tool-btn stop-webcam-btn" aria-label="Stop webcam" style="display:none;"><img src="/icons/stop-webcam.svg"></button>
 
