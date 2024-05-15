@@ -9,7 +9,7 @@ import { onDragStart, onDragEnd } from "./reordering.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 
 import { persistGroups, getAppMetaData } from "./persistence.js";
-import { startWebcam, stopWebcam, switchWebcam, captureAndHandle } from "./webcam.js";
+import { startWebcam, stopWebcam, switchWebcam, captureAndHandle, flipImageResult } from "./webcam.js";
 
 
 const groupsMap = {
