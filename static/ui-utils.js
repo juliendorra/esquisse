@@ -37,16 +37,6 @@ function showAddBlocksButtons() {
     document.querySelector(".edit-app-tools").style.display = "none";
 }
 
-function hideAddBlocksButtons() {
-    document.querySelector(".add-block-tools").style.display = "none";
-    document.querySelector(".edit-app-tools").style.display = "inline";
-}
-
-function showAddBlocksButtons() {
-    document.querySelector(".add-block-tools").style.display = "inline";
-    document.querySelector(".edit-app-tools").style.display = "none";
-}
-
 function removeGlobalWaitingIndicator() {
 
     // is there any group or other active element waiting?
