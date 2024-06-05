@@ -1069,95 +1069,102 @@ canvas#mesh-background:has(~ .container.list-view) {
     display: none;
 }
 
+/* Improved List View Styles */
+
 .container.list-view {
     /* List view styles for the container */
     display: block;
+    padding-left: 1.5em;
 }
 
 .container.list-view .group {
-    /* Styles for individual groups in list view */
     display: block;
-    margin-left: 0;
-    border: none;
-    padding: 0.2em 0;
-    background-color: transparent;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    /* padding: 0.5em 0; */
     max-width: none;
     position: relative;
-    /* Add position relative to group */
-}
-
-.container.list-view .group {
-    /* Indent all groups except the first one */
-    margin-left: 1.5em;
-}
-
-.container.list-view .group.break~.group {
-    /* Indent groups after a break */
-    margin-left: 3em;
-}
-
-.container.list-view .group.break {
-    margin-left: 1.5em;
-    margin-bottom: 0.5em;
-    padding: 0;
 }
 
 .container.list-view .group-header {
-    justify-content: flex-start;
+    justify-content: space-between;
     align-items: center;
-    /* Vertically align drag handle and title */
+    margin: 0;
+    width: 90vw;
+    top: 2.75em;
+    left: -2.75em;
+    position: relative;
 }
 
-.container.list-view .function-buttons-container {
-    display: flex;
-    margin-left: 1.5em;
-    margin-top: 0.5rem;
-    margin-bottom: 1rem;
+.container.list-view .group-header small {
+    display: none;
+    left: 0;
 }
 
 .container.list-view .group-name {
-    font-weight: bold;
     text-align: left;
-    font-size: 1.2em;
+    font-size: 1.5em;
+    margin-left: 0em;
 }
+
 
 .container.list-view .data-text,
 .container.list-view .transform-text,
-.container.list-view .referenced-result-text {
+.container.list-view .referenced-result-text,
+.container.list-view .image-import-container {
     display: block;
-    margin-left: 1.5em;
     white-space: pre-wrap;
     font-size: 0.9em;
-    border: none;
+    padding-left: 2em;
+    margin-bottom: 0.5em;
+    margin-left: 1.5em;
+    width: 80vw;
+    border-right: none;
+    border-top: none;
+    border-left: none;
 }
 
-/* Drag Handle Styles */
+.container.list-view .group.break {
+    margin-left: 0;
+    margin-bottom: 0.5em;
+    padding: 0;
+    background: transparent;
+}
+
+.container.list-view .group.break .group-name {
+    /* color: black; */
+    font-size: 2.5em;
+}
+
 .container.list-view .group-header .drag-handle {
-    font-size: 1.5em;
+    font-size: 2em;
+    color: black;
     cursor: grab !important;
-    color: #929292;
-    margin-right: 0.5em;
-    line-height: 1;
-    /* Adjust line height for better vertical alignment */
+    transform: rotate(90deg);
 }
 
-.container.list-view .group-header .drag-handle::before {
+/* .container.list-view .group-header .drag-handle::before {
     content: "•";
-}
+} */
 
 .container.list-view .group-header .drag-handle>span {
     display: none;
 }
 
-/* Input Boundary Style */
-.container.list-view .group::after {
-    content: "";
-    display: block;
-    width: calc(100% + 1.5em);
-    height: 1px;
-    background-color: #ccc;
-    position: absolute;
-    bottom: -1rem;
-    /* Move the line below the group */
-    left: -0.75em;
+.container.list-view .function-buttons-container {
+    justify-content: flex-start;
+    margin-left: 1em;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.group:hover .function-buttons-container {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    transition: cubic-bezier(0.165, 0.84, 0.44, 1);
 }
