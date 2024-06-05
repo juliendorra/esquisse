@@ -1063,68 +1063,101 @@ sl-drawer::part(footer) {
 }
 
 
-/* LIST VIEW  */
+/* List View Styles */
 
+canvas#mesh-background:has(~ .container.list-view) {
+    display: none;
+}
 
 .container.list-view {
-    /* List view styles */
+    /* List view styles for the container */
     display: block;
 }
 
 .container.list-view .group {
-    /* Indentation for list view */
-    margin-left: 1.5em;
+    /* Styles for individual groups in list view */
+    display: block;
+    margin-left: 0;
     border: none;
-    /* Remove block borders */
     padding: 0.2em 0;
-    /* Adjust padding for list items */
     background-color: transparent;
-    /* Remove block background */
     max-width: none;
-    /* Allow list items to take full width */
+    position: relative;
+    /* Add position relative to group */
+}
+
+.container.list-view .group {
+    /* Indent all groups except the first one */
+    margin-left: 1.5em;
+}
+
+.container.list-view .group.break~.group {
+    /* Indent groups after a break */
+    margin-left: 3em;
 }
 
 .container.list-view .group.break {
-    /* Style for break elements in list view */
-    border-bottom: 1px solid #ccc;
-    /* Add a separator line */
+    margin-left: 1.5em;
     margin-bottom: 0.5em;
-    /* Add spacing below the break */
+    padding: 0;
 }
 
-.container.list-view .group.break+.group {
-    /* Reset indentation after a break */
-    margin-left: 0;
+.container.list-view .group-header {
+    justify-content: flex-start;
+    align-items: center;
+    /* Vertically align drag handle and title */
 }
 
-.container.list-view .group-header,
 .container.list-view .function-buttons-container {
-    /* Hide unnecessary elements in list view */
-    display: none;
+    display: flex;
+    margin-left: 1.5em;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
 }
 
 .container.list-view .group-name {
-    /* Style for group names in list view */
     font-weight: bold;
-    /* Make group names bold */
     text-align: left;
-    /* Align text to the left */
-    font-size: 1em;
-    /* Adjust font size if needed */
-    border: none;
+    font-size: 1.2em;
 }
 
 .container.list-view .data-text,
 .container.list-view .transform-text,
 .container.list-view .referenced-result-text {
-    /* Style for text content in list view */
     display: block;
-    /* Ensure text content is displayed as a block */
-    margin-left: 0.5em;
-    /* Add a slight indent for text content */
+    margin-left: 1.5em;
     white-space: pre-wrap;
-    /* Preserve line breaks and wrap text */
     font-size: 0.9em;
-    /* Adjust font size if needed */
     border: none;
+}
+
+/* Drag Handle Styles */
+.container.list-view .group-header .drag-handle {
+    font-size: 1.5em;
+    cursor: grab !important;
+    color: #929292;
+    margin-right: 0.5em;
+    line-height: 1;
+    /* Adjust line height for better vertical alignment */
+}
+
+.container.list-view .group-header .drag-handle::before {
+    content: "•";
+}
+
+.container.list-view .group-header .drag-handle>span {
+    display: none;
+}
+
+/* Input Boundary Style */
+.container.list-view .group::after {
+    content: "";
+    display: block;
+    width: calc(100% + 1.5em);
+    height: 1px;
+    background-color: #ccc;
+    position: absolute;
+    bottom: -1rem;
+    /* Move the line below the group */
+    left: -0.75em;
 }
