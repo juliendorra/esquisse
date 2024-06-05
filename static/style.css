@@ -1061,3 +1061,70 @@ sl-drawer::part(footer) {
     border-bottom-color: var(--tooltip-border-color);
     transform-origin: center bottom;
 }
+
+
+/* LIST VIEW  */
+
+
+.container.list-view {
+    /* List view styles */
+    display: block;
+}
+
+.container.list-view .group {
+    /* Indentation for list view */
+    margin-left: 1.5em;
+    border: none;
+    /* Remove block borders */
+    padding: 0.2em 0;
+    /* Adjust padding for list items */
+    background-color: transparent;
+    /* Remove block background */
+    max-width: none;
+    /* Allow list items to take full width */
+}
+
+.container.list-view .group.break {
+    /* Style for break elements in list view */
+    border-bottom: 1px solid #ccc;
+    /* Add a separator line */
+    margin-bottom: 0.5em;
+    /* Add spacing below the break */
+}
+
+.container.list-view .group.break+.group {
+    /* Reset indentation after a break */
+    margin-left: 0;
+}
+
+.container.list-view .group-header,
+.container.list-view .function-buttons-container {
+    /* Hide unnecessary elements in list view */
+    display: none;
+}
+
+.container.list-view .group-name {
+    /* Style for group names in list view */
+    font-weight: bold;
+    /* Make group names bold */
+    text-align: left;
+    /* Align text to the left */
+    font-size: 1em;
+    /* Adjust font size if needed */
+    border: none;
+}
+
+.container.list-view .data-text,
+.container.list-view .transform-text,
+.container.list-view .referenced-result-text {
+    /* Style for text content in list view */
+    display: block;
+    /* Ensure text content is displayed as a block */
+    margin-left: 0.5em;
+    /* Add a slight indent for text content */
+    white-space: pre-wrap;
+    /* Preserve line breaks and wrap text */
+    font-size: 0.9em;
+    /* Adjust font size if needed */
+    border: none;
+}
