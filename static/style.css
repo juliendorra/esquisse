@@ -305,6 +305,7 @@ textarea {
 
 
 .tool-btn {
+    width: min-content;
     padding: 0.4rem 0.5rem 0.25rem 0.5rem;
     font-size: 0.8em;
     align-self: flex-end;
@@ -1112,19 +1113,38 @@ canvas#mesh-background:has(~ .container.list-view) {
 
 .container.list-view .data-text,
 .container.list-view .transform-text,
-.container.list-view .referenced-result-text,
-.container.list-view .image-import-container {
+.container.list-view .referenced-result-text {
     display: block;
     white-space: pre-wrap;
     font-size: 0.9em;
-    padding-left: 2em;
-    margin-bottom: 0.5em;
+    margin-bottom: 1.5rem;
     margin-left: 1.5em;
-    width: 80vw;
+    width: 30em;
+    min-height: 1.5rem;
+    height: max-content;
     border-right: none;
     border-top: none;
     border-left: none;
+    border-radius: 0;
 }
+
+.container.list-view .image-import-container {
+    margin-bottom: 0;
+    margin-left: 1.7em;
+    width: min-content;
+    border-right: none;
+    border-top: none;
+    border-left: none;
+    border-radius: 0;
+}
+
+.container.list-view .data-text,
+.container.list-view .transform-text {
+
+    /* this is the future but not supported on Safari and Firefox */
+    field-sizing: content;
+}
+
 
 .container.list-view .group.break {
     margin-left: 0;
@@ -1156,15 +1176,47 @@ canvas#mesh-background:has(~ .container.list-view) {
 .container.list-view .function-buttons-container {
     justify-content: flex-start;
     margin-left: 1em;
+    margin-bottom: 1.5em;
     visibility: hidden;
     opacity: 0;
     pointer-events: none;
-    transition: cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
-.group:hover .function-buttons-container {
+.container.list-view .group:hover .function-buttons-container {
     visibility: visible;
     opacity: 1;
     pointer-events: auto;
-    transition: cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.container.list-view .group-btn:first-child {
+
+    margin-left: 0rem;
+
+}
+
+.container.list-view p.result {
+    font-size: 1.2em;
+    margin-top: 2em;
+    margin-left: 1.5em;
+    width: 30em;
+}
+
+.container.list-view img.result {
+    margin-left: 1.5em;
+}
+
+.container.list-view .download-btn {
+
+    margin-left: 1.7em;
+
+}
+
+.container.list-view .image-import-container .drop-zone {
+    padding-top: 1em;
+    padding-bottom: 1em;
+    padding-left: 0;
+    padding-right: 0;
+    margin-right: 0;
+    margin-left: 0;
+    width: calc(20em - 0.75em);
 }
