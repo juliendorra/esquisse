@@ -81,9 +81,18 @@ function selectWord(input, triggerChar, word) {
     const cursorPos = input.selectionStart;
     const value = input.value;
     const triggerCharIndex = Math.max(value.lastIndexOf('#', cursorPos - 1), value.lastIndexOf('[', cursorPos - 1));
-    const newValue = triggerChar === '[' ?
-        `${value.slice(0, triggerCharIndex + 1)}${word}] ${value.slice(cursorPos)}` :
-        `${value.slice(0, triggerCharIndex + 1)}${word} ${value.slice(cursorPos)}`;
+
+    let newValue;
+    if (triggerChar === '#' && /\s/.test(word)) {
+        // If the triggerChar is '#' and the word contains whitespace, replace with '[]'
+        newValue = `${value.slice(0, triggerCharIndex)}[${word}] ${value.slice(cursorPos)}`;
+    } else if (triggerChar === '#') {
+        // If the triggerChar is '#' and the word does not contain whitespace, use the original format
+        newValue = `${value.slice(0, triggerCharIndex + 1)}${word} ${value.slice(cursorPos)}`;
+    } else {
+        // If the triggerChar is '[', use the original format
+        newValue = `${value.slice(0, triggerCharIndex + 1)}${word}] ${value.slice(cursorPos)}`;
+    }
 
     input.value = newValue;
     input.setSelectionRange(triggerCharIndex + word.length + (triggerChar === '[' ? 3 : 2), triggerCharIndex + word.length + (triggerChar === '[' ? 3 : 2));
