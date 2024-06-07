@@ -310,9 +310,11 @@ function addEventListenersToGroup(groupElement) {
 
     dataElement?.addEventListener('change',
         () => {
-
+            const dropdown = groupElement.querySelector(".autocomplete-selector");
+            if (dropdown && dropdown.open) {
+                return;
+            }
             handleInputChange(groupElement, true, false, true, groups);
-
         });
 
 

@@ -56,6 +56,7 @@ function showDropdown(input, triggerChar, query, words) {
 
     if (!dropdown || dropdown.tagName !== 'SL-DROPDOWN') {
         dropdown = document.createElement('sl-dropdown');
+        dropdown.classList.add("autocomplete-selector");
         dropdown.innerHTML = '<sl-menu></sl-menu>';
         input.insertAdjacentElement('afterend', dropdown);
     }
