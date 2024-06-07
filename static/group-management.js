@@ -10,6 +10,8 @@ import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 
 import { persistGroups, getAppMetaData } from "./persistence.js";
 
+import { onInput, onKeyDown } from './autocomplete.js';
+
 
 const groupsMap = {
     GROUPS: new Map(),
@@ -20,7 +22,8 @@ let ONGOING_UPDATES = new Map();
 
 export {
     groupsMap, createGroupInLocalDataStructures,
-    addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, displayAllGroupsInteractionState, displayGroupInteractionState, displayControlnetStatus, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, indexGroupsInNewOrder
+    addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, displayAllGroupsInteractionState, displayGroupInteractionState, displayControlnetStatus, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, indexGroupsInNewOrder,
+    getGroupNamesForAutocomplete
 };
 
 const GROUP_HTML = {
@@ -41,7 +44,7 @@ const GROUP_HTML = {
                 <button class="tool-btn delete-btn" aria-label="Delete"><img src="/icons/delete.svg"></button>
             </div>
             <input type="text" class="group-name" placeholder="Name of this block">
-            <textarea class="data-text" placeholder="Data you want to use: text, #name or [another name] to get results from another block"></textarea>
+            <textarea class="data-text auto-complete" placeholder="Data you want to use: text, #name or [another name] to get results from another block"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
 
             <div class="function-buttons-container">
@@ -88,7 +91,7 @@ const GROUP_HTML = {
             </div>
 
             <input type="text" class="group-name" placeholder="Name of this block">
-            <textarea class="data-text" placeholder="Data you want to use: text, #name or [another name] to get results from another block"></textarea>
+            <textarea class="data-text auto-complete" placeholder="Data you want to use: text, #name or [another name] to get results from another block"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
             <textarea class="transform-text" placeholder="Instructions to transform data into result"></textarea>
 
@@ -112,7 +115,7 @@ const GROUP_HTML = {
             </div>
 
             <input type="text" class="group-name" placeholder="Name of this Block">
-            <textarea class="data-text" placeholder="Data you want to use: visual keywords, #name or [another name] to get results from another block"></textarea>
+            <textarea class="data-text auto-complete" placeholder="Data you want to use: visual keywords, #name or [another name] to get results from another block"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
             <textarea class="transform-text" placeholder="Visual keywords like 'oil painting', 'vector logo', etc. "></textarea>
 
@@ -426,6 +429,12 @@ function addEventListenersToGroup(groupElement) {
     groupElement.querySelector(".refresh-btn")?.addEventListener("click", () => handleInputChange(groupElement, true, true, true, groups));
 
     groupElement.querySelector(".clear-btn")?.addEventListener("click", () => clearImportedImage(group, groupElement));
+
+    const autocompleteElements = groupElement.querySelectorAll(".auto-complete");
+    for (const element of autocompleteElements) {
+        element.addEventListener('input', onInput);
+        element.addEventListener('keydown', onKeyDown);
+    }
 
 }
 
@@ -911,4 +920,10 @@ function indexGroupsInNewOrder() {
     document.title = `${groupsMap.GROUPS.values().next().value.name} · Esquisse AI`;
 
     persistGroups(groupsMap.GROUPS);
+}
+
+function getGroupNamesForAutocomplete(currentGroupId) {
+    return Array.from(groupsMap.GROUPS.values())
+        .filter(group => group.id !== currentGroupId && group.type !== GROUP_TYPE.BREAK)
+        .map(group => group.name);
 }
