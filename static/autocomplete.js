@@ -1,5 +1,4 @@
-// autocomplete.js
-import { getGroupNamesForAutocomplete, groupsMap } from './group-management.js';
+import { getGroupNamesForAutocomplete } from './group-management.js';
 
 export { onInput, onKeyDown };
 
@@ -81,10 +80,12 @@ function selectWord(input, triggerChar, word) {
     const cursorPos = input.selectionStart;
     const value = input.value;
     const triggerCharIndex = Math.max(value.lastIndexOf('#', cursorPos - 1), value.lastIndexOf('[', cursorPos - 1));
-    const newValue = value.slice(0, triggerCharIndex + 1) + word + ' ' + value.slice(cursorPos);
+    const newValue = triggerChar === '[' ?
+        `${value.slice(0, triggerCharIndex + 1)}${word}] ${value.slice(cursorPos)}` :
+        `${value.slice(0, triggerCharIndex + 1)}${word} ${value.slice(cursorPos)}`;
 
     input.value = newValue;
-    input.setSelectionRange(triggerCharIndex + word.length + 2, triggerCharIndex + word.length + 2);
+    input.setSelectionRange(triggerCharIndex + word.length + (triggerChar === '[' ? 3 : 2), triggerCharIndex + word.length + (triggerChar === '[' ? 3 : 2));
     input.focus();
 
     hideDropdown(input);
