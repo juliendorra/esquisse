@@ -50,7 +50,7 @@ function handleKeyNavigation(e, dropdown) {
     }
 }
 
-function showDropdown(input, triggerChar, query, words) {
+async function showDropdown(input, triggerChar, query, words) {
     const filteredWords = words.filter(word => word.toLowerCase().startsWith(query.toLowerCase()));
     let dropdown = input.nextElementSibling;
 
@@ -71,6 +71,8 @@ function showDropdown(input, triggerChar, query, words) {
             item.addEventListener('click', () => selectWord(input, triggerChar, word));
             menu.appendChild(item);
         });
+
+        await customElements.whenDefined('sl-dropdown');
         dropdown.show();
     } else {
         dropdown.hide();
