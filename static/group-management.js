@@ -339,6 +339,63 @@ function addEventListenersToGroup(groupElement) {
         refResultTextarea.style.display = "none";
     });
 
+    // Navigating throught the text fields using shift|fn + return|enter
+    // We handle 3 kind of enter : 
+    // event.key === 'Enter' => Enter, Return, fn + Return, Shift+Enter…
+    // event.code === 'NumpadEnter'  =>  true Enter key and fn + Return on Mac
+    // event.key === 'Enter' && event.shiftKey  => any enter key including return on Mac in combination with shift
+    // note that the return key on mac emit an enter key in the briwser
+
+    groupNameElement?.addEventListener("keydown", (event) => {
+
+        // any kind of enter will skip in the name input
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            if (dataElement) {
+                dataElement.focus();
+            } else {
+                focusOnNextElement(groupElement, ".group-name");
+            }
+        }
+    });
+
+    dataElement?.addEventListener("keydown", (event) => {
+
+        // skip with numpadEnter, fn + return on Mac (=numpadEnter), of shift + enter/return 
+        const dontLineReturn = event.code === 'NumpadEnter' || (event.shiftKey && event.key === 'Enter')
+
+        if (dontLineReturn) {
+            event.preventDefault();
+            if (transformElement) {
+                transformElement.focus();
+            } else {
+                focusOnNextElement(groupElement, ".group-name");
+            }
+        }
+    });
+
+    transformElement?.addEventListener("keydown", (event) => {
+
+        // skip with numpadEnter, fn + return on Mac (=numpadEnter), of shift + enter/return 
+        const dontLineReturn = event.code === 'NumpadEnter' || (event.shiftKey && event.key === 'Enter')
+
+        if (dontLineReturn) {
+            event.preventDefault();
+            focusOnNextElement(groupElement, ".group-name");
+        }
+    });
+
+    function focusOnNextElement(currentGroupElement, firstSelector) {
+        const nextGroup = currentGroupElement.nextElementSibling;
+        if (nextGroup) {
+            let nextElement = nextGroup.querySelector(firstSelector)
+            if (nextElement) {
+                nextElement.focus();
+            }
+        }
+    }
+
+
     // Event listeners for imported image 
     const dropZone = groupElement.querySelector(".drop-zone");
 
