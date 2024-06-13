@@ -1070,21 +1070,19 @@ canvas#mesh-background:has(~ .container.list-view) {
     display: none;
 }
 
-/* Improved List View Styles */
-
 .container.list-view {
-    /* List view styles for the container */
     display: block;
     padding-left: 1.5em;
 }
 
 .container.list-view .group {
     display: block;
+    margin-top: 0;
+    margin-bottom: 0;
     border-top: none;
     border-left: none;
     border-right: none;
     border-bottom: none;
-    /* padding: 0.5em 0; */
     max-width: none;
     position: relative;
 }
@@ -1094,6 +1092,7 @@ canvas#mesh-background:has(~ .container.list-view) {
     align-items: center;
     margin: 0;
     width: 90vw;
+    z-index: 0;
     top: 2.75em;
     left: -2.75em;
     position: relative;
@@ -1110,6 +1109,12 @@ canvas#mesh-background:has(~ .container.list-view) {
     margin-left: 0em;
 }
 
+
+.container.list-view .group.break .group-name {
+    font-size: 2.5em;
+    z-index: 100;
+    position: relative;
+}
 
 .container.list-view .data-text,
 .container.list-view .transform-text,
@@ -1165,10 +1170,6 @@ canvas#mesh-background:has(~ .container.list-view) {
     transform: rotate(90deg);
 }
 
-/* .container.list-view .group-header .drag-handle::before {
-    content: "•";
-} */
-
 .container.list-view .group-header .drag-handle>span {
     display: none;
 }
@@ -1176,7 +1177,7 @@ canvas#mesh-background:has(~ .container.list-view) {
 .container.list-view .function-buttons-container {
     justify-content: flex-start;
     margin-left: 1em;
-    margin-bottom: 1.5em;
+    margin-bottom: 0;
     visibility: hidden;
     opacity: 0;
     pointer-events: none;
