@@ -157,39 +157,33 @@ async function init() {
     const qualitySwitch = settingsMenu.querySelector('.quality-switch');
 
     qualitySwitch.addEventListener('sl-change', event => {
-        console.log(event.target.checked ? 'qualitySwitch checked' : 'qualitySwitch un-checked');
         SETTINGS.qualityEnabled = event.target.checked;
     });
 
     const dataflowSwitch = settingsMenu.querySelector('.dataflow-switch');
 
     dataflowSwitch.addEventListener('sl-change', event => {
-        console.log(event.target.checked ? 'dataflow-switch checked' : 'dataflow-switch un-checked');
+        SETTINGS.dataFlowEnabled = event.target.checked;
+        renderDataFlow();
+    });
 
-        if (event.target.checked) {
-            SETTINGS.dataFlowEnabled = true;
-            renderDataFlow();
+    const listviewSwitch = settingsMenu.querySelector('.list-view-switch');
+
+    listviewSwitch.addEventListener('sl-change', event => {
+        SETTINGS.listViewEnabled = event.target.checked;
+        if (SETTINGS.listViewEnabled) {
+            document.querySelector(".container").classList.add("list-view");
         }
         else {
-            SETTINGS.dataFlowEnabled = false;
-            renderDataFlow();
+            document.querySelector(".container").classList.remove("list-view");
         }
-
     });
 
     const tooltipsSwitch = settingsMenu.querySelector('.tooltips-switch');
 
     tooltipsSwitch.addEventListener('sl-change', event => {
-        console.log(event.target.checked ? 'tooltips-switch checked' : 'tooltips-switch un-checked');
-
-        if (event.target.checked) {
-            SETTINGS.tooltipsEnabled = true;
-            setTooltips(SETTINGS.tooltipsEnabled);
-        }
-        else {
-            SETTINGS.tooltipsEnabled = false;
-            setTooltips(SETTINGS.tooltipsEnabled);
-        }
+        SETTINGS.tooltipsEnabled = event.target.checked;
+        setTooltips(SETTINGS.tooltipsEnabled);
     });
 
     document.addEventListener('group-element-added-or-removed', event => {
