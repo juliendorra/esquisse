@@ -1098,6 +1098,10 @@ canvas#mesh-background:has(~ .container.list-view) {
     position: relative;
 }
 
+.container.list-view .group.break .group-header {
+    width: calc(90vw + 2.5em);
+}
+
 .container.list-view .group-header small {
     display: none;
     left: 0;
@@ -1107,8 +1111,8 @@ canvas#mesh-background:has(~ .container.list-view) {
     text-align: left;
     font-size: 1.5em;
     margin-left: 0em;
+    width: 65vw;
 }
-
 
 .container.list-view .group.break .group-name {
     font-size: 2.5em;
