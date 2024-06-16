@@ -409,11 +409,29 @@ function addEventListenersToGroup(groupElement) {
     function focusOnNextElement(currentGroupElement, firstSelector) {
         const nextGroup = currentGroupElement.nextElementSibling;
         if (nextGroup) {
-            let nextElement = nextGroup.querySelector(firstSelector)
+            let nextElement = nextGroup.querySelector(firstSelector);
             if (nextElement) {
                 nextElement.focus();
             }
+        } else {
+            // Check if current group is the last group
+            const container = document.querySelector(".container");
+            const lastGroupElement = container.lastElementChild;
+            if (currentGroupElement === lastGroupElement) {
+                const currentGroupType = getGroupTypeFromElement(currentGroupElement);
+                const newGroupElement = createGroupAndAddGroupElement(currentGroupType);
+                let nextElement = newGroupElement.querySelector(firstSelector);
+                if (nextElement) {
+                    nextElement.focus();
+                }
+            }
         }
+    }
+
+    function getGroupTypeFromElement(groupElement) {
+        const groupId = getGroupIdFromElement(groupElement);
+        const group = groupsMap.GROUPS.get(groupId);
+        return group ? group.type : GROUP_TYPE.TEXT; // Default to TEXT if group is not found
     }
 
 
