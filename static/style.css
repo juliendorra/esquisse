@@ -1116,7 +1116,7 @@ canvas#mesh-background:has(~ .container.list-view) {
 
 .container.list-view .group.break .group-name {
     font-size: 2.5em;
-    z-index: 100;
+    z-index: 9;
     position: relative;
 }
 
