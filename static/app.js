@@ -14,7 +14,7 @@ import { initGroupObservation } from "./group-elements-observer.js";
 
 import { initMeshBackground } from "./mesh-background.js";
 
-import { displayAlert, setShortcuts } from "./ui-utils.js";
+import { displayAlert, resizeAllTextAreas, setShortcuts } from "./ui-utils.js";
 import { setAccessibleDescriptions, setTooltips } from "./tooltips.js";
 
 const SETTINGS = {
@@ -171,12 +171,15 @@ async function init() {
 
     listviewSwitch.addEventListener('sl-change', event => {
         SETTINGS.listViewEnabled = event.target.checked;
+        const container = document.querySelector('.container');
         if (SETTINGS.listViewEnabled) {
-            document.querySelector(".container").classList.add("list-view");
+            container.classList.add("list-view");
         }
         else {
-            document.querySelector(".container").classList.remove("list-view");
+            container.classList.remove("list-view");
         }
+
+        resizeAllTextAreas(container, SETTINGS.listViewEnabled);
     });
 
     const tooltipsSwitch = settingsMenu.querySelector('.tooltips-switch');
@@ -277,4 +280,13 @@ async function init() {
 
     setAccessibleDescriptions();
     setShortcuts();
+
+    window.addEventListener('resize', () => {
+
+        const containerListView = document.querySelector('.container.list-view');
+
+        if (containerListView) {
+            resizeAllTextAreas(containerListView, true);
+        }
+    });
 }

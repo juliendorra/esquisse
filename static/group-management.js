@@ -2,7 +2,7 @@ import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, getGroupIdFromEle
 
 import Graph from "https://cdn.jsdelivr.net/npm/graph-data-structure@3.5.0/+esm";
 
-import { displayAlert } from "./ui-utils.js";
+import { displayAlert, resizeTextArea } from "./ui-utils.js";
 
 import { nameChangeHandler, handleInputChange, handleListSelectionChange, handleImportedImage, handleDroppedImage, hashAndPersist, clearImportedImage } from "./input-change.js";
 import { onDragStart, onDragEnd } from "./reordering.js";
@@ -338,6 +338,21 @@ function addEventListenersToGroup(groupElement) {
     dataElement?.addEventListener("focus", () => {
         refResultTextarea.style.display = "none";
     });
+
+    const container = document.querySelector('.container');
+
+    // Autoadjusting the size of textAreas
+    dataElement?.addEventListener("input", () => {
+        if (container && container.classList.contains('list-view')) {
+            resizeTextArea(dataElement)
+        }
+    });
+    transformElement?.addEventListener("input", () => {
+        if (container && container.classList.contains('list-view')) {
+            resizeTextArea(transformElement)
+        }
+    });
+
 
     // Navigating throught the text fields 
 
