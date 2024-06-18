@@ -249,6 +249,9 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
 
     addEventListenersToGroup(groupElement);
 
+    groupNameElement.focus();
+    groupNameElement.select();
+
     groupElement.scrollIntoView(true, { behavior: "auto", block: "end" });
 
     const animationendHandler = () => {
