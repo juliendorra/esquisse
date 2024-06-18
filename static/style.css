@@ -1075,22 +1075,27 @@ canvas#mesh-background:has(~ .container.list-view) {
     padding-left: 1.5em;
 }
 
+.container.list-view:last-child {
+    margin-bottom: 10em;
+}
+
 .container.list-view .group {
     display: block;
     padding: 0;
     margin-top: 0;
+    margin-left: 10vw;
     margin-bottom: 0;
     border-top: none;
     border-left: none;
     border-right: none;
     border-bottom: none;
-    max-width: none;
+    width: 80vw;
+    max-width: 32em;
     position: relative;
 }
 
 .container.list-view .group.break {
-    margin-left: 0;
-    margin-bottom: 0.5em;
+    margin-left: 5vw;
     padding: 0;
     background: transparent;
 }
@@ -1202,10 +1207,9 @@ canvas#mesh-background:has(~ .container.list-view) {
 }
 
 .container.list-view p.result {
-    font-size: 1.2em;
+    font-size: 0.9em;
     margin-top: 2em;
     margin-left: 1.5em;
-    width: 30em;
 }
 
 .container.list-view .group.static p.result {
