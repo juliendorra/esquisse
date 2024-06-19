@@ -56,6 +56,9 @@ const GROUP_HTML = {
                 </div>
 
             </div>
+
+           <p class="result"  style="display:none;"></p>
+           <div class="result-placeholder"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
             `,
 
 
@@ -69,7 +72,6 @@ const GROUP_HTML = {
             <div class="image-import-container">
                 <div class="drop-zone">Drop image here<br/>or click to load</div>
             </div>
-            <img class="result" alt="Imported image" style="display:none;">
             <div class="function-buttons-container">
 
                 <div class="group-btn">
@@ -80,6 +82,9 @@ const GROUP_HTML = {
                 <button class="tool-btn clear-btn" aria-label="Clear" ><img src="/icons/clear.svg"></button>
                 </div>
             </div>
+
+            <img class="result"  alt="Imported image"  style="display:none;">
+            <div class="result-placeholder"></div>
             `,
 
 
@@ -105,6 +110,9 @@ const GROUP_HTML = {
 
                 <button class="tool-btn refresh-btn" aria-label="Refresh"><img src="/icons/refresh.svg"></button>
             </div>
+
+           <p class="result"  style="display:none;"></p>
+           <div class="result-placeholder"><span></span><span></span><span></span><span></span><span></span><span></span></div>
             `,
 
     IMAGE: `
@@ -134,7 +142,9 @@ const GROUP_HTML = {
                 <button class="tool-btn refresh-btn" aria-label="Refresh"><img src="/icons/refresh.svg"></button>
             </div>
 
-            <img class="result"  alt="Imported image"  style="display:none;">
+            <img class="result"  alt="Generated image"  style="display:none;">
+            <div class="result-placeholder"></div>
+
             <a class="tool-btn download-btn" aria-label="Download"><img src="/icons/download.svg"></a>
             `,
 
