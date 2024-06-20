@@ -163,6 +163,13 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
         resultParagraph.textContent = group.result;
 
+        if (currentData) {
+            resultParagraph.style.display = "block";
+        }
+        else {
+            resultParagraph.style.display = "none";
+        }
+
         if (isUndirected) updateGroupsReferencingIt(group.id);
     }
 
