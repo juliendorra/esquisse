@@ -1223,10 +1223,6 @@ canvas#mesh-background:has(~ .container.list-view) {
     margin-left: 1.5em;
 }
 
-.container.list-view .group.static p.result {
-    display: none;
-}
-
 .container.list-view img.result {
     margin-left: 1.5em;
     margin-top: 0.5em;
@@ -1248,12 +1244,13 @@ canvas#mesh-background:has(~ .container.list-view) {
     width: calc(20em - 0.75em);
 }
 
-.container.list-view .group.text .result-placeholder {
+.container.list-view .group .result-placeholder {
     margin-left: 1.5em;
 }
 
-.container.list-view .group.text .result-placeholder::after {
-    top: 2em;
+.container.list-view .group.image .result-placeholder,
+.container.list-view .group.imported-image .result-placeholder {
+    margin-top: 1em;
 }
 
 
