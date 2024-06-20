@@ -3,6 +3,8 @@
     --scale: 0.4;
     --invert-scale: 2.5;
 
+    --result-width: 16em;
+
     --neutral-color: #FaFaFa;
     --neutral-color-highlight: #fefefe;
     --light-border: #E0E0E0;
@@ -305,6 +307,7 @@ textarea {
 
 
 .tool-btn {
+    width: min-content;
     padding: 0.4rem 0.5rem 0.25rem 0.5rem;
     font-size: 0.8em;
     align-self: flex-end;
@@ -491,18 +494,19 @@ textarea.referenced-result-text {
 .video-zone {
     outline: 2px dashed #cccccc;
     outline-offset: -2px;
-    padding: 1rem;
-    text-align: center;
     cursor: pointer;
     margin-bottom: 1rem;
     color: var(--title-text-color);
     font-size: 0.9rem;
 }
 
+
 .image-import-container .drop-zone {
-    padding-top: 4.16rem;
-    padding-bottom: 4.16rem;
+    height: 8.8em;
+    margin-bottom: 0.5em;
 }
+
+
 
 .drop-zone:active {
     outline: 2px dashed #0000ff;
@@ -535,9 +539,8 @@ p.result {
 }
 
 img.result {
-    max-width: 0.77.5vw;
     cursor: zoom-in;
-    width: calc(20rem - 0.75rem);
+    width: var(--result-width);
 }
 
 img.result.zoomed {
@@ -561,6 +564,10 @@ img.result.zoomed {
 }
 
 @media screen and (max-width: 450px) {
+
+    img.result {
+        width: 100%;
+    }
 
     img.result.zoomed {
         max-width: 100%;
@@ -1070,4 +1077,244 @@ sl-drawer::part(footer) {
     border-width: 0 8px 8px;
     border-bottom-color: var(--tooltip-border-color);
     transform-origin: center bottom;
+}
+
+
+/* List View Styles */
+
+canvas#mesh-background:has(~ .container.list-view) {
+    display: none;
+}
+
+.container.list-view {
+    display: block;
+    padding-left: 1.5em;
+}
+
+.container.list-view:last-child {
+    margin-bottom: 10em;
+}
+
+.container.list-view .group {
+    display: block;
+    padding: 0;
+    margin-top: 0;
+    margin-left: 10vw;
+    margin-bottom: 0;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    width: 80vw;
+    max-width: 32em;
+    position: relative;
+}
+
+.container.list-view .group.break {
+    margin-left: 5vw;
+    padding: 0;
+    background: transparent;
+}
+
+.container.list-view .group-header {
+    justify-content: space-between;
+    align-items: center;
+    margin: 0;
+    width: 90vw;
+    z-index: 0;
+    top: 2.75em;
+    left: -2.75em;
+    position: relative;
+}
+
+.container.list-view .group.break .group-header {
+    width: calc(90vw + 1.75em);
+}
+
+.container.list-view .group-header small {
+    display: none;
+    left: 0;
+}
+
+.container.list-view .group-name {
+    text-align: left;
+    font-size: 1.1em;
+    margin-left: 0em;
+    width: 65vw;
+}
+
+.container.list-view .group.break .group-name {
+    font-size: 1.5em;
+    z-index: 9;
+    position: relative;
+}
+
+.container.list-view .data-text,
+.container.list-view .transform-text,
+.container.list-view .referenced-result-text {
+    display: block;
+    white-space: pre-wrap;
+    font-size: 0.9em;
+    margin-bottom: 0.3rem;
+    margin-left: 1.5em;
+    width: 65vw;
+    min-height: 1.5rem;
+    height: max-content;
+    border-right: none;
+    border-top: none;
+    border-left: none;
+    border-radius: 0;
+}
+
+.container.list-view .image-import-container {
+    margin-bottom: 0;
+    margin-left: 1.7em;
+    width: min-content;
+    border-right: none;
+    border-top: none;
+    border-left: none;
+    border-radius: 0;
+}
+
+.container.list-view .data-text,
+.container.list-view .transform-text {
+
+    /* this is the future but not supported on Safari and Firefox */
+    field-sizing: content;
+}
+
+
+.container.list-view .group-header .drag-handle {
+    font-size: 2em;
+    color: black;
+    cursor: grab !important;
+    transform: rotate(90deg);
+    position: relative;
+    bottom: 0.15em;
+}
+
+.container.list-view .group.break .group-header .drag-handle {
+    bottom: 0;
+}
+
+.container.list-view .group-header .drag-handle>span {
+    display: none;
+}
+
+.container.list-view .function-buttons-container {
+    justify-content: flex-start;
+    margin-left: 1em;
+    margin-bottom: 0;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.container.list-view .group:hover .function-buttons-container {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.container.list-view .group-btn:first-child {
+
+    margin-left: 0rem;
+
+}
+
+.container.list-view p.result {
+    font-size: 0.9em;
+    margin-top: 2em;
+    margin-left: 1.5em;
+}
+
+.container.list-view img.result {
+    margin-left: 1.5em;
+    margin-top: 0.5em;
+}
+
+.container.list-view .download-btn {
+
+    margin-left: 1.7em;
+
+}
+
+.container.list-view .image-import-container .drop-zone {
+    padding-top: 1em;
+    padding-bottom: 1em;
+    padding-left: 0;
+    padding-right: 0;
+    margin-right: 0;
+    margin-left: 0;
+    width: calc(20em - 0.75em);
+}
+
+.container.list-view .group .result-placeholder {
+    margin-left: 1.5em;
+}
+
+.container.list-view .group.image .result-placeholder,
+.container.list-view .group.imported-image .result-placeholder {
+    margin-top: 1em;
+}
+
+
+/* Result placeholders */
+
+.result-placeholder {
+    display: none;
+}
+
+.group.text .result-placeholder span,
+.group.static .result-placeholder span {
+    display: block;
+    position: relative;
+    width: var(--result-width);
+    height: 0.5em;
+    background-color: var(--light-border);
+    border-radius: 0.4em;
+    margin-top: 0.9em;
+    margin-bottom: 1.5em;
+}
+
+.group.text .result-placeholder span:nth-last-child(4n+1),
+.group.static .result-placeholder span:nth-last-child(4n+1) {
+    width: 80%;
+    margin-bottom: 3em;
+}
+
+.group.text .result-placeholder span:last-child,
+.group.static .result-placeholder span:last-child {
+    width: 60%;
+}
+
+.group.image .result-placeholder,
+.group.imported-image .result-placeholder {
+    display: none;
+    aspect-ratio: 1 / 1;
+    width: var(--result-width);
+    background-color: var(--light-border);
+    border-radius: 0.2em;
+}
+
+@media screen and (max-width: 450px) {
+
+    .group.image .result-placeholder,
+    .group.imported-image .result-placeholder {
+        width: 100%;
+    }
+
+    .group.text .result-placeholder span,
+    .group.static .result-placeholder span {
+        width: 100%;
+    }
+}
+
+.group.text:has(.result:empty) .result-placeholder,
+.group.static:has(.result:empty) .result-placeholder {
+    display: block;
+}
+
+img.result:not([src])~.result-placeholder {
+    display: block;
 }

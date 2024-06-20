@@ -14,7 +14,7 @@ import { initGroupObservation } from "./group-elements-observer.js";
 
 import { initMeshBackground } from "./mesh-background.js";
 
-import { displayAlert, setShortcuts } from "./ui-utils.js";
+import { displayAlert, resizeAllTextAreas, setShortcuts } from "./ui-utils.js";
 import { setAccessibleDescriptions, setTooltips } from "./tooltips.js";
 
 const SETTINGS = {
@@ -157,39 +157,36 @@ async function init() {
     const qualitySwitch = settingsMenu.querySelector('.quality-switch');
 
     qualitySwitch.addEventListener('sl-change', event => {
-        console.log(event.target.checked ? 'qualitySwitch checked' : 'qualitySwitch un-checked');
         SETTINGS.qualityEnabled = event.target.checked;
     });
 
     const dataflowSwitch = settingsMenu.querySelector('.dataflow-switch');
 
     dataflowSwitch.addEventListener('sl-change', event => {
-        console.log(event.target.checked ? 'dataflow-switch checked' : 'dataflow-switch un-checked');
+        SETTINGS.dataFlowEnabled = event.target.checked;
+        renderDataFlow();
+    });
 
-        if (event.target.checked) {
-            SETTINGS.dataFlowEnabled = true;
-            renderDataFlow();
+    const listviewSwitch = settingsMenu.querySelector('.list-view-switch');
+
+    listviewSwitch.addEventListener('sl-change', event => {
+        SETTINGS.listViewEnabled = event.target.checked;
+        const container = document.querySelector('.container');
+        if (SETTINGS.listViewEnabled) {
+            container.classList.add("list-view");
         }
         else {
-            SETTINGS.dataFlowEnabled = false;
-            renderDataFlow();
+            container.classList.remove("list-view");
         }
 
+        resizeAllTextAreas(container, SETTINGS.listViewEnabled);
     });
 
     const tooltipsSwitch = settingsMenu.querySelector('.tooltips-switch');
 
     tooltipsSwitch.addEventListener('sl-change', event => {
-        console.log(event.target.checked ? 'tooltips-switch checked' : 'tooltips-switch un-checked');
-
-        if (event.target.checked) {
-            SETTINGS.tooltipsEnabled = true;
-            setTooltips(SETTINGS.tooltipsEnabled);
-        }
-        else {
-            SETTINGS.tooltipsEnabled = false;
-            setTooltips(SETTINGS.tooltipsEnabled);
-        }
+        SETTINGS.tooltipsEnabled = event.target.checked;
+        setTooltips(SETTINGS.tooltipsEnabled);
     });
 
     document.addEventListener('group-element-added-or-removed', event => {
@@ -283,4 +280,13 @@ async function init() {
 
     setAccessibleDescriptions();
     setShortcuts();
+
+    window.addEventListener('resize', () => {
+
+        const containerListView = document.querySelector('.container.list-view');
+
+        if (containerListView) {
+            resizeAllTextAreas(containerListView, true);
+        }
+    });
 }

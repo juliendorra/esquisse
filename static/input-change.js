@@ -163,6 +163,13 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
         resultParagraph.textContent = group.result;
 
+        if (currentData) {
+            resultParagraph.style.display = "block";
+        }
+        else {
+            resultParagraph.style.display = "none";
+        }
+
         if (isUndirected) updateGroupsReferencingIt(group.id);
     }
 
@@ -404,6 +411,7 @@ async function sendRequestsForGroup({
                 groupElement.appendChild(resultParagraph);
             }
             resultParagraph.textContent = group.result;
+            resultParagraph.style.display = "block";
             groupElement.querySelector(".refresh-btn").style.display = "block";
 
             delete REQUEST_QUEUE[group.id];

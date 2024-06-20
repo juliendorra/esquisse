@@ -1,6 +1,6 @@
 import hotkeys from 'https://cdn.jsdelivr.net/npm/hotkeys-js@3/+esm';
 
-export { displayAlert, hideAddBlocksButtons, showAddBlocksButtons, removeGlobalWaitingIndicator, createZoomedImage, setShortcuts };
+export { displayAlert, hideAddBlocksButtons, showAddBlocksButtons, removeGlobalWaitingIndicator, createZoomedImage, setShortcuts, resizeTextArea, resizeAllTextAreas };
 
 // this function needs shoelace custom elements to be defined to works
 async function displayAlert({ issue, action, variant = "warning", icon = "exclamation-triangle", duration = 3000 }) {
@@ -97,5 +97,24 @@ function showClickCircle(event) {
     clickCircle.style.animation = `fade-out-opacity .2s  linear`;
     clickCircle.onanimationend = () => {
         document.body.removeChild(clickCircle);
+    }
+}
+
+function resizeTextArea(textArea) {
+    textArea.style.height = 'auto';
+    textArea.style.height = textArea.scrollHeight + 'px';
+}
+
+function revertsizeTextArea(textArea) {
+    textArea.style.height = '';
+}
+
+function resizeAllTextAreas(container, listViewEnabled = true) {
+    const textAreas = container.querySelectorAll('.data-text, .transform-text');
+    if (listViewEnabled) {
+        textAreas.forEach(textArea => resizeTextArea(textArea));
+    }
+    else {
+        textAreas.forEach(textArea => revertsizeTextArea(textArea));
     }
 }

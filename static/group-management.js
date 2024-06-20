@@ -2,7 +2,7 @@ import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, getGroupIdFromEle
 
 import Graph from "https://cdn.jsdelivr.net/npm/graph-data-structure@3.5.0/+esm";
 
-import { displayAlert } from "./ui-utils.js";
+import { displayAlert, resizeTextArea } from "./ui-utils.js";
 
 import { nameChangeHandler, handleInputChange, handleListSelectionChange, handleImportedImage, handleDroppedImage, hashAndPersist, clearImportedImage } from "./input-change.js";
 import { onDragStart, onDragEnd } from "./reordering.js";
@@ -10,6 +10,8 @@ import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 
 import { persistGroups, getAppMetaData } from "./persistence.js";
 import { startWebcam, stopWebcam, switchWebcam, captureAndHandle, flipImageResult } from "./webcam.js";
+
+import { onInput, onKeyDown } from './autocomplete.js';
 
 
 const groupsMap = {
@@ -21,7 +23,8 @@ let ONGOING_UPDATES = new Map();
 
 export {
     groupsMap, createGroupInLocalDataStructures,
-    addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, displayAllGroupsInteractionState, displayGroupInteractionState, displayControlnetStatus, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, indexGroupsInNewOrder
+    addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, displayAllGroupsInteractionState, displayGroupInteractionState, displayControlnetStatus, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, indexGroupsInNewOrder,
+    getGroupNamesForAutocomplete
 };
 
 const GROUP_HTML = {
@@ -42,7 +45,7 @@ const GROUP_HTML = {
                 <button class="tool-btn delete-btn" aria-label="Delete"><img src="/icons/delete.svg"></button>
             </div>
             <input type="text" class="group-name" placeholder="Name of this block">
-            <textarea class="data-text" placeholder="Data you want to use: text, #name or [another name] to get results from another block"></textarea>
+            <textarea class="data-text auto-complete" placeholder="Data you want to use: text, #name or [another name] to get results from another block"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
 
             <div class="function-buttons-container">
@@ -54,6 +57,9 @@ const GROUP_HTML = {
                 </div>
 
             </div>
+
+           <p class="result"  style="display:none;"></p>
+           <div class="result-placeholder"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
             `,
 
 
@@ -75,7 +81,6 @@ const GROUP_HTML = {
             </div>
                 
             </div>
-            <img class="result" alt="Imported image" style="display:none;">
             <div class="function-buttons-container">
 
                 <button class="tool-btn capture-webcam-frame-btn" aria-label="Capture webcam frame" style="display:none;"><img src="/icons/capture-webcam-frame.svg"></button>
@@ -94,6 +99,9 @@ const GROUP_HTML = {
                 <button class="tool-btn clear-btn" aria-label="Clear" ><img src="/icons/clear.svg"></button>
                 </div>
             </div>
+
+            <img class="result"  alt="Imported image"  style="display:none;">
+            <div class="result-placeholder"></div>
             `,
 
 
@@ -105,7 +113,7 @@ const GROUP_HTML = {
             </div>
 
             <input type="text" class="group-name" placeholder="Name of this block">
-            <textarea class="data-text" placeholder="Data you want to use: text, #name or [another name] to get results from another block"></textarea>
+            <textarea class="data-text auto-complete" placeholder="Data you want to use: text, #name or [another name] to get results from another block"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
             <textarea class="transform-text" placeholder="Instructions to transform data into result"></textarea>
 
@@ -119,6 +127,9 @@ const GROUP_HTML = {
 
                 <button class="tool-btn refresh-btn" aria-label="Refresh"><img src="/icons/refresh.svg"></button>
             </div>
+
+           <p class="result"  style="display:none;"></p>
+           <div class="result-placeholder"><span></span><span></span><span></span><span></span><span></span><span></span></div>
             `,
 
     IMAGE: `
@@ -129,7 +140,7 @@ const GROUP_HTML = {
             </div>
 
             <input type="text" class="group-name" placeholder="Name of this Block">
-            <textarea class="data-text" placeholder="Data you want to use: visual keywords, #name or [another name] to get results from another block"></textarea>
+            <textarea class="data-text auto-complete" placeholder="Data you want to use: visual keywords, #name or [another name] to get results from another block"></textarea>
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
             <textarea class="transform-text" placeholder="Visual keywords like 'oil painting', 'vector logo', etc. "></textarea>
 
@@ -148,7 +159,9 @@ const GROUP_HTML = {
                 <button class="tool-btn refresh-btn" aria-label="Refresh"><img src="/icons/refresh.svg"></button>
             </div>
 
-            <img class="result"  alt="Imported image"  style="display:none;">
+            <img class="result"  alt="Generated image"  style="display:none;">
+            <div class="result-placeholder"></div>
+
             <a class="tool-btn download-btn" aria-label="Download"><img src="/icons/download.svg"></a>
             `,
 
@@ -263,6 +276,9 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
 
     addEventListenersToGroup(groupElement);
 
+    groupNameElement.focus();
+    groupNameElement.select();
+
     groupElement.scrollIntoView(true, { behavior: "auto", block: "end" });
 
     const animationendHandler = () => {
@@ -324,9 +340,11 @@ function addEventListenersToGroup(groupElement) {
 
     dataElement?.addEventListener('change',
         () => {
-
+            const dropdown = groupElement.querySelector(".autocomplete-selector");
+            if (dropdown && dropdown.open) {
+                return;
+            }
             handleInputChange(groupElement, true, false, true, groups);
-
         });
 
 
@@ -350,6 +368,117 @@ function addEventListenersToGroup(groupElement) {
     dataElement?.addEventListener("focus", () => {
         refResultTextarea.style.display = "none";
     });
+
+    const container = document.querySelector('.container');
+
+    // Autoadjusting the size of textAreas
+    dataElement?.addEventListener("input", () => {
+        if (container && container.classList.contains('list-view')) {
+            resizeTextArea(dataElement)
+        }
+    });
+    transformElement?.addEventListener("input", () => {
+        if (container && container.classList.contains('list-view')) {
+            resizeTextArea(transformElement)
+        }
+    });
+
+
+    // Navigating throught the text fields 
+
+    // 1. using shift|fn + return|enter
+    // We handle 3 kind of enter : 
+    // event.key === 'Enter' => Enter, Return, fn + Return, Shift+Enter…
+    // event.code === 'NumpadEnter'  =>  true Enter key and fn + Return on Mac
+    // event.key === 'Enter' && event.shiftKey  => any enter key including return on Mac in combination with shift
+    // note that the return key on mac emit an enter key in the browser
+
+    // 2. we also skip to the next input field when :
+    // - user cursor is positioned at the end of a data or transform textArea. 
+    // - There's already an empty line at the end
+    // - user type key=enter
+
+    groupNameElement?.addEventListener("keydown", (event) => {
+
+        // any kind of enter will skip in the name input
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            if (dataElement) {
+                dataElement.focus();
+            } else {
+                focusOnNextElement(groupElement, ".group-name");
+            }
+        }
+    });
+
+    dataElement?.addEventListener("keydown", (event) => {
+        const dontLineReturn = event.code === 'NumpadEnter' || (event.shiftKey && event.key === 'Enter');
+
+        if (event.key === 'Enter' && isCursorAtEndWithEmptyLine(dataElement)) {
+            event.preventDefault();
+            if (transformElement) {
+                transformElement.focus();
+            } else {
+                focusOnNextElement(groupElement, ".group-name");
+            }
+        } else if (dontLineReturn) {
+            event.preventDefault();
+            if (transformElement) {
+                transformElement.focus();
+            } else {
+                focusOnNextElement(groupElement, ".group-name");
+            }
+        }
+    });
+
+    transformElement?.addEventListener("keydown", (event) => {
+        const dontLineReturn = event.code === 'NumpadEnter' || (event.shiftKey && event.key === 'Enter');
+
+        if (event.key === 'Enter' && isCursorAtEndWithEmptyLine(transformElement)) {
+            event.preventDefault();
+            focusOnNextElement(groupElement, ".group-name");
+        } else if (dontLineReturn) {
+            event.preventDefault();
+            focusOnNextElement(groupElement, ".group-name");
+        }
+    });
+
+    function isCursorAtEndWithEmptyLine(textarea) {
+        const value = textarea.value;
+        const cursorPosition = textarea.selectionStart;
+        const isAtEnd = cursorPosition === value.length;
+        const endsWithEmptyLine = value.endsWith("\n") || value === "";
+        return isAtEnd && endsWithEmptyLine;
+    }
+
+    function focusOnNextElement(currentGroupElement, firstSelector) {
+        const nextGroup = currentGroupElement.nextElementSibling;
+        if (nextGroup) {
+            let nextElement = nextGroup.querySelector(firstSelector);
+            if (nextElement) {
+                nextElement.focus();
+            }
+        } else {
+            // Check if current group is the last group
+            const container = document.querySelector(".container");
+            const lastGroupElement = container.lastElementChild;
+            if (currentGroupElement === lastGroupElement) {
+                const currentGroupType = getGroupTypeFromElement(currentGroupElement);
+                const newGroupElement = createGroupAndAddGroupElement(currentGroupType);
+                let nextElement = newGroupElement.querySelector(firstSelector);
+                if (nextElement) {
+                    nextElement.focus();
+                }
+            }
+        }
+    }
+
+    function getGroupTypeFromElement(groupElement) {
+        const groupId = getGroupIdFromElement(groupElement);
+        const group = groupsMap.GROUPS.get(groupId);
+        return group ? group.type : GROUP_TYPE.TEXT; // Default to TEXT if group is not found
+    }
+
 
     // Event listeners for imported image 
     const dropZone = groupElement.querySelector(".drop-zone");
@@ -528,6 +657,12 @@ function addEventListenersToGroup(groupElement) {
     groupElement.querySelector(".refresh-btn")?.addEventListener("click", () => handleInputChange(groupElement, true, true, true, groups));
 
     groupElement.querySelector(".clear-btn")?.addEventListener("click", () => clearImportedImage(group, groupElement));
+
+    const autocompleteElements = groupElement.querySelectorAll(".auto-complete");
+    for (const element of autocompleteElements) {
+        element.addEventListener('input', onInput);
+        element.addEventListener('keydown', onKeyDown);
+    }
 
 }
 
@@ -1013,4 +1148,10 @@ function indexGroupsInNewOrder() {
     document.title = `${groupsMap.GROUPS.values().next().value.name} · Esquisse AI`;
 
     persistGroups(groupsMap.GROUPS);
+}
+
+function getGroupNamesForAutocomplete(currentGroupId) {
+    return Array.from(groupsMap.GROUPS.values())
+        .filter(group => group.id !== currentGroupId && group.type !== GROUP_TYPE.BREAK)
+        .map(group => group.name);
 }
