@@ -490,14 +490,22 @@ textarea.referenced-result-text {
 }
 
 
-.drop-zone,
-.video-zone {
+.drop-zone {
+    height: 6em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
     outline: 2px dashed #cccccc;
     outline-offset: -2px;
     cursor: pointer;
     margin-bottom: 1rem;
     color: var(--title-text-color);
     font-size: 0.9rem;
+}
+
+.video-zone {
+    position: relative;
 }
 
 
@@ -519,7 +527,10 @@ textarea.referenced-result-text {
 }
 
 .webcam-feed {
-    width: 100%;
+    object-fit: cover;
+    object-position: center;
+    aspect-ratio: 1/1;
+    width: var(--result-width);
 }
 
 .mirrored-video .webcam-feed {
