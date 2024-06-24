@@ -17,6 +17,25 @@ function initializeCanvas() {
         ctx = globalCanvas.getContext('2d');
     }
 }
+
+function resetAnimation(element) {
+
+    element.style.animation = 'none';
+
+    // Trigger a reflow to apply the change
+    element.offsetHeight;
+
+    // element.style.animation = animation.replace(/[\d.]+m?s/g, `${INTERVAL}ms`);
+
+    document.documentElement.style.setProperty('--webcam-capture-interval', `${INTERVAL}ms`);
+
+    element.style.animation = `grow var(--webcam-capture-interval) linear`;
+
+    console.log("[WEBCAM] interval indicator animation set to ", element.style.animation);
+
+}
+
+
 async function startWebcam(groupElement, deviceId) {
 
     await navigator.mediaDevices.getUserMedia({ video: true });
@@ -53,7 +72,6 @@ async function startWebcam(groupElement, deviceId) {
 
         // Increase active webcam count and handle device changes
         if (activeWebcamGroupsCount === 0) {
-
             navigator.mediaDevices.ondevicechange = async () => {
                 updateDeviceList();
             };
@@ -141,25 +159,40 @@ async function switchWebcam(groupElement, deviceId) {
 
 function startCaptureInterval() {
     webcamInterval = setInterval(() => {
-        document.querySelectorAll('.group:has(.webcam-feed[data-active="true"])').forEach(groupElement => {
-            const lastCapture = lastManualCaptureTime.get(groupElement);
-            if (!lastCapture || Date.now() - lastCapture > INTERVAL) {
-                captureAndHandle(groupElement);
-            }
-        });
+        document.querySelectorAll('.group:has(.webcam-feed[data-active="true"])')
+            .forEach(groupElement => {
+
+                // we skip a turn if there was a manual capture during the interval
+
+                const lastCapture = lastManualCaptureTime.get(groupElement);
+
+                // substracting a small value to avoid false positive
+
+                if (!lastCapture || (Date.now() - lastCapture) >= (INTERVAL - 100)) {
+                    captureAndHandle(groupElement);
+                }
+                else {
+                    console.log("[WEBCAM] Skipping a capture")
+                }
+            });
     }, INTERVAL);
 }
 
 async function captureAndHandle(groupElement) {
 
     const feed = groupElement.querySelector('.webcam-feed');
+    const intervalIndicator = groupElement.querySelector('.webcam-capture-interval-indicator');
 
     const isMirrored = groupElement.classList.contains("mirrored-video");
 
     if (feed.readyState >= 2) {
         const blob = await captureImageFromWebcam(feed, isMirrored);
+
         handleDroppedImage(blob, groupElement);
-        lastManualCaptureTime.set(groupElement, Date.now());  // Set the time of manual capture
+
+        lastManualCaptureTime.set(groupElement, Date.now());
+
+        resetAnimation(intervalIndicator);
     }
 }
 
@@ -167,17 +200,23 @@ async function captureImageFromWebcam(feed, captureMirrored = false) {
     const width = feed.videoWidth;
     const height = feed.videoHeight;
 
-    globalCanvas.width = width;
-    globalCanvas.height = height;
+    const squareSize = Math.min(width, height);
+
+    globalCanvas.width = squareSize;
+    globalCanvas.height = squareSize;
 
     ctx.save();
 
     if (captureMirrored) {
         ctx.scale(-1, 1);
-        ctx.translate(-width, 0);
+        ctx.translate(-squareSize, 0);
     }
 
-    ctx.drawImage(feed, 0, 0, width, height);
+    const cropX = (width - squareSize) / 2;
+    const cropY = (height - squareSize) / 2;
+
+    ctx.drawImage(feed, cropX, cropY, squareSize, squareSize, 0, 0, squareSize, squareSize);
+
     ctx.restore();
 
     return new Promise(resolve => globalCanvas.toBlob(resolve, 'image/jpeg'));
@@ -199,12 +238,20 @@ async function flipImageResult(groupElement) {
         const width = image.width;
         const height = image.height;
 
-        globalCanvas.width = width;
-        globalCanvas.height = height;
+        const squareSize = Math.min(width, height);
+
+        globalCanvas.width = squareSize;
+        globalCanvas.height = squareSize;
 
         ctx.save();
         ctx.scale(-1, 1);
-        ctx.drawImage(image, -width, 0, width, height);
+        ctx.translate(-squareSize, 0);
+
+        // Center the crop area
+        const cropX = (width - squareSize) / 2;
+        const cropY = (height - squareSize) / 2;
+
+        ctx.drawImage(image, cropX, cropY, squareSize, squareSize, 0, 0, squareSize, squareSize);
         ctx.restore();
 
         globalCanvas.toBlob(flippedBlob => {
@@ -214,7 +261,6 @@ async function flipImageResult(groupElement) {
 
     image.onerror = () => {
         console.error("[FLIP CANVAS] Error loading the image.");
-        URL.revokeObjectURL(blobUrl);
     };
 }
 
@@ -222,7 +268,7 @@ async function flipImageResult(groupElement) {
 async function listVideoInputs() {
     const devices = await navigator.mediaDevices.enumerateDevices();
     const videoDevices = devices.filter(device => device.kind === 'videoinput');
-    console.log("[WEBCAM] enumerated video devices: ", videoDevices)
+    console.log("[WEBCAM] enumerated video devices: ", videoDevices);
     return videoDevices;
 }
 
@@ -231,9 +277,7 @@ async function updateDeviceList() {
     const devices = await listVideoInputs();
 
     document.querySelectorAll('.group:has(.webcam-feed[data-active="true"])').forEach(groupElement => {
-
-        populateWebcamSelect(groupElement, devices)
-
+        populateWebcamSelect(groupElement, devices);
     });
 }
 
@@ -243,7 +287,7 @@ function populateWebcamSelect(groupElement, devices) {
 
     const currentDeviceId = select.value;
 
-    const optionElements = select.querySelectorAll("sl-option")
+    const optionElements = select.querySelectorAll("sl-option");
 
     const existingDeviceIds = new Set();
     for (const option of optionElements) {
@@ -283,11 +327,13 @@ async function turnIntoWebcamGroup(groupElement) {
     const startWebcamButton = groupElement.querySelector('.start-webcam-btn');
     const stopWebcamButton = groupElement.querySelector('.stop-webcam-btn');
     const captureWebcamFrameButton = groupElement.querySelector('.capture-webcam-frame-btn');
+    const mirrorButton = groupElement.querySelector('.mirror-btn');
     const dropZone = groupElement.querySelector(".drop-zone");
 
     startWebcamButton.style.display = 'none';
     stopWebcamButton.style.display = 'block';
     captureWebcamFrameButton.style.display = 'block';
+    mirrorButton.style.display = 'block';
     dropZone.style.display = 'none';
 }
 
@@ -296,23 +342,22 @@ function revertToStaticImageGroup(groupElement) {
     videoZone.style.display = 'none';
 
     // Clear webcam options
-    const optionElements = groupElement.querySelectorAll("sl-option")
+    const optionElements = groupElement.querySelectorAll("sl-option");
 
     for (const option of optionElements) {
-        console.log("[WEBCAM] removing option: ", option)
+        console.log("[WEBCAM] removing option: ", option);
         option.remove();
     }
 
     const startWebcamButton = groupElement.querySelector('.start-webcam-btn');
-    startWebcamButton.style.display = 'block';
-
     const stopWebcamButton = groupElement.querySelector('.stop-webcam-btn');
-    stopWebcamButton.style.display = 'none';
-
     const captureWebcamFrameButton = groupElement.querySelector('.capture-webcam-frame-btn');
-    captureWebcamFrameButton.style.display = 'none';
-
+    const mirrorButton = groupElement.querySelector('.mirror-btn');
     const dropZone = groupElement.querySelector('.drop-zone');
-    dropZone.style.display = 'block';
-}
 
+    startWebcamButton.style.display = 'block';
+    stopWebcamButton.style.display = 'none';
+    captureWebcamFrameButton.style.display = 'none';
+    mirrorButton.style.display = 'none';
+    dropZone.style.display = 'flex';
+}

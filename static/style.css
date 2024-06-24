@@ -4,6 +4,7 @@
     --invert-scale: 2.5;
 
     --result-width: 16em;
+    --webcam-capture-interval: 2s;
 
     --neutral-color: #FaFaFa;
     --neutral-color-highlight: #fefefe;
@@ -537,6 +538,24 @@ textarea.referenced-result-text {
     transform: scaleX(-1);
 }
 
+.webcam-capture-interval-indicator {
+    width: 100%;
+    height: 0.5em;
+    background-color: var(--group-static-color-code);
+    transform-origin: left;
+    animation: grow var(--webcam-capture-interval) linear;
+}
+
+@keyframes grow {
+    0% {
+        transform: scaleX(0);
+    }
+
+    100% {
+        transform: scaleX(1);
+    }
+}
+
 
 p.result {
     font-size: 0.85em;
@@ -887,8 +906,7 @@ sl-drawer::part(footer) {
 
 .zoomable {
     /* this transitions are used by the miniview styles */
-    transition:
-        transform 0.1s ease-in-out;
+    transition: transform 0.1s ease-in-out;
 }
 
 .zoomable::before {
