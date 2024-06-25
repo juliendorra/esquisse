@@ -38,7 +38,7 @@ function resetAnimation(element) {
 
 async function startWebcam(groupElement, deviceId) {
 
-    setTimeout(stopWebcam(), INTERVAL * 10)
+    setTimeout(stopWebcam, INTERVAL * 10)
 
     await navigator.mediaDevices.getUserMedia({ video: true });
 
