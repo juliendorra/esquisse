@@ -83,15 +83,9 @@ async function init() {
 
         const imageFiles = files.filter(file => file.type.startsWith('image/'));
 
-        console.log("TEST IMAGE FILES: ", imageFiles)
-
         const textFiles = files.filter(file => file.type.startsWith('text/'));
 
-        let index = 0
-
         for (const file of imageFiles) {
-
-            console.log("TEST ADDING IMAGE ", index++)
 
             const groupElement = createGroupAndAddGroupElement(GROUP_TYPE.IMPORTED_IMAGE);
 
