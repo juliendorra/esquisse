@@ -74,6 +74,7 @@ const GROUP_HTML = {
                 <div class="drop-zone">Drop image here<br/>or click to load</div>
                 <div class="video-zone" style="display:none;"> 
                 <video class="webcam-feed" autoplay muted playsinline></video>
+                <div class="webcam-capture-interval-indicator"></div>
                 <div class="device-selection" style="display:none;">
                     <sl-select aria-label="Select a camera" placeholder="Select a camera" size="small">
                     </sl-select>
