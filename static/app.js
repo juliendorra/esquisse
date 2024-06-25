@@ -97,7 +97,7 @@ async function init() {
 
             const group = groupsMap.GROUPS.get(getGroupIdFromElement(groupElement));
 
-            handleDroppedImage(file, group, groupElement);
+            handleDroppedImage(file, groupElement);
 
         }
 

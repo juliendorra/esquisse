@@ -456,12 +456,17 @@ async function handleImportedImage(group, groupElement) {
 
     fileInput.onchange = async e => {
         const imageFile = e.currentTarget.files[0];
-        handleDroppedImage(imageFile, group, groupElement);
+        handleDroppedImage(imageFile, groupElement);
     };
     fileInput.click();
 }
 
-async function handleDroppedImage(imageFile, group, groupElement) {
+async function handleDroppedImage(imageFile, groupElement) {
+
+    const group =
+        groupsMap.GROUPS.get(
+            getGroupIdFromElement(groupElement)
+        );
 
     try {
         const processedBlob = await processImage(imageFile);

@@ -9,6 +9,7 @@ import { onDragStart, onDragEnd } from "./reordering.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 
 import { persistGroups, getAppMetaData } from "./persistence.js";
+import { startWebcam, stopWebcam, switchWebcam, captureAndHandle, flipImageResult } from "./webcam.js";
 
 import { onInput, onKeyDown } from './autocomplete.js';
 
@@ -71,8 +72,24 @@ const GROUP_HTML = {
             <input type="text" class="group-name" placeholder="Name of this block">
             <div class="image-import-container">
                 <div class="drop-zone">Drop image here<br/>or click to load</div>
+                <div class="video-zone" style="display:none;"> 
+                <video class="webcam-feed" autoplay muted playsinline></video>
+                <div class="device-selection" style="display:none;">
+                    <sl-select aria-label="Select a camera" placeholder="Select a camera" size="small">
+                    </sl-select>
+                </div>
+            </div>
+                
             </div>
             <div class="function-buttons-container">
+
+                <button class="tool-btn capture-webcam-frame-btn" aria-label="Capture webcam frame" style="display:none;"><img src="/icons/capture-webcam-frame.svg"></button>
+
+                <button class="tool-btn mirror-btn" aria-label="Mirror" style="display:none;"><img src="/icons/mirror.svg"></button>
+
+                <button class="tool-btn stop-webcam-btn" aria-label="Stop webcam" style="display:none;"><img src="/icons/stop-webcam.svg"></button>
+
+                <button class="tool-btn start-webcam-btn" aria-label="Start webcam"><img src="/icons/start-webcam.svg"></button>
 
                 <div class="group-btn">
                 <button class="tool-btn open-btn" aria-label="Entry"><img src="/icons/open.svg"></button>
@@ -494,10 +511,95 @@ function addEventListenersToGroup(groupElement) {
 
             const imageFile = event.dataTransfer.files[0];
 
-            handleDroppedImage(imageFile, group, groupElement)
+            handleDroppedImage(imageFile, groupElement)
         }
     );
 
+    /******** Webcam buttons *************/
+
+    const startWebcamButton = groupElement.querySelector('.start-webcam-btn');
+    const stopWebcamButton = groupElement.querySelector('.stop-webcam-btn');
+    const captureWebcamFrameButton = groupElement.querySelector('.capture-webcam-frame-btn');
+    const webcamFeed = groupElement.querySelector('.webcam-feed');
+    const mirrorButton = groupElement.querySelector('.mirror-btn');
+
+    startWebcamButton?.addEventListener('click', async (event) => {
+
+        group.webcamEnabled = true;
+
+        console.log("[WEBCAM MODE] enabled ", group.webcamEnabled)
+
+        startWebcam(groupElement, undefined);
+    });
+
+    groupElement.querySelector('.device-selection sl-select')?.addEventListener('sl-change', event => {
+        const selectedDeviceId = event.currentTarget.value;
+        switchWebcam(groupElement, selectedDeviceId);
+    });
+
+    stopWebcamButton?.addEventListener('click', (event) => {
+
+        group.webcamEnabled = false;
+
+        console.log("[WEBCAM MODE] enabled ", group.webcamEnabled)
+
+        stopWebcam(groupElement)
+    });
+
+    webcamFeed?.addEventListener('click', async (event) => {
+
+        console.log("[WEBCAM MODE] manually capturing a frame");
+
+        if (!group.webcamEnabled) {
+            return;
+        }
+        else {
+            await captureAndHandle(groupElement);
+        }
+
+    });
+
+    captureWebcamFrameButton?.addEventListener('click', async (event) => {
+
+        console.log("[WEBCAM MODE] manually capturing a frame");
+
+        // the event target is lost after calling captureAndHandle, so we keep a reference
+        const thisButton = event.currentTarget;
+
+        if (!group.webcamEnabled) {
+            return;
+        }
+        else {
+            thisButton.classList.add("selected");
+            await captureAndHandle(groupElement);
+            setTimeout(() => {
+
+                thisButton.classList.remove("selected");
+
+            }, 300);
+        }
+
+    });
+
+    mirrorButton?.addEventListener('click', async (event) => {
+
+        console.log("[WEBCAM MODE] toggling mirror");
+
+        // the event target is lost after calling captureAndHandle, so we keep a reference
+        const thisButton = event.currentTarget;
+
+        if (thisButton.classList.contains("selected")) {
+            thisButton.classList.remove("selected");
+            groupElement.classList.remove("mirrored-video");
+            flipImageResult(groupElement);
+        }
+        else {
+            thisButton.classList.add("selected");
+            groupElement.classList.add("mirrored-video");
+            flipImageResult(groupElement);
+        }
+
+    });
 
     /******** Tool buttons *************/
     groupElement.querySelector(".delete-btn").addEventListener("click", () => deleteGroup(groupElement));
