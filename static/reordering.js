@@ -1,4 +1,4 @@
-import { Sortable, MultiDrag } from 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/+esm';
+import { Sortable, MultiDrag } from 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/+esm';
 import { indexGroupsInNewOrder } from './group-management.js';
 
 export { onDragStart, onDragEnd, addMiniviewButtonsListeners, applyScale };
