@@ -1344,6 +1344,7 @@ canvas#mesh-background:has(~ .container.list-view) {
     display: block;
 }
 
-img.result:not([src])~.result-placeholder {
+img.result:not([src])~.result-placeholder,
+img.result[src=""]~.result-placeholder {
     display: block;
 }
