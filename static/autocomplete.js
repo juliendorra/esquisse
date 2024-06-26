@@ -23,7 +23,7 @@ function onInput(e) {
 function onKeyDown(e) {
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter') {
         const dropdown = e.target.nextElementSibling;
-        if (dropdown && dropdown.tagName === 'SL-DROPDOWN') {
+        if (dropdown && dropdown.open && dropdown.tagName === 'SL-DROPDOWN') {
             e.preventDefault();
             handleKeyNavigation(e, dropdown);
         }
