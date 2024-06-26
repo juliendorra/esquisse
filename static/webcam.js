@@ -83,11 +83,9 @@ async function startWebcam(groupElement, deviceId) {
 
         feed.oncanplay = () => {
             if (feed.readyState >= 2) {
-                captureAndHandle(groupElement);
-            }
-
-            if (!webcamInterval) {
-                startCaptureInterval();
+                if (!webcamInterval) {
+                    startCaptureInterval();
+                }
             }
         };
 
