@@ -433,7 +433,7 @@ function addEventListenersToGroup(groupElement) {
     dataElement?.addEventListener("keydown", (event) => {
         const dontLineReturn = event.code === 'NumpadEnter' || (event.shiftKey && event.key === 'Enter');
 
-        if (event.key === 'Enter' && isCursorAtEndWithEmptyLine(dataElement)) {
+        if (event.key === 'Enter' && isCursorAtEndWithTwoEmptyLines(dataElement)) {
             event.preventDefault();
             if (transformElement) {
                 transformElement.focus();
@@ -453,7 +453,7 @@ function addEventListenersToGroup(groupElement) {
     transformElement?.addEventListener("keydown", (event) => {
         const dontLineReturn = event.code === 'NumpadEnter' || (event.shiftKey && event.key === 'Enter');
 
-        if (event.key === 'Enter' && isCursorAtEndWithEmptyLine(transformElement)) {
+        if (event.key === 'Enter' && isCursorAtEndWithTwoEmptyLines(transformElement)) {
             event.preventDefault();
             focusOnNextElement(groupElement, ".group-name");
         } else if (dontLineReturn) {
@@ -462,12 +462,12 @@ function addEventListenersToGroup(groupElement) {
         }
     });
 
-    function isCursorAtEndWithEmptyLine(textarea) {
+    function isCursorAtEndWithTwoEmptyLines(textarea) {
         const value = textarea.value;
         const cursorPosition = textarea.selectionStart;
         const isAtEnd = cursorPosition === value.length;
-        const endsWithEmptyLine = value.endsWith("\n") || value === "";
-        return isAtEnd && endsWithEmptyLine;
+        const endsWithTwoEmptyLines = value.endsWith("\n\n") || value === "\n";
+        return isAtEnd && endsWithTwoEmptyLines;
     }
 
     function focusOnNextElement(currentGroupElement, firstSelector) {
