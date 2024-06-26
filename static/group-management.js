@@ -339,13 +339,21 @@ function addEventListenersToGroup(groupElement) {
 
     groupNameElement?.addEventListener("change", () => { nameChangeHandler(group, groupNameElement, groups); });
 
+    let dataTextHasChangedWithoutBeingHandled = false;
+
     dataElement?.addEventListener('change',
         () => {
+
+            dataTextHasChangedWithoutBeingHandled = true;
+
             const dropdown = groupElement.querySelector(".autocomplete-selector");
+
             if (dropdown && dropdown.open) {
                 return;
             }
+
             handleInputChange(groupElement, true, false, true, groups);
+            dataTextHasChangedWithoutBeingHandled = false;
         });
 
 
@@ -355,6 +363,16 @@ function addEventListenersToGroup(groupElement) {
 
 
     dataElement?.addEventListener("blur", () => {
+
+        // emit the change again if it wasn't handled
+        if (dataTextHasChangedWithoutBeingHandled) {
+            const changeEvent = new Event('change', {
+                bubbles: true,
+                cancelable: true,
+            });
+            dataElement.dispatchEvent(changeEvent);
+        }
+
         if (group.availableReferencedResults && group.availableReferencedResults.length > 0) {
             displayCombinedReferencedResult(groupElement, group.combinedReferencedResults);
         }
