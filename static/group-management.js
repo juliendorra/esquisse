@@ -1,6 +1,7 @@
 import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, getGroupIdFromElement, getGroupElementFromId, getGroupFromName, generateGroupUUID, generateUniqueGroupName } from "./group-utils.js";
 
 import Graph from "https://cdn.jsdelivr.net/npm/graph-data-structure@3.5.0/+esm";
+import DOMPurify from "https://cdn.jsdelivr.net/npm/dompurify@3.1.6/+esm";
 
 import { displayAlert, resizeTextArea } from "./ui-utils.js";
 
@@ -22,9 +23,20 @@ const groupsMap = {
 let ONGOING_UPDATES = new Map();
 
 export {
-    groupsMap, createGroupInLocalDataStructures,
-    addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup, displayAllGroupsInteractionState, displayGroupInteractionState, displayControlnetStatus, updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, indexGroupsInNewOrder,
-    getGroupNamesForAutocomplete
+    groupsMap,
+
+    createGroupInLocalDataStructures,
+    addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup,
+
+    displayAllGroupsInteractionState, displayGroupInteractionState, displayControlnetStatus,
+
+    updateGroups, updateGroupsReferencingIt,
+
+    displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, renderHTMLResult,
+
+    indexGroupsInNewOrder,
+
+    getGroupNamesForAutocomplete,
 };
 
 const GROUP_HTML = {
@@ -49,6 +61,8 @@ const GROUP_HTML = {
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
 
             <div class="function-buttons-container">
+                <button class="tool-btn html-mode-btn" aria-label="HTML mode"><img src="/icons/list-mode.svg"></button>
+
                 <button class="tool-btn list-mode-btn" aria-label="List mode"><img src="/icons/list-mode.svg"></button>
             
                 <div class="group-btn">
@@ -635,6 +649,18 @@ function addEventListenersToGroup(groupElement) {
         persistGroups(groupsMap.GROUPS);
     });
 
+    groupElement.querySelector(".html-mode-btn")?.addEventListener("click", (event) => {
+
+        group.resultDisplayFormat = (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.HTML) ? RESULT_DISPLAY_FORMAT.TEXT : RESULT_DISPLAY_FORMAT.HTML;
+
+        if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.HTML) { event.currentTarget.classList.add("selected"); }
+        else { event.currentTarget.classList.remove("selected"); }
+
+        setGroupResultDisplayFormat(groupElement, group.resultDisplayFormat);
+        displayFormattedResults(groupElement);
+        persistGroups(groupsMap.GROUPS);
+    });
+
     groupElement.querySelector(".image-to-image-btn")?.addEventListener("click", (event) => {
         group.controlnetEnabled = false;
 
@@ -1134,7 +1160,11 @@ function displayFormattedResults(groupElement) {
 
         resultElement.after(selectElement);
 
-    } else if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.TEXT || !group.resultDisplayFormat) {
+    }
+    else if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.HTML) {
+        renderHTMLResult(groupElement);
+    }
+    else if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.TEXT || !group.resultDisplayFormat) {
         resultElement.style.display = 'block';
 
         const existingSlSelect = groupElement.querySelector("sl-select");
@@ -1148,6 +1178,48 @@ function displayFormattedResults(groupElement) {
         updateGroupsReferencingIt(group.id)
     }
 }
+
+function renderHTMLResult(groupElement) {
+    const resultElement = groupElement.querySelector(".result");
+    const group = groupsMap.GROUPS.get(getGroupIdFromElement(groupElement));
+
+    if (!group.result) {
+        return;
+    }
+
+    if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.HTML) {
+        // Sanitize HTML using DOMPurify
+        const sanitizedHTML = DOMPurify.sanitize(group.result);
+
+        // Replace image references with IMG tags
+        const htmlWithImages = sanitizedHTML.replace(
+            /#([\S]+)|\[(.+?)\]/gi,
+            (match, hashRef, bracketRef) => {
+
+                console.log("Replace image references with IMG tags ", hashRef || bracketRef)
+
+                const refName = hashRef || bracketRef;
+                const referencedGroup = getGroupFromName(refName, groupsMap.GROUPS);
+                if (
+                    referencedGroup &&
+                    (referencedGroup.type === GROUP_TYPE.IMAGE || referencedGroup.type === GROUP_TYPE.IMPORTED_IMAGE) &&
+                    referencedGroup.result
+                ) {
+                    const blobUrl = URL.createObjectURL(referencedGroup.result);
+                    return `<img src="${blobUrl}" alt="${refName}">`;
+                }
+                return match; // Return the original match if not an image reference
+            }
+        );
+
+        resultElement.innerHTML = htmlWithImages;
+        resultElement.style.display = 'block';
+    } else {
+        resultElement.textContent = group.result;
+        resultElement.style.display = group.result ? 'block' : 'none';
+    }
+}
+
 
 function indexGroupsInNewOrder() {
 

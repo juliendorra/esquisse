@@ -15,9 +15,11 @@ const INTERACTION_STATE = {
     ENTRY: "entry",
     LOCKED: "locked",
 };
+
 const RESULT_DISPLAY_FORMAT = {
     TEXT: "text",
     LIST: "list",
+    HTML: "html",
 };
 
 
