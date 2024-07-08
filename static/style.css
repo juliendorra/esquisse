@@ -152,6 +152,7 @@ textarea {
     display: flex;
     flex-direction: column;
     max-width: 20rem;
+    min-width: var(--result-width);
     position: relative;
     background-color: rgba(255, 255, 255, 0.95);
 }
@@ -456,6 +457,14 @@ textarea.referenced-result-text {
     border-color: #cccccc;
 }
 
+.group.static .data-text {
+    height: 10em;
+}
+
+.group.static textarea.referenced-result-text {
+    height: 10em;
+}
+
 .data-text.error,
 .referenced-result-text.error {
     border-color: red;
@@ -562,6 +571,8 @@ p.result {
     max-height: 25rem;
     overflow-y: scroll;
     white-space: pre-line;
+    min-width: var(--result-width);
+    max-width: calc(16rem);
 }
 
 .group sl-select {
@@ -603,6 +614,10 @@ img.result.zoomed {
         max-width: 100%;
         max-height: 100%;
     }
+}
+
+img.inline-result-image {
+    width: 8rem;
 }
 
 /* Footer Tools Buttons */

@@ -73,7 +73,7 @@ const GROUP_HTML = {
             </div>
 
            <p class="result"  style="display:none;"></p>
-           <div class="result-placeholder"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+           <div class="result-placeholder"><span></span><span></span><span></span><span></span><span></span><span></span></div>
             `,
 
 
