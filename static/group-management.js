@@ -28,7 +28,7 @@ export {
     createGroupInLocalDataStructures,
     addGroupElement, createGroupAndAddGroupElement, addEventListenersToGroup, deleteGroup,
 
-    displayAllGroupsInteractionState, displayGroupInteractionState, displayControlnetStatus,
+    displayAllGroupsInteractionState, displayGroupInteractionState, displayControlnetStatus, displayTextGroupDisplayFormatButtons,
 
     updateGroups, updateGroupsReferencingIt,
 
@@ -61,9 +61,12 @@ const GROUP_HTML = {
             <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
 
             <div class="function-buttons-container">
-                <button class="tool-btn html-mode-btn" aria-label="HTML mode"><img src="/icons/list-mode.svg"></button>
 
-                <button class="tool-btn list-mode-btn" aria-label="List mode"><img src="/icons/list-mode.svg"></button>
+                <div class="group-btn">
+                <button class="tool-btn html-mode-btn" aria-label="HTML mode"><img src="/icons/html-mode.svg"></button>
+                <button class="tool-btn text-mode-btn" aria-label="text mode"><img src="/icons/text-mode.svg"></button>
+                <button class="tool-btn list-mode-btn"><img alt="List mode" src="/icons/list-mode.svg"></button>
+                </div>
             
                 <div class="group-btn">
                 <button class="tool-btn open-btn" aria-label="Entry"><img src="/icons/open.svg"></button>
@@ -133,7 +136,12 @@ const GROUP_HTML = {
             <textarea class="transform-text" placeholder="Instructions to transform data into result"></textarea>
 
             <div class="function-buttons-container">
+
+                <div class="group-btn">
+                <button class="tool-btn html-mode-btn" aria-label="HTML mode"><img src="/icons/html-mode.svg"></button>
+                <button class="tool-btn text-mode-btn" aria-label="text mode"><img src="/icons/text-mode.svg"></button>
                 <button class="tool-btn list-mode-btn"><img alt="List mode" src="/icons/list-mode.svg"></button>
+                </div>
 
                 <div class="group-btn">
                 <button class="tool-btn open-btn" aria-label="Entry"><img src="/icons/open.svg"></button>
@@ -273,6 +281,12 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
     const resultElement = groupElement.querySelector(".result");
     if (resultElement) {
         resultElement.style.display = 'none';
+    }
+
+    // Initially set result display mode to html 
+    const htmlModeButton = groupElement.querySelector(".html-mode-btn");
+    if (htmlModeButton) {
+        htmlModeButton.classList.add("selected");
     }
 
     // Initially set image to image button to selected
@@ -644,26 +658,33 @@ function addEventListenersToGroup(groupElement) {
     /******** Tool buttons *************/
     groupElement.querySelector(".delete-btn").addEventListener("click", () => deleteGroup(groupElement));
 
-    groupElement.querySelector(".list-mode-btn")?.addEventListener("click", (event) => {
 
-        group.resultDisplayFormat = (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.LIST) ? RESULT_DISPLAY_FORMAT.TEXT : RESULT_DISPLAY_FORMAT.LIST;
+    groupElement.querySelector(".html-mode-btn")?.addEventListener("click", (event) => {
 
-        if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.LIST) { event.currentTarget.classList.add("selected"); }
-        else { event.currentTarget.classList.remove("selected"); }
+        setGroupResultDisplayFormat(groupElement, RESULT_DISPLAY_FORMAT.HTML);
 
-        setGroupResultDisplayFormat(groupElement, group.resultDisplayFormat);
+        displayTextGroupDisplayFormatButtons(groupElement, group.resultDisplayFormat);
+
         displayFormattedResults(groupElement);
         persistGroups(groupsMap.GROUPS);
     });
 
-    groupElement.querySelector(".html-mode-btn")?.addEventListener("click", (event) => {
+    groupElement.querySelector(".text-mode-btn")?.addEventListener("click", (event) => {
 
-        group.resultDisplayFormat = (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.HTML) ? RESULT_DISPLAY_FORMAT.TEXT : RESULT_DISPLAY_FORMAT.HTML;
+        setGroupResultDisplayFormat(groupElement, RESULT_DISPLAY_FORMAT.TEXT);
 
-        if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.HTML) { event.currentTarget.classList.add("selected"); }
-        else { event.currentTarget.classList.remove("selected"); }
+        displayTextGroupDisplayFormatButtons(groupElement, group.resultDisplayFormat);
 
-        setGroupResultDisplayFormat(groupElement, group.resultDisplayFormat);
+        displayFormattedResults(groupElement);
+        persistGroups(groupsMap.GROUPS);
+    });
+
+    groupElement.querySelector(".list-mode-btn")?.addEventListener("click", (event) => {
+
+        setGroupResultDisplayFormat(groupElement, RESULT_DISPLAY_FORMAT.LIST);
+
+        displayTextGroupDisplayFormatButtons(groupElement, group.resultDisplayFormat);
+
         displayFormattedResults(groupElement);
         persistGroups(groupsMap.GROUPS);
     });
@@ -759,6 +780,32 @@ function displayAllGroupsInteractionState() {
         const interactionState = groupsMap.GROUPS.get(id).interactionState;
 
         displayGroupInteractionState(groupElement, interactionState);
+    }
+}
+
+function displayTextGroupDisplayFormatButtons(groupElement, resultDisplayFormat) {
+
+    const htmlModeButton = groupElement.querySelector(".html-mode-btn");
+    const textModeButton = groupElement.querySelector(".text-mode-btn")
+    const listModeButton = groupElement.querySelector(".list-mode-btn")
+
+
+    switch (resultDisplayFormat) {
+        case RESULT_DISPLAY_FORMAT.HTML:
+            htmlModeButton?.classList.add("selected")
+            textModeButton?.classList.remove("selected")
+            listModeButton?.classList.remove("selected")
+            break;
+        case RESULT_DISPLAY_FORMAT.TEXT:
+            htmlModeButton?.classList.remove("selected")
+            textModeButton?.classList.add("selected")
+            listModeButton?.classList.remove("selected")
+            break;
+        case RESULT_DISPLAY_FORMAT.LIST:
+            htmlModeButton?.classList.remove("selected")
+            textModeButton?.classList.remove("selected")
+            listModeButton?.classList.add("selected")
+            break;
     }
 }
 
@@ -1168,10 +1215,8 @@ function displayFormattedResults(groupElement) {
         resultElement.after(selectElement);
 
     }
-    else if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.HTML) {
-        renderHTMLResult(groupElement);
-    }
-    else if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.TEXT || !group.resultDisplayFormat) {
+    else if (!group.resultDisplayFormat || group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.TEXT || group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.HTML) {
+
         resultElement.style.display = 'block';
 
         const existingSlSelect = groupElement.querySelector("sl-select");
@@ -1181,6 +1226,8 @@ function displayFormattedResults(groupElement) {
             group.listItems = [];
             existingSlSelect.remove();
         }
+
+        renderHTMLResult(groupElement);
 
         updateGroupsReferencingIt(group.id)
     }

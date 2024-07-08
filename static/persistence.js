@@ -1,5 +1,5 @@
 import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, generateGroupUUID, generateUniqueGroupName } from "./group-utils.js";
-import { groupsMap, createGroupInLocalDataStructures, addGroupElement, displayAllGroupsInteractionState, displayGroupInteractionState, displayControlnetStatus, updateGroups, } from "./group-management.js"
+import { groupsMap, createGroupInLocalDataStructures, addGroupElement, displayAllGroupsInteractionState, displayGroupInteractionState, displayControlnetStatus, displayTextGroupDisplayFormatButtons, updateGroups, } from "./group-management.js"
 import { updateReferenceGraph } from "./reference-graph.js";
 import Validator from 'https://esm.run/jsonschema';
 import { displayAlert, removeGlobalWaitingIndicator, createZoomedImage, showAddBlocksButtons, hideAddBlocksButtons } from "./ui-utils.js";
@@ -341,7 +341,8 @@ async function loadGroups(importedGroups) {
                         // Older apps might have an interaction state set to locked, which is now only a temp state when using another's app
                         interactionState: interactionState === INTERACTION_STATE.LOCKED ? INTERACTION_STATE.OPEN : interactionState,
                         controlnetEnabled: controlnetEnabled || undefined,
-                        resultDisplayFormat: resultDisplayFormat || (type === GROUP_TYPE.TEXT || type === GROUP_TYPE.STATIC) ? RESULT_DISPLAY_FORMAT.HTML : "",
+                        resultDisplayFormat: resultDisplayFormat
+                            || (type === GROUP_TYPE.TEXT || type === GROUP_TYPE.STATIC ? RESULT_DISPLAY_FORMAT.HTML : ""),
                         hashImportedImage: hashImportedImage || undefined,
                     };
 
@@ -417,8 +418,12 @@ async function loadGroups(importedGroups) {
                         }
                     }
 
+                    // Set the group UI buttons in the right state, reflecting the saved settings for the group
+
                     // display the right UI state based on the interactionState and ownership/authorship of the app
                     displayGroupInteractionState(groupElement, group.interactionState);
+
+                    displayTextGroupDisplayFormatButtons(groupElement, group.resultDisplayFormat)
 
                     displayControlnetStatus(groupElement, group.controlnetEnabled);
 
