@@ -341,7 +341,7 @@ async function loadGroups(importedGroups) {
                         // Older apps might have an interaction state set to locked, which is now only a temp state when using another's app
                         interactionState: interactionState === INTERACTION_STATE.LOCKED ? INTERACTION_STATE.OPEN : interactionState,
                         controlnetEnabled: controlnetEnabled || undefined,
-                        resultDisplayFormat: resultDisplayFormat || undefined,
+                        resultDisplayFormat: resultDisplayFormat || (type === GROUP_TYPE.TEXT || type === GROUP_TYPE.STATIC) ? RESULT_DISPLAY_FORMAT.HTML : "",
                         hashImportedImage: hashImportedImage || undefined,
                     };
 
