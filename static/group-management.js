@@ -199,8 +199,15 @@ function createGroupInLocalDataStructures(groupType) {
         transform: "",
         type: groupType,
         result: null,
+        hashImportedImage: "",
         lastRequestTime: 0,
         interactionState: INTERACTION_STATE.OPEN,
+        resultDisplayFormat: (groupType === GROUP_TYPE.TEXT || groupType === GROUP_TYPE.STATIC) ? RESULT_DISPLAY_FORMAT.HTML : "",
+        webcamEnabled: false,
+        resultHash: "",
+        referenceHashes: new Map(),
+        availableReferencedResults: [], //[{ name, result, type, resultHash },..} 
+        combinedReferencedResults: [],
     };
 
     console.log("[CREATING NEW GROUP] New group in data:", group);
