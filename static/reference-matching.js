@@ -28,6 +28,7 @@ async function replaceThisGroupReferenceWithResult(name, data, groups) {
 
     // Fetch the group using the given name and check its validity
     const referencedGroup = getGroupFromName(name, groups);
+
     if (!referencedGroup || referencedGroup.result === undefined) {
         console.error('[REFERENCE MATCHING] Invalid group or result');
         return data; // return the original data if the group or result is invalid
@@ -38,33 +39,35 @@ async function replaceThisGroupReferenceWithResult(name, data, groups) {
 
     // check if the name of the group referenced contains whitespace. 
     // Only create Hash matching pattern if it doesn't
+    // the pattern is set to null if the group name has white space, which is checked later
     const targetPatternHash = /\s/.test(name) ? null : new RegExp(`#${escapedName}(?!\\w)`, 'g');
+
+    const combinedPattern = new RegExp(
+        `${targetPatternBracket.source}${targetPatternHash ? '|' + targetPatternHash.source : ''}`,
+        'g'
+    );
 
     let replacedData = data;
 
     const isImageResult = referencedGroup.type === GROUP_TYPE.IMAGE || referencedGroup.type === GROUP_TYPE.IMPORTED_IMAGE;
 
-    if (isImageResult) {
+    if (!isImageResult) {
 
-        const imageHashFirstChars = await blobTo8charsHash(referencedGroup.result);
+        // Replace each match of the exact pattern 'this group name surrounded by brackets'
+        replacedData = replacedData.replace(combinedPattern, () => referencedGroup.result);
 
-        const showedReferenceText = `[image: ${referencedGroup.name} version ${imageHashFirstChars}]`
-
-        replacedData = replacedData.replace(targetPatternBracket, showedReferenceText);
-
-        if (targetPatternHash) {
-            replacedData = replacedData.replace(targetPatternHash, showedReferenceText);
-        }
     }
 
-    else {
-        // Replace each match of targetPatternBracket in data
-        replacedData = replacedData.replace(targetPatternBracket, () => referencedGroup.result);
+    if (isImageResult) {
 
-        // If the name does not contain spaces, replace each match of targetPatternHash in data
-        if (targetPatternHash) {
-            replacedData = replacedData.replace(targetPatternHash, () => referencedGroup.result);
-        }
+        // Replace image result reference with IMG tag
+
+        replacedData = replacedData.replace(combinedPattern, (match) => {
+            console.log("Replace image references with IMG tags ", match);
+
+            const blobUrl = URL.createObjectURL(referencedGroup.result);
+            return `<img class="inline-result-image" src="${blobUrl}" alt="${name}">`;
+        });
     }
 
     return replacedData;
@@ -78,7 +81,7 @@ async function getReferencedResultsAndCombinedDataWithResults(dataText, currentG
 
     let invalidReferencedResults = []; // [name, ...]
     let notreadyReferencedResults = []; // [name, ...]
-    let availableReferencedResults = []; //[{ name, result },..} 
+    let availableReferencedResults = []; //[{ name, result, type, resultHash },..} 
 
     let combinedReferencedResults = dataText;
 
@@ -139,13 +142,13 @@ async function getReferencedResultsAndCombinedDataWithResults(dataText, currentG
 
             combinedReferencedResults = await replaceThisGroupReferenceWithResult(name, combinedReferencedResults, groups);
 
-            availableReferencedResults.push({ name, result: referencedGroup.result, type: referencedGroup.type });
+            availableReferencedResults.push({ name, result: referencedGroup.result, type: referencedGroup.type, resultHash: referencedGroup.resultHash });
         }
     }
 
 
     return {
-        hasReferences: hasReferences,
+        hasReferences,
         invalidReferencedResults,
         notreadyReferencedResults,
         availableReferencedResults,
