@@ -1184,40 +1184,27 @@ function renderHTMLResult(groupElement) {
     const group = groupsMap.GROUPS.get(getGroupIdFromElement(groupElement));
 
     if (!group.result) {
+        resultElement.style.display = 'none';
         return;
     }
 
     if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.HTML) {
-        // Sanitize HTML using DOMPurify
-        const sanitizedHTML = DOMPurify.sanitize(group.result);
 
-        // Replace image references with IMG tags
-        const htmlWithImages = sanitizedHTML.replace(
-            /#([\S]+)|\[(.+?)\]/gi,
-            (match, hashRef, bracketRef) => {
+        // Allow specific protocols handlers in URL attributes via regex (default is false, be careful, XSS risk)
+        // By default only http, https, ftp, ftps, tel, mailto, callto, sms, cid and xmpp are allowed.
+        // We add blob to display local images
+        const sanitizeOptions = {
+            ALLOWED_URI_REGEXP: /^(?:(?:ftp|http|https|mailto|tel|callto|sms|cid|xmpp|blob):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+        };
 
-                console.log("Replace image references with IMG tags ", hashRef || bracketRef)
+        const sanitizedHTML = DOMPurify.sanitize(group.result, sanitizeOptions);
+        resultElement.innerHTML = sanitizedHTML;
 
-                const refName = hashRef || bracketRef;
-                const referencedGroup = getGroupFromName(refName, groupsMap.GROUPS);
-                if (
-                    referencedGroup &&
-                    (referencedGroup.type === GROUP_TYPE.IMAGE || referencedGroup.type === GROUP_TYPE.IMPORTED_IMAGE) &&
-                    referencedGroup.result
-                ) {
-                    const blobUrl = URL.createObjectURL(referencedGroup.result);
-                    return `<img src="${blobUrl}" alt="${refName}">`;
-                }
-                return match; // Return the original match if not an image reference
-            }
-        );
-
-        resultElement.innerHTML = htmlWithImages;
-        resultElement.style.display = 'block';
     } else {
         resultElement.textContent = group.result;
-        resultElement.style.display = group.result ? 'block' : 'none';
     }
+
+    resultElement.style.display = 'block';
 }
 
 
