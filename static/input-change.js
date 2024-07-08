@@ -110,7 +110,13 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     let currentData = data;
     let referencedResultsChanged = false;
 
-    const { hasReferences, invalidReferencedResults, notreadyReferencedResults, availableReferencedResults, combinedReferencedResults } = await getReferencedResultsAndCombinedDataWithResults(data, group.name, groups);
+    const {
+        hasReferences,
+        invalidReferencedResults,
+        notreadyReferencedResults,
+        availableReferencedResults,
+        combinedReferencedResults
+    } = await getReferencedResultsAndCombinedDataWithResults(data, group.name, groups);
 
     displayDataTextReferenceStatus({ groupElement, hasReferences, invalidReferencedResults, notreadyReferencedResults, availableReferencedResults });
 
