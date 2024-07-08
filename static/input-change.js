@@ -124,13 +124,29 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
     // if there's references, display them and use the combination of all references as currentData
     if (availableReferencedResults.length > 0) {
-        displayCombinedReferencedResult(groupElement, combinedReferencedResults);
 
-        // check if the new combined results from references is different from the previous combination
+        displayCombinedReferencedResult(groupElement, combinedReferencedResults);
         currentData = combinedReferencedResults;
-        referencedResultsChanged = currentData !== group.combinedReferencedResults;
-    }
-    else {
+
+        for (const referencedResult of availableReferencedResults) {
+
+            console.log(`[COMPARING RESULT HASH] comparing result hashes for ${referencedResult.name}. 
+                New hash: ${referencedResult.resultHash}
+                Old hash: ${group.referenceHashes?.get(referencedResult.name)}`)
+
+            // if there was no previous reference to this result or if the hash is different, referenced results have changed
+            if (!group.referenceHashes?.get(referencedResult.name)
+                || referencedResult.resultHash !== group.referenceHashes.get(referencedResult.name)) {
+                referencedResultsChanged = true;
+                // break early once one result has changed
+                break;
+            }
+        }
+
+        // Having checked for changes, we create a new map of all references hashes to keep track of future changes
+        group.referenceHashes = new Map(availableReferencedResults.map(({ name, resultHash }) => [name, resultHash]));
+
+    } else {
         displayDataText(groupElement);
     }
 
@@ -182,6 +198,9 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     group.data = data;
     group.transform = transform;
 
+    group.resultHash = await generateHash(group.result);
+
+    // If there's an image result referenced, we get it and prepare it to send in the generative request 
     let imageB64;
 
     for (const result of availableReferencedResults) {
@@ -192,10 +211,9 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
         }
     }
 
-
     if (groups_structure_has_changed) persistGroups(groups);
 
-    // Sending requests for the groups
+    // Sending generative request for the group
 
     const lastTransformValue = transform;
 
@@ -549,6 +567,14 @@ function clearImportedImage(group, groupElement) {
 
 
 // Utils
+
+async function generateHash(content) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(content);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 function randomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
