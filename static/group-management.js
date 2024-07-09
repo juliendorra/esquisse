@@ -3,7 +3,7 @@ import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, getGroupIdFromEle
 import Graph from "https://cdn.jsdelivr.net/npm/graph-data-structure@3.5.0/+esm";
 import DOMPurify from "https://cdn.jsdelivr.net/npm/dompurify@3.1.6/+esm";
 
-import { displayAlert, resizeTextArea } from "./ui-utils.js";
+import { displayAlert, resizeTextArea, createZoomedIframe } from "./ui-utils.js";
 
 import { nameChangeHandler, handleInputChange, handleListSelectionChange, handleImportedImage, handleDroppedImage, hashAndPersist, clearImportedImage } from "./input-change.js";
 import { onDragStart, onDragEnd } from "./reordering.js";
@@ -77,6 +77,7 @@ const GROUP_HTML = {
             </div>
 
            <iframe class="result empty-result" sandbox="allow-same-origin" style="display:none;"></iframe>
+           <button class="tool-btn zoom-out-btn" aria-label="Zoom Out"><img src="/icons/zoom-out.svg"></button>
            <div class="result-placeholder"><span></span><span></span><span></span><span></span><span></span><span></span></div>
             `,
 
@@ -152,7 +153,8 @@ const GROUP_HTML = {
                 <button class="tool-btn refresh-btn" aria-label="Refresh"><img src="/icons/refresh.svg"></button>
             </div>
 
-           <iframe class="result empty-result" style="display:none;"></iframe>
+           <iframe class="result empty-result" sandbox="allow-same-origin" style="display:none;"></iframe>
+           <button class="tool-btn zoom-out-btn" aria-label="Zoom Out"><img src="/icons/zoom-out.svg"></button>
            <div class="result-placeholder"><span></span><span></span><span></span><span></span><span></span><span></span></div>
             `,
 
@@ -738,6 +740,13 @@ function addEventListenersToGroup(groupElement) {
         element.addEventListener('keydown', onKeyDown);
     }
 
+    // Result buttons
+
+    groupElement.querySelector(".zoom-out-btn")?.addEventListener("click", (event) => {
+        const resultElement = groupElement.querySelector("iframe.result");
+        createZoomedIframe(resultElement);
+    });
+
 }
 
 function deleteGroup(groupElement) {
@@ -1281,7 +1290,7 @@ function renderResultInIframe(groupElement) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="${BASE_CSS_FOR_IFRAME_RESULT}">
         <title>Result</title>
-               <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'none'; img-src 'self' blob:;">
+        <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'none'; img-src 'self' blob:;">
     </head>
     <body>
         ${finalHTML}

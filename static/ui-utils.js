@@ -1,6 +1,6 @@
 import hotkeys from 'https://cdn.jsdelivr.net/npm/hotkeys-js@3/+esm';
 
-export { displayAlert, hideAddBlocksButtons, showAddBlocksButtons, removeGlobalWaitingIndicator, createZoomedImage, setShortcuts, resizeTextArea, resizeAllTextAreas };
+export { displayAlert, hideAddBlocksButtons, showAddBlocksButtons, removeGlobalWaitingIndicator, createZoomedImage, createZoomedIframe, setShortcuts, resizeTextArea, resizeAllTextAreas };
 
 // this function needs shoelace custom elements to be defined to works
 async function displayAlert({ issue, action, variant = "warning", icon = "exclamation-triangle", duration = 3000 }) {
@@ -66,6 +66,38 @@ function createZoomedImage(event) {
 
     document.body.appendChild(clonedImage);
 
+}
+
+function createZoomedIframe(originalIframe) {
+    let newIframe = document.createElement('iframe');
+    newIframe.classList.add('zoomed');
+    newIframe.sandbox = originalIframe.sandbox;
+
+    document.body.classList.add('no-scroll');
+
+    let zoomedContainer = document.createElement('div');
+    zoomedContainer.className = 'zoomed-container';
+    zoomedContainer.appendChild(newIframe);
+
+    let closeButton = document.createElement('button');
+    closeButton.className = 'close-zoomed';
+    closeButton.innerHTML = 'Close';
+    closeButton.onclick = () => {
+        document.body.classList.remove('no-scroll');
+        zoomedContainer.remove();
+    };
+
+    zoomedContainer.appendChild(closeButton);
+
+    document.body.appendChild(zoomedContainer);
+
+    // Get the contentDocument of the original iframe and inject it into the new iframe
+    const originalDoc = originalIframe.contentDocument;
+    const newDoc = newIframe.contentDocument;
+
+    newDoc.open();
+    newDoc.write(originalDoc.documentElement.outerHTML);
+    newDoc.close();
 }
 
 function setShortcuts() {
