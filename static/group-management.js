@@ -14,6 +14,7 @@ import { startWebcam, stopWebcam, switchWebcam, captureAndHandle, flipImageResul
 
 import { onInput, onKeyDown } from './autocomplete.js';
 
+const BASE_CSS_FOR_IFRAME_RESULT = "/iframebasestyle.css"
 
 const groupsMap = {
     GROUPS: new Map(),
@@ -32,7 +33,7 @@ export {
 
     updateGroups, updateGroupsReferencingIt,
 
-    displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, renderHTMLResult,
+    displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, renderResultInIframe,
 
     indexGroupsInNewOrder,
 
@@ -75,7 +76,7 @@ const GROUP_HTML = {
 
             </div>
 
-           <p class="result"  style="display:none;"></p>
+           <iframe class="result empty-result" sandbox="allow-same-origin" style="display:none;"></iframe>
            <div class="result-placeholder"><span></span><span></span><span></span><span></span><span></span><span></span></div>
             `,
 
@@ -151,7 +152,7 @@ const GROUP_HTML = {
                 <button class="tool-btn refresh-btn" aria-label="Refresh"><img src="/icons/refresh.svg"></button>
             </div>
 
-           <p class="result"  style="display:none;"></p>
+           <iframe class="result empty-result" style="display:none;"></iframe>
            <div class="result-placeholder"><span></span><span></span><span></span><span></span><span></span><span></span></div>
             `,
 
@@ -1204,6 +1205,7 @@ function displayFormattedResults(groupElement) {
             selectElement.value = existingSelectPosition;
         }
 
+        // We treat a new list as a selection change, so the result is updated accorfing to the new list default selection
         handleListSelectionChange(selectElement, group, group.listItems);
 
         selectElement.addEventListener(
@@ -1217,8 +1219,6 @@ function displayFormattedResults(groupElement) {
     }
     else if (!group.resultDisplayFormat || group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.TEXT || group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.HTML) {
 
-        resultElement.style.display = 'block';
-
         const existingSlSelect = groupElement.querySelector("sl-select");
 
         if (existingSlSelect) {
@@ -1227,38 +1227,72 @@ function displayFormattedResults(groupElement) {
             existingSlSelect.remove();
         }
 
-        renderHTMLResult(groupElement);
+        renderResultInIframe(groupElement);
 
-        updateGroupsReferencingIt(group.id)
+
     }
 }
 
-function renderHTMLResult(groupElement) {
-    const resultElement = groupElement.querySelector(".result");
+function renderResultInIframe(groupElement) {
+
+    const resultElement = groupElement.querySelector("iframe.result");
+
     const group = groupsMap.GROUPS.get(getGroupIdFromElement(groupElement));
 
     if (!group.result) {
         resultElement.style.display = 'none';
+        resultElement.classList.add("empty-result");
         return;
     }
 
-    if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.HTML) {
+    resultElement.classList.remove("empty-result");
+    resultElement.style.display = 'block';
 
-        // Allow specific protocols handlers in URL attributes via regex (default is false, be careful, XSS risk)
-        // By default only http, https, ftp, ftps, tel, mailto, callto, sms, cid and xmpp are allowed.
-        // We add blob to display local images
-        const sanitizeOptions = {
-            ALLOWED_URI_REGEXP: /^(?:(?:ftp|http|https|mailto|tel|callto|sms|cid|xmpp|blob):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
-        };
+    // Allow specific protocols handlers in URL attributes via regex (default is false, be careful, XSS risk)
+    // By default only http, https, ftp, ftps, tel, mailto, callto, sms, cid and xmpp are allowed.
+    // We add blob to display local images
+    const sanitizeOptions = {
+        ALLOWED_URI_REGEXP: /^(?:(?:ftp|http|https|mailto|tel|callto|sms|cid|xmpp|blob):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+    };
 
-        const sanitizedHTML = DOMPurify.sanitize(group.result, sanitizeOptions);
-        resultElement.innerHTML = sanitizedHTML;
+    const sanitizedHTML = DOMPurify.sanitize(group.result, sanitizeOptions);
 
-    } else {
-        resultElement.textContent = group.result;
+    let finalHTML;
+
+    if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.TEXT) {
+
+        finalHTML = sanitizedHTML
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+    }
+    else if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.HTML) {
+        finalHTML = sanitizedHTML;
     }
 
-    resultElement.style.display = 'block';
+    const iFrameHTML = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="${BASE_CSS_FOR_IFRAME_RESULT}">
+        <title>Result</title>
+               <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'none'; img-src 'self' blob:;">
+    </head>
+    <body>
+        ${finalHTML}
+    </body>
+    </html>
+`;
+
+    const doc = resultElement.contentDocument;
+    doc.open();
+    doc.write(iFrameHTML);
+    doc.close();
 }
 
 

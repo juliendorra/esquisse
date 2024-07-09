@@ -566,8 +566,10 @@ textarea.referenced-result-text {
 }
 
 
-p.result {
+iframe.result {
+    border: none;
     font-size: 0.85em;
+    height: 100%;
     max-height: 25rem;
     overflow-y: scroll;
     white-space: pre-line;
@@ -1266,7 +1268,7 @@ canvas#mesh-background:has(~ .container.list-view) {
 
 }
 
-.container.list-view p.result {
+.container.list-view iframe.result {
     font-size: 0.9em;
     margin-top: 2em;
     margin-left: 1.5em;
@@ -1354,8 +1356,8 @@ canvas#mesh-background:has(~ .container.list-view) {
     }
 }
 
-.group.text:has(.result:empty) .result-placeholder,
-.group.static:has(.result:empty) .result-placeholder {
+.group.text .result.empty-result~.result-placeholder,
+.group.static .result.empty-result~.result-placeholder {
     display: block;
 }
 

@@ -175,23 +175,6 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
         group.result = currentData;
 
-        let resultParagraph = groupElement.querySelector(".result");
-
-        if (!resultParagraph) {
-            resultParagraph = document.createElement("p");
-            resultParagraph.className = "result";
-            groupElement.appendChild(resultParagraph);
-        }
-
-        resultParagraph.textContent = group.result;
-
-        if (currentData) {
-            resultParagraph.style.display = "block";
-        }
-        else {
-            resultParagraph.style.display = "none";
-        }
-
         if (isUndirected) updateGroupsReferencingIt(group.id);
     }
 
@@ -272,18 +255,9 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
         });
     }
 
-    // if the text result is displayed formated as a list, 
-    // display the new result as formatted
-    const isFormattedTextResult =
-        (group.type === GROUP_TYPE.STATIC || group.type === GROUP_TYPE.TEXT)
-        && group.resultDisplayFormat
-        && group.resultDisplayFormat !== RESULT_DISPLAY_FORMAT.TEXT;
+    displayFormattedResults(groupElement);
 
-    // when displaying the result as a list, we will update the groups referencing the group
-    if (isFormattedTextResult) {
-        displayFormattedResults(groupElement);
-    }
-    else if (isUndirected) {
+    if (isUndirected) {
         console.log("[INPUT CHANGE] Undirected update, Now updating dataText of groups referencing results from: ", group.name)
         updateGroupsReferencingIt(group.id);
     }
@@ -428,14 +402,9 @@ async function sendRequestsForGroup({
             console.log(`Received result: ${result} `);
 
             group.result = result;
-            let resultParagraph = groupElement.querySelector(".result");
-            if (!resultParagraph) {
-                resultParagraph = document.createElement("p");
-                resultParagraph.className = "result";
-                groupElement.appendChild(resultParagraph);
-            }
-            resultParagraph.textContent = group.result;
-            resultParagraph.style.display = "block";
+
+            displayFormattedResults(groupElement);
+
             groupElement.querySelector(".refresh-btn").style.display = "block";
 
             delete REQUEST_QUEUE[group.id];
@@ -642,5 +611,3 @@ function processImage(imageFile) {
         };
     });
 }
-
-
