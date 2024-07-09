@@ -572,7 +572,7 @@ p.result {
     overflow-y: scroll;
     white-space: pre-line;
     min-width: var(--result-width);
-    max-width: calc(16rem);
+    max-width: 18.5rem;
 }
 
 .group sl-select {
