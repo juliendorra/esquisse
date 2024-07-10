@@ -203,18 +203,22 @@ function createGroupInLocalDataStructures(groupType) {
     console.log("[CREATING NEW GROUP] groups are already ", groups.size);
 
     const group = {
+        // these properties are persisted
         id: id,
         name: name,
-        index: groups.size,
         data: "",
         transform: "",
         type: groupType,
         result: null,
         hashImportedImage: "",
-        lastRequestTime: 0,
         interactionState: INTERACTION_STATE.OPEN,
+
+        // properties below are used client side but not persisted
+        index: groups.size,
+        lastRequestTime: 0,
         resultDisplayFormat: (groupType === GROUP_TYPE.TEXT || groupType === GROUP_TYPE.STATIC) ? RESULT_DISPLAY_FORMAT.HTML : "",
         webcamEnabled: false,
+        resultBlobURI: "",
         resultHash: "",
         referenceHashes: new Map(),
         availableReferencedResults: [], //[{ name, result, type, resultHash },..} 

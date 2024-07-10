@@ -335,6 +335,8 @@ async function sendRequestsForGroup({
             const blobUrl = URL.createObjectURL(blob);
             console.log("URL for the image ", blobUrl);
 
+            group.resultBlobURI = blobUrl;
+
             let resultImage = groupElement.querySelector(".result");
 
             resultImage.style.display = "block";
