@@ -603,8 +603,10 @@ async function packageResult(groups, thumbnail) {
     packagedGroupsResults.appversiontimestamp = APP_VERSION_TIMESTAMP;
     // username and resultid are added server-side
 
+    // Convert the Map's values to an array and sort them based on their index property
+    const sortedGroups = Array.from(groups.values()).sort((a, b) => a.index - b.index);
     // we store the groups array in the groups property
-    const groupsResultsPromises = Array.from(groups.values()).map(
+    const groupsResultsPromises = sortedGroups.map(
 
         async ({ name, type, result }) => {
 
