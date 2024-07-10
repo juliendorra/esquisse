@@ -605,6 +605,30 @@ async function packageResult(groups, thumbnail) {
 
     // Convert the Map's values to an array and sort them based on their index property
     const sortedGroups = Array.from(groups.values()).sort((a, b) => a.index - b.index);
+
+    // Replacing blobURIs with a custom esquisse result reference locator
+
+    // First build up a replacement map for in-result blob URIs
+    let replacementMap = new Map();
+
+    sortedGroups.forEach(group => {
+
+        if (group.resultBlobURI) {
+            replacementMap.set(group.name, group.resultBlobURI)
+        }
+    });
+
+    // then do another pass to actually replace the blob URIs
+    sortedGroups.forEach(group => {
+        const hasTextResult = (group.type === GROUP_TYPE.TEXT || group.type === GROUP_TYPE.STATIC) && group.result;
+
+        if (hasTextResult) {
+            replacementMap.forEach((value, key) => {
+                group.result = group.result.replace(value, `esquisse:result/${key}`);
+            });
+        }
+    });
+
     // we store the groups array in the groups property
     const groupsResultsPromises = sortedGroups.map(
 
@@ -624,8 +648,6 @@ async function packageResult(groups, thumbnail) {
     );
 
     packagedGroupsResults.groups = await Promise.all(groupsResultsPromises);
-
-    console.log("[RESULT] stringifyed after promise.all", JSON.stringify(packagedGroupsResults.groups));
 
     return packagedGroupsResults;
 }
