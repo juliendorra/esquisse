@@ -79,13 +79,19 @@ function createZoomedIframe(originalIframe) {
     zoomedContainer.className = 'zoomed-container';
     zoomedContainer.appendChild(newIframe);
 
-    let closeButton = document.createElement('button');
-    closeButton.className = 'close-zoomed';
-    closeButton.innerHTML = 'Close';
-    closeButton.onclick = () => {
+    zoomedContainer.addEventListener("click", () => {
         document.body.classList.remove('no-scroll');
         zoomedContainer.remove();
-    };
+
+    });
+
+    let closeButton = document.createElement('sl-button');
+    closeButton.className = 'close-zoomed';
+    closeButton.innerHTML = 'Close';
+    closeButton.addEventListener("click", () => {
+        document.body.classList.remove('no-scroll');
+        zoomedContainer.remove();
+    });
 
     zoomedContainer.appendChild(closeButton);
 
