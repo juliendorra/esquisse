@@ -482,9 +482,13 @@ function displayAndAddToGroupImportedImageBlob(groupElement, processedBlob, grou
     const resultElement = groupElement.querySelector(".result");
     const functionButtonsContainer = groupElement.querySelector(".function-buttons-container");
 
-    resultElement.src = URL.createObjectURL(processedBlob);
+    const blobUrl = URL.createObjectURL(processedBlob);
+
+    resultElement.src = blobUrl;
     resultElement.style.display = 'block';
     functionButtonsContainer.style.display = 'flex';
+
+    group.resultBlobURI = blobUrl;
 
     // Event listener for image click to toggle zoom in and out
     resultElement.removeEventListener('click', createZoomedImage);
