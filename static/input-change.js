@@ -236,14 +236,6 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
         group.lastRequestTime = currentTime;
 
-        // Regex pattern matching [image: Image Name de641d7c] 
-        // tags inserted to indicate that an image reference has been taken into account
-        // we want to remove them from the actual prompt
-        const imageTagsPattern = /\[image: .* [a-fA-F0-9]{8}\]/g;
-
-        // Replace the pattern with an empty string
-        currentData = currentData.replace(imageTagsPattern, '');
-
         await sendRequestsForGroup({
             currentData,
             image: imageB64,
