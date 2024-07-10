@@ -411,6 +411,7 @@ async function loadGroups(importedGroups) {
                             resultElement.addEventListener('click', createZoomedImage);
 
                             group.result = blob;
+                            group.resultBlobURI = blobUrl;
                             console.log("[IMPORTED IMAGE] Added to group's result")
 
                         } catch (error) {
