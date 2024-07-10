@@ -65,7 +65,8 @@ async function replaceThisGroupReferenceWithResult(name, data, groups) {
         replacedData = replacedData.replace(combinedPattern, (match) => {
             console.log("Replace image references with IMG tags ", match);
 
-            const blobUrl = URL.createObjectURL(referencedGroup.result);
+            const blobUrl = referencedGroup.resultBlobURI;
+
             return `<img class="inline-result-image" src="${blobUrl}" data-group-reference="${name}" alt="Result from ${name}">`;
         });
     }
