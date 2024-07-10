@@ -85,9 +85,16 @@ function createZoomedIframe(originalIframe) {
 
     });
 
-    let closeButton = document.createElement('sl-button');
-    closeButton.className = 'close-zoomed';
-    closeButton.innerHTML = 'Close';
+    let closeButton = document.createElement('button');
+    closeButton.classList.add('close-zoomed', 'footer-btn');
+
+    closeButton.innerHTML = `
+        <span class="text-btn">Close</span>
+        <span class="icon-btn">
+        <img src="/icons/delete.svg">
+        </span>
+        `
+
     closeButton.addEventListener("click", () => {
         document.body.classList.remove('no-scroll');
         zoomedContainer.remove();
