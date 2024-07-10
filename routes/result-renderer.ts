@@ -3,6 +3,12 @@ import { Eta } from "https://deno.land/x/eta/src/index.ts";
 import { retrieveResultMetadata, retrieveResultsByUser } from "../lib/apps.ts";
 import { downloadResult } from "../lib/file-storage.ts";
 
+import { JSDOM } from 'npm:jsdom';
+import DOMPurify from 'npm:dompurify';
+
+const window = new JSDOM('').window;
+const purify = DOMPurify(window);
+
 let viewpath = Deno.cwd() + '/views/'
 let eta = new Eta({ views: viewpath, cache: false, debug: true })
 
@@ -78,14 +84,58 @@ async function renderResult(ctx) {
 
     result.GROUP_HTML = GROUP_HTML;
 
+    const sanitizeOptions = {
+        ALLOWED_URI_REGEXP: /^(?:(?:ftp|http|https|mailto|tel|callto|sms|cid|xmpp|blob):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+    };
+
+
+    for (const group of result.groups) {
+
+        if (group.type === "text" || group.type === "static") {
+
+            const replacedIMGresult = replaceSrcAttributes(group, result.groups)
+
+            group.resultHTML = purify.sanitize(replacedIMGresult, sanitizeOptions)
+
+            group.resultText = purify.sanitize(replacedIMGresult, sanitizeOptions)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    }
+
+
     ctx.response.body = eta.render('result', result);
+}
+
+function replaceSrcAttributes(group, groups) {
+
+    // match img tags with data-group-reference attribute
+    // using a capture group to use the name
+
+    const imgPattern = /<img[^>]*data-group-reference="([^"]+)"[^>]*>/g;
+
+    return group.result.replace(imgPattern, (match: string, resultReference: string) => {
+
+        const correspondingGroup = groups.find(group => group.name === resultReference);
+
+        if (correspondingGroup) {
+
+            const srcAttributePattern = /src="[^"]*"/;
+
+            return match.replace(srcAttributePattern, `src="data:image/jpeg;base64,${correspondingGroup.result}"`);
+        }
+        return match; // If no corresponding group is found, return the match unchanged
+    });
 }
 
 
 async function renderUserResults(ctx) {
     const user = ctx.state.user;
 
-    console.log(ctx.state)
+    // console.log(ctx.state)
 
     if (!user.username) {
         ctx.response.status = 400;
@@ -95,7 +145,7 @@ async function renderUserResults(ctx) {
 
     const resultsMetadata = await retrieveResultsByUser(user.username);
 
-    console.log("[User results]", resultsMetadata);
+    // console.log("[User results]", resultsMetadata);
 
     if (!resultsMetadata) {
         ctx.response.status = 404;

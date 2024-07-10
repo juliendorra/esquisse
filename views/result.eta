@@ -415,19 +415,65 @@
             font-size: 0.9rem;
         }
 
-        p.result {
+        iframe.result {
+            border: none;
             font-size: 0.85em;
+            height: 100%;
             max-height: 25rem;
             overflow-y: scroll;
             white-space: pre-line;
+            min-width: var(--result-width);
+            max-width: 18.5rem;
         }
-
 
         img.result {
             max-width: 0.77.5vw;
             cursor: zoom-in;
             width: calc(20rem - 0.75rem);
         }
+
+
+        iframe.zoomed {
+            position: fixed;
+            width: 75%;
+            height: 90%;
+            top: 50%;
+            left: 50%;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            background: var(--neutral-color);
+            border-style: solid;
+            border-color: var(--light-border);
+        }
+
+        .zoomed-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .close-zoomed {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+        }
+
 
         img.result.zoomed {
             position: fixed;
@@ -787,7 +833,59 @@
                 <div class="group-name"><%= group.name %></div>
 
                 <% if (group.result) { %>
-                    <p class="result"><%= group.result %></p>
+
+                    <iframe class="result html" sandbox="allow-same-origin"  
+                    
+                    srcdoc="
+
+                        <!DOCTYPE html>
+                        <html lang=&#39;en&#39;>
+                        <head>
+                            <meta charset=&#39;UTF-8&#39;>
+                            <meta name=&#39;viewport&#39; content=&#39;width=device-width, initial-scale=1.0&#39;>
+                            <link rel=&#39;stylesheet&#39; type=&#39;text/css&#39; href=&#39;/iframebasestyle.css&#39;>
+                            <title>Result</title>
+                            <meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#39;self&#39;; style-src &#39;self&#39; &#39;unsafe-inline&#39;; script-src &#39;none&#39;; img-src &#39;self&#39; data:;&quot;>
+                        </head>
+                        <body>
+                    
+                        <%= group.resultHTML %>
+                    
+                        </body>
+                        </html>
+                    ">
+                    
+                    </iframe>
+
+                    <iframe class="result text" style="display: none;" sandbox="allow-same-origin"  
+                    
+                    srcdoc="
+
+                        <!DOCTYPE html>
+                        <html lang=&#39;en&#39;>
+                        <head>
+                            <meta charset=&#39;UTF-8&#39;>
+                            <meta name=&#39;viewport&#39; content=&#39;width=device-width, initial-scale=1.0&#39;>
+                            <link rel=&#39;stylesheet&#39; type=&#39;text/css&#39; href=&#39;/iframebasestyle.css&#39;>
+                            <title>Result</title>
+                            <meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#39;self&#39;; style-src &#39;self&#39; &#39;unsafe-inline&#39;; script-src &#39;none&#39;; img-src &#39;self&#39; data:;&quot;>
+                        </head>
+                        <body>
+                    
+                        <%= group.resultText %>
+                    
+                        </body>
+                        </html>
+                    ">
+                    
+                    </iframe>
+
+                    
+                    <div class="function-buttons-container">
+                        <button class="tool-btn text-mode-btn" aria-label="text mode"><img src="/icons/text-mode.svg"></button>
+                    
+                        <button class="tool-btn zoom-out-btn" aria-label="Zoom Out"><img src="/icons/zoom-out.svg"></button>
+                    </div>
                 <% } %>
                 </div>
 

@@ -1,8 +1,7 @@
 
 import { initMeshBackground } from "./mesh-background.js";
 
-import { createZoomedImage } from "./ui-utils.js";
-
+import { createZoomedImage, createZoomedIframe } from "./ui-utils.js";
 
 // Call the init function when the page loads
 
@@ -22,6 +21,36 @@ async function init() {
 
     for (const resultImage of resultImages) {
         resultImage.addEventListener('click', createZoomedImage);
+    }
+
+    const groupElements = document.querySelectorAll(".group");
+
+    for (const groupElement of groupElements) {
+
+        const textModeButton = groupElement.querySelector(".text-mode-btn");
+        const resultHTML = groupElement.querySelector(".result.html");
+        const resultText = groupElement.querySelector(".result.text");
+
+        textModeButton?.addEventListener("click", () => {
+
+            if (textModeButton.classList.contains("selected")) {
+                textModeButton.classList.remove("selected")
+                resultHTML.style.display = "block";
+                resultText.style.display = "none";
+            }
+            else {
+                textModeButton.classList.add("selected")
+                resultHTML.style.display = "none";
+                resultText.style.display = "block";
+            }
+        });
+
+        const zoomOutButton = groupElement.querySelector(".zoom-out-btn");
+
+        zoomOutButton?.addEventListener("click", (event) => {
+            const resultElement = groupElement.querySelector("iframe.result");
+            createZoomedIframe(resultElement);
+        });
     }
 }
 
