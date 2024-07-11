@@ -73,36 +73,66 @@ async function init() {
                 event.currentTarget.classList.remove('drop-zone-over');
             });
 
-    document.querySelector('.window-drop-zone').addEventListener("drop", (event) => {
+    document.querySelector('.window-drop-zone').addEventListener(
+        "drop",
+        (event) => {
 
-        event.preventDefault();
-        event.stopPropagation();
-        event.currentTarget.classList.remove('drop-zone-over');
+            event.preventDefault();
+            event.stopPropagation();
+            event.currentTarget.classList.remove('drop-zone-over');
 
-        const files = Array.from(event.dataTransfer.files);
+            const files = Array.from(event.dataTransfer.files);
 
-        const imageFiles = files.filter(file => file.type.startsWith('image/'));
+            const imageFiles = files.filter(file => file.type.startsWith('image/'));
 
-        const textFiles = files.filter(file => file.type.startsWith('text/'));
+            const textFiles = files.filter(file => file.type.startsWith('text/'));
 
-        for (const file of imageFiles) {
+            for (const file of imageFiles) {
 
-            const groupElement = createGroupAndAddGroupElement(GROUP_TYPE.IMPORTED_IMAGE);
+                const groupElement = createGroupAndAddGroupElement(GROUP_TYPE.IMPORTED_IMAGE);
 
-            const group = groupsMap.GROUPS.get(getGroupIdFromElement(groupElement));
+                const group = groupsMap.GROUPS.get(getGroupIdFromElement(groupElement));
 
-            handleDroppedImage(file, groupElement);
+                handleDroppedImage(file, groupElement);
 
+            }
+
+            for (const file of textFiles) {
+
+                const groupElement = createGroupAndAddGroupElement(GROUP_TYPE.STATIC);
+
+                handleDroppedText(file, groupElement, groupsMap.GROUPS);
+            }
+
+            const textData = event.dataTransfer.getData('text/plain');
+
+            if (textData) {
+
+                switch (textData) {
+
+                    case GROUP_TYPE.BREAK:
+                        createGroupAndAddGroupElement(textData);
+                        break;
+
+                    case GROUP_TYPE.STATIC:
+                        createGroupAndAddGroupElement(textData);
+                        break;
+
+                    case GROUP_TYPE.IMPORTED_IMAGE:
+                        createGroupAndAddGroupElement(textData);
+                        break;
+
+                    case GROUP_TYPE.IMAGE:
+                        createGroupAndAddGroupElement(textData);
+                        break;
+
+                    default:
+                        createGroupAndAddGroupElement(GROUP_TYPE.STATIC);
+                }
+
+            };
         }
-
-        for (const file of textFiles) {
-
-            const groupElement = createGroupAndAddGroupElement(GROUP_TYPE.STATIC);
-
-            handleDroppedText(file, groupElement, groupsMap.GROUPS);
-        }
-    });
-
+    );
 
     addMiniviewButtonsListeners();
 
@@ -133,6 +163,20 @@ async function init() {
     document.querySelector(".share-result-btn").addEventListener('click', (event) => {
         shareResult(groupsMap.GROUPS, event.currentTarget);
     });
+
+    function addDragAndDropListeners(buttonSelector, groupType) {
+        const button = document.querySelector(buttonSelector);
+
+        button.addEventListener('dragstart', (event) => {
+            event.dataTransfer.setData('text/plain', groupType);
+        });
+    }
+
+    addDragAndDropListeners('.add-static-group-btn', GROUP_TYPE.STATIC);
+    addDragAndDropListeners('.add-break-group-btn', GROUP_TYPE.BREAK);
+    addDragAndDropListeners('.add-imported-image-group-btn', GROUP_TYPE.IMPORTED_IMAGE);
+    addDragAndDropListeners('.add-group-btn', GROUP_TYPE.TEXT);
+    addDragAndDropListeners('.add-img-group-btn', GROUP_TYPE.IMAGE);
 
 
     // Settings Menu Listeners
