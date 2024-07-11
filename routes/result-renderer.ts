@@ -112,23 +112,27 @@ async function renderResult(ctx) {
 
 function replaceSrcAttributes(group, groups) {
 
-    // match img tags with data-group-reference attribute
+    // match img tags with src attribute containing esquisse:result/ scheme
     // using a capture group to use the name
 
-    const imgPattern = /<img[^>]*data-group-reference="([^"]+)"[^>]*>/g;
+    const imgPattern = /<img[^>]*src="esquisse:result\/([^"]+)"[^>]*>/g;
 
-    return group.result.replace(imgPattern, (match: string, resultReference: string) => {
+    const replacedResult = group.result?.replace(
+        imgPattern,
+        (match: string, resultReference: string) => {
 
-        const correspondingGroup = groups.find(group => group.name === resultReference);
+            const correspondingGroup = groups.find(group => group.name === resultReference);
 
-        if (correspondingGroup) {
+            if (correspondingGroup) {
 
-            const srcAttributePattern = /src="[^"]*"/;
+                const srcAttributePattern = /src="[^"]*"/g;
 
-            return match.replace(srcAttributePattern, `src="data:image/jpeg;base64,${correspondingGroup.result}"`);
-        }
-        return match; // If no corresponding group is found, return the match unchanged
-    });
+                return match.replace(srcAttributePattern, `src="data:image/jpeg;base64,${correspondingGroup.result}"`);
+            }
+            return match; // If no corresponding group is found, return the match unchanged
+        });
+
+    return replacedResult;
 }
 
 
