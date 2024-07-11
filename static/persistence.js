@@ -624,7 +624,7 @@ async function packageResult(groups, thumbnail) {
 
         if (hasTextResult) {
             replacementMap.forEach((value, key) => {
-                group.result = group.result.replace(value, `esquisse:result/${key}`);
+                group.result = group.result.replaceAll(value, `esquisse:result/${key}`);
             });
         }
     });
