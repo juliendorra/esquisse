@@ -541,126 +541,130 @@ function addEventListenersToGroup(groupElement) {
     }
 
 
-    // Event listeners for imported image 
-    const dropZone = groupElement.querySelector(".drop-zone");
+    // Event listeners for imported image groups
 
-    dropZone?.addEventListener("dragover", event => {
-        event.preventDefault();
-        event.stopPropagation();
-        dropZone.classList.add("drop-zone-over");
-    });
+    if (group.type === GROUP_TYPE.IMPORTED_IMAGE) {
 
-    dropZone?.addEventListener("dragleave", event => {
-        event.preventDefault();
-        event.stopPropagation()
-        dropZone.classList.remove("drop-zone-over");
-    });
+        const dropZone = groupElement.querySelector(".drop-zone");
 
-    dropZone?.addEventListener(
-        'click',
-        (event) => { handleImportedImage(group, groupElement) }
-    );
-
-    dropZone?.addEventListener(
-        'drop',
-        (event) => {
-
+        groupElement.addEventListener("dragover", event => {
             event.preventDefault();
             event.stopPropagation();
+            dropZone?.classList.add("drop-zone-over");
+        });
 
-            event.currentTarget.classList.remove('drop-zone-over');
+        groupElement.addEventListener("dragleave", event => {
+            event.preventDefault();
+            event.stopPropagation()
+            dropZone?.classList.remove("drop-zone-over");
+        });
 
-            const imageFile = event.dataTransfer.files[0];
+        dropZone?.addEventListener(
+            'click',
+            (event) => { handleImportedImage(group, groupElement) }
+        );
 
-            handleDroppedImage(imageFile, groupElement)
-        }
-    );
+        groupElement.addEventListener(
+            'drop',
+            (event) => {
 
-    /******** Webcam buttons *************/
+                event.preventDefault();
+                event.stopPropagation();
 
-    const startWebcamButton = groupElement.querySelector('.start-webcam-btn');
-    const stopWebcamButton = groupElement.querySelector('.stop-webcam-btn');
-    const captureWebcamFrameButton = groupElement.querySelector('.capture-webcam-frame-btn');
-    const webcamFeed = groupElement.querySelector('.webcam-feed');
-    const mirrorButton = groupElement.querySelector('.mirror-btn');
+                dropZone?.classList.remove("drop-zone-over");
 
-    startWebcamButton?.addEventListener('click', async (event) => {
+                const imageFile = event.dataTransfer.files[0];
 
-        group.webcamEnabled = true;
+                handleDroppedImage(imageFile, groupElement)
+            }
+        );
 
-        console.log("[WEBCAM MODE] enabled ", group.webcamEnabled)
+        /******** Webcam buttons *************/
 
-        startWebcam(groupElement, undefined);
-    });
+        const startWebcamButton = groupElement.querySelector('.start-webcam-btn');
+        const stopWebcamButton = groupElement.querySelector('.stop-webcam-btn');
+        const captureWebcamFrameButton = groupElement.querySelector('.capture-webcam-frame-btn');
+        const webcamFeed = groupElement.querySelector('.webcam-feed');
+        const mirrorButton = groupElement.querySelector('.mirror-btn');
 
-    groupElement.querySelector('.device-selection sl-select')?.addEventListener('sl-change', event => {
-        const selectedDeviceId = event.currentTarget.value;
-        switchWebcam(groupElement, selectedDeviceId);
-    });
+        startWebcamButton?.addEventListener('click', async (event) => {
 
-    stopWebcamButton?.addEventListener('click', (event) => {
+            group.webcamEnabled = true;
 
-        group.webcamEnabled = false;
+            console.log("[WEBCAM MODE] enabled ", group.webcamEnabled)
 
-        console.log("[WEBCAM MODE] enabled ", group.webcamEnabled)
+            startWebcam(groupElement, undefined);
+        });
 
-        stopWebcam(groupElement)
-    });
+        groupElement.querySelector('.device-selection sl-select')?.addEventListener('sl-change', event => {
+            const selectedDeviceId = event.currentTarget.value;
+            switchWebcam(groupElement, selectedDeviceId);
+        });
 
-    webcamFeed?.addEventListener('click', async (event) => {
+        stopWebcamButton?.addEventListener('click', (event) => {
 
-        console.log("[WEBCAM MODE] manually capturing a frame");
+            group.webcamEnabled = false;
 
-        if (!group.webcamEnabled) {
-            return;
-        }
-        else {
-            await captureAndHandle(groupElement);
-        }
+            console.log("[WEBCAM MODE] enabled ", group.webcamEnabled)
 
-    });
+            stopWebcam(groupElement)
+        });
 
-    captureWebcamFrameButton?.addEventListener('click', async (event) => {
+        webcamFeed?.addEventListener('click', async (event) => {
 
-        console.log("[WEBCAM MODE] manually capturing a frame");
+            console.log("[WEBCAM MODE] manually capturing a frame");
 
-        // the event target is lost after calling captureAndHandle, so we keep a reference
-        const thisButton = event.currentTarget;
+            if (!group.webcamEnabled) {
+                return;
+            }
+            else {
+                await captureAndHandle(groupElement);
+            }
 
-        if (!group.webcamEnabled) {
-            return;
-        }
-        else {
-            thisButton.classList.add("selected");
-            await captureAndHandle(groupElement);
-            setTimeout(() => {
+        });
 
+        captureWebcamFrameButton?.addEventListener('click', async (event) => {
+
+            console.log("[WEBCAM MODE] manually capturing a frame");
+
+            // the event target is lost after calling captureAndHandle, so we keep a reference
+            const thisButton = event.currentTarget;
+
+            if (!group.webcamEnabled) {
+                return;
+            }
+            else {
+                thisButton.classList.add("selected");
+                await captureAndHandle(groupElement);
+                setTimeout(() => {
+
+                    thisButton.classList.remove("selected");
+
+                }, 300);
+            }
+
+        });
+
+        mirrorButton?.addEventListener('click', async (event) => {
+
+            console.log("[WEBCAM MODE] toggling mirror");
+
+            // the event target is lost after calling captureAndHandle, so we keep a reference
+            const thisButton = event.currentTarget;
+
+            if (thisButton.classList.contains("selected")) {
                 thisButton.classList.remove("selected");
+                groupElement.classList.remove("mirrored-video");
+                flipImageResult(groupElement);
+            }
+            else {
+                thisButton.classList.add("selected");
+                groupElement.classList.add("mirrored-video");
+                flipImageResult(groupElement);
+            }
 
-            }, 300);
-        }
-
-    });
-
-    mirrorButton?.addEventListener('click', async (event) => {
-
-        console.log("[WEBCAM MODE] toggling mirror");
-
-        // the event target is lost after calling captureAndHandle, so we keep a reference
-        const thisButton = event.currentTarget;
-
-        if (thisButton.classList.contains("selected")) {
-            thisButton.classList.remove("selected");
-            groupElement.classList.remove("mirrored-video");
-            flipImageResult(groupElement);
-        }
-        else {
-            thisButton.classList.add("selected");
-            groupElement.classList.add("mirrored-video");
-            flipImageResult(groupElement);
-        }
-
-    });
+        });
+    }
 
     /******** Tool buttons *************/
     groupElement.querySelector(".delete-btn").addEventListener("click", () => deleteGroup(groupElement));
