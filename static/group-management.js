@@ -223,6 +223,9 @@ function createGroupInLocalDataStructures(groupType) {
         referenceHashes: new Map(),
         availableReferencedResults: [], //[{ name, result, type, resultHash },..} 
         combinedReferencedResults: [],
+        // used by displayFormattedResults function
+        savedResult: "",
+        listItems: [],
     };
 
     console.log("[CREATING NEW GROUP] New group in data:", group);
