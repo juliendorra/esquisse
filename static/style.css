@@ -100,7 +100,10 @@ button {
 
 
 input,
-textarea {
+textarea,
+.referenced-result-text {
+    font-family: var(--primary-font);
+    font-size: 11px;
     border: 1px;
     border-style: solid;
     border-color: #cccccc;
@@ -444,24 +447,32 @@ input[readonly] {
     outline: none;
 }
 
-textarea.referenced-result-text {
-    background-color: rgba(118, 0, 255, 0.11);
-    height: 4em;
+.referenced-result-text {
+    background-color: none;
+    height: 8em;
 }
+
+.referenced-result-text img {
+    width: 2rem;
+    vertical-align: middle;
+}
+
+/* greying out all images except the first to alert the user that only the first image is used by the generators */
+.referenced-result-text img:not(:first-of-type) {
+    filter: grayscale(100%) brightness(50%);
+    opacity: 0.2;
+}
+
 
 .data-text,
 .transform-text {
-    height: 4em;
+    height: 10em;
     border: 1px;
     border-style: solid;
     border-color: #cccccc;
 }
 
-.group.static .data-text {
-    height: 10em;
-}
-
-.group.static textarea.referenced-result-text {
+.referenced-result-text {
     height: 10em;
 }
 
@@ -657,10 +668,6 @@ img.result.zoomed {
         max-width: 100%;
         max-height: 100%;
     }
-}
-
-img.inline-result-image {
-    width: 8rem;
 }
 
 /* Footer Tools Buttons */
@@ -1090,6 +1097,7 @@ sl-drawer::part(footer) {
         height: auto;
     }
 
+    .referenced-result-text,
     textarea.referenced-result-text[readonly],
     textarea[readonly],
     input[readonly] {

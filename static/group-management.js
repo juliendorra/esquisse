@@ -33,7 +33,7 @@ export {
 
     updateGroups, updateGroupsReferencingIt,
 
-    displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, renderResultInIframe,
+    displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, renderInIframe,
 
     indexGroupsInNewOrder,
 
@@ -59,7 +59,7 @@ const GROUP_HTML = {
             </div>
             <input type="text" class="group-name" placeholder="Name of this block">
             <textarea class="data-text auto-complete" placeholder="Data you want to use: text, #name or [another name] to get results from another block"></textarea>
-            <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
+            <iframe class="referenced-result-text" placeholder="Referenced Result"></iframe>
 
             <div class="function-buttons-container">
 
@@ -134,7 +134,7 @@ const GROUP_HTML = {
 
             <input type="text" class="group-name" placeholder="Name of this block">
             <textarea class="data-text auto-complete" placeholder="Data you want to use: text, #name or [another name] to get results from another block"></textarea>
-            <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
+            <iframe class="referenced-result-text" placeholder="Referenced Result"></iframe>
             <textarea class="transform-text" placeholder="Instructions to transform data into result"></textarea>
 
             <div class="function-buttons-container">
@@ -167,7 +167,7 @@ const GROUP_HTML = {
 
             <input type="text" class="group-name" placeholder="Name of this Block">
             <textarea class="data-text auto-complete" placeholder="Data you want to use: visual keywords, #name or [another name] to get results from another block"></textarea>
-            <textarea class="referenced-result-text" placeholder="Referenced Result" readonly></textarea>
+            <iframe class="referenced-result-text" placeholder="Referenced Result"></iframe>
             <textarea class="transform-text" placeholder="Visual keywords like 'oil painting', 'vector logo', etc. "></textarea>
 
             <div class="function-buttons-container">
@@ -362,7 +362,7 @@ function addEventListenersToGroup(groupElement) {
 
     const groupNameElement = groupElement.querySelector(".group-name");
     const dataElement = groupElement.querySelector(".data-text");
-    const refResultTextarea = groupElement.querySelector(".referenced-result-text");
+    const refResultElement = groupElement.querySelector(".referenced-result-text");
     const transformElement = groupElement.querySelector(".transform-text");
 
     const group =
@@ -423,15 +423,38 @@ function addEventListenersToGroup(groupElement) {
         }
     });
 
-    refResultTextarea?.addEventListener("focus", () => {
-        refResultTextarea.style.display = "none";
-        dataElement.style.display = "block";
-        dataElement.focus();
-    });
+    // Handling the toggle between combined referenced results and data text input 
 
-    dataElement?.addEventListener("focus", () => {
-        refResultTextarea.style.display = "none";
-    });
+    if (refResultElement) {
+
+        // listening and re-emiting to the clicks inside the refResultElement iFrame
+        // we Ensure the script runs after the iframe content has fully loaded
+
+        refResultElement.onload = function () {
+            const iframeWindow = refResultElement.contentWindow;
+
+            iframeWindow.addEventListener('click', (event) => {
+
+                const eventOut = new CustomEvent('click', {
+                    bubbles: true,
+                    cancelable: false
+                });
+
+                // Dispatch the event on the iframe element itself
+                refResultElement.dispatchEvent(eventOut);
+            });
+        };
+
+        refResultElement.addEventListener("click", () => {
+            refResultElement.style.display = "none";
+            dataElement.style.display = "block";
+            dataElement.focus();
+        });
+
+        dataElement?.addEventListener("focus", () => {
+            refResultElement.style.display = "none";
+        });
+    }
 
     const container = document.querySelector('.container');
 
@@ -1062,14 +1085,25 @@ function getParallelTasks(graph, nodeList) {
 }
 
 function displayCombinedReferencedResult(groupElement, combinedReferencedResults) {
-    const refResultTextarea = groupElement.querySelector(".referenced-result-text");
+
+    const referencedResultText = groupElement.querySelector("iframe.referenced-result-text");
     const dataText = groupElement.querySelector(".data-text");
 
-    console.log(`[DISPLAY] Displaying the group referenced result in refResultTextarea`);
+    if (referencedResultText && combinedReferencedResults) {
+        console.log(`[DISPLAY] Displaying the results referenced result in .referenced-result-text`);
 
-    refResultTextarea.value = combinedReferencedResults ? combinedReferencedResults : "";
-    refResultTextarea.style.display = "block";
-    dataText.style.display = "none";
+        renderInIframe(referencedResultText, combinedReferencedResults, RESULT_DISPLAY_FORMAT.HTML)
+
+        referencedResultText.style.display = "block";
+        dataText.style.display = "none";
+    }
+    else if (referencedResultText) {
+        referencedResultText.style.display = 'none';
+        dataText.style.display = "block";
+    }
+    else {
+        console.log("[DISPLAY COMBINED REFS] No element to display the combined refs!");
+    }
 
     return combinedReferencedResults;
 }
@@ -1080,7 +1114,10 @@ function displayDataText(groupElement) {
 
     console.log("[DISPLAY] Displaying the group data text, probably because no references exist or match");
 
-    refResultTextarea.style.display = "none";
+    if (refResultTextarea) {
+        refResultTextarea.style.display = "none";
+    }
+
     dataText.style.display = "block";
 }
 
@@ -1095,7 +1132,7 @@ function displayDataTextReferenceStatus({
     const refResultTextarea = groupElement.querySelector(".referenced-result-text");
 
     dataTextElement.classList.remove('error', 'warning', 'valid');
-    refResultTextarea.classList.remove('error', 'warning', 'valid');
+    refResultTextarea?.classList.remove('error', 'warning', 'valid');
 
     if (hasReferences) {
         if (
@@ -1104,21 +1141,21 @@ function displayDataTextReferenceStatus({
             && availableReferencedResults.length === 0
         ) {
             dataTextElement.classList.add('error');
-            refResultTextarea.classList.add('error');
+            refResultTextarea?.classList.add('error');
         }
         else if (
             invalidReferencedResults.length > 0
             && (notreadyReferencedResults.length > 0 || availableReferencedResults.length > 0)
         ) {
             dataTextElement.classList.add('warning');
-            refResultTextarea.classList.add('warning');
+            refResultTextarea?.classList.add('warning');
         }
         else if (
             invalidReferencedResults.length === 0
             && (notreadyReferencedResults.length > 0 || availableReferencedResults.length > 0)
         ) {
             dataTextElement.classList.add('valid');
-            refResultTextarea.classList.add('valid');
+            refResultTextarea?.classList.add('valid');
         }
     }
 }
@@ -1247,26 +1284,20 @@ function displayFormattedResults(groupElement) {
             existingSlSelect.remove();
         }
 
-        renderResultInIframe(groupElement);
+        renderInIframe(resultElement, group.result, group.resultDisplayFormat);
 
-
+        if (group.result) {
+            resultElement.classList.remove("empty-result");
+            resultElement.style.display = 'block';
+        }
+        else {
+            resultElement.classList.add("empty-result");
+            resultElement.style.display = 'none';
+        }
     }
 }
 
-function renderResultInIframe(groupElement) {
-
-    const resultElement = groupElement.querySelector("iframe.result");
-
-    const group = groupsMap.GROUPS.get(getGroupIdFromElement(groupElement));
-
-    if (!group.result) {
-        resultElement.style.display = 'none';
-        resultElement.classList.add("empty-result");
-        return;
-    }
-
-    resultElement.classList.remove("empty-result");
-    resultElement.style.display = 'block';
+function renderInIframe(targetIframe, content, format = RESULT_DISPLAY_FORMAT.HTML) {
 
     // Allow specific protocols handlers in URL attributes via regex (default is false, be careful, XSS risk)
     // By default only http, https, ftp, ftps, tel, mailto, callto, sms, cid and xmpp are allowed.
@@ -1275,11 +1306,11 @@ function renderResultInIframe(groupElement) {
         ALLOWED_URI_REGEXP: /^(?:(?:ftp|http|https|mailto|tel|callto|sms|cid|xmpp|blob):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
     };
 
-    const sanitizedHTML = DOMPurify.sanitize(group.result, sanitizeOptions);
+    const sanitizedHTML = DOMPurify.sanitize(content, sanitizeOptions);
 
     let finalHTML;
 
-    if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.TEXT) {
+    if (format === RESULT_DISPLAY_FORMAT.TEXT) {
 
         finalHTML = sanitizedHTML
             .replace(/&/g, "&amp;")
@@ -1289,7 +1320,7 @@ function renderResultInIframe(groupElement) {
             .replace(/'/g, "&#039;");
 
     }
-    else if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.HTML) {
+    else if (format === RESULT_DISPLAY_FORMAT.HTML) {
         finalHTML = sanitizedHTML;
     }
 
@@ -1309,7 +1340,7 @@ function renderResultInIframe(groupElement) {
     </html>
 `;
 
-    const doc = resultElement.contentDocument;
+    const doc = targetIframe.contentDocument;
     doc.open();
     doc.write(iFrameHTML);
     doc.close();
