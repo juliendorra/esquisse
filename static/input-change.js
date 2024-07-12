@@ -13,10 +13,6 @@ export {
     handleImportedImage, handleDroppedImage, hashAndPersist, clearImportedImage
 };
 
-const DELAY = 5000;
-
-let REQUEST_QUEUE = {};
-
 function nameChangeHandler(group, groupNameElement, groups) {
 
     groups = groupsMap.GROUPS;
@@ -126,6 +122,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     if (availableReferencedResults.length > 0) {
 
         displayCombinedReferencedResult(groupElement, combinedReferencedResults);
+
         currentData = combinedReferencedResults;
 
         for (const referencedResult of availableReferencedResults) {
@@ -206,35 +203,6 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     const dataReadyToSend = !hasReferences && currentData || availableReferencedResults.length > 0 && !hasInvalidReferencedResults;
 
     if (dataReadyToSend && lastTransformValue) {
-        clearTimeout(REQUEST_QUEUE[group.id]);
-
-        const currentTime = Date.now();
-
-        const elapsedTime = currentTime - group.lastRequestTime;
-
-
-        /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // DEBUG ====  WE SEND **ALL** call to handleInputChanges AS IMMEDIATE REQUESTS, so this is NEVER TRUE //
-
-        if (currentTime - group.lastRequestTime < DELAY && !immediate) {
-
-            const timeout = DELAY - elapsedTime;
-
-            console.log(`Waiting for ${timeout / 1000} seconds`);
-
-            if (REQUEST_QUEUE[group.id]) {
-                clearTimeout(REQUEST_QUEUE[group.id]);
-            }
-
-            REQUEST_QUEUE[group.id] = setTimeout(() => {
-                handleInputChange(groupElement, true, isRefresh);
-            }, timeout);
-
-            return;
-        }
-        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        group.lastRequestTime = currentTime;
 
         await sendRequestsForGroup({
             currentData,
@@ -367,7 +335,6 @@ async function sendRequestsForGroup({
 
             downloadButton.download = fileName;
 
-            delete REQUEST_QUEUE[group.id];
             groupElement.classList.remove("waiting");
             removeGlobalWaitingIndicator();
 
@@ -400,8 +367,6 @@ async function sendRequestsForGroup({
             displayFormattedResults(groupElement);
 
             groupElement.querySelector(".refresh-btn").style.display = "block";
-
-            delete REQUEST_QUEUE[group.id];
 
             groupElement.classList.remove("waiting");
             removeGlobalWaitingIndicator();
