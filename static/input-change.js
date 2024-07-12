@@ -172,7 +172,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
         group.result = currentData;
 
-        if (isUndirected) updateGroupsReferencingIt(group.id);
+        displayFormattedResults(groupElement);
     }
 
     group.data = data;
@@ -214,8 +214,6 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
             groups
         });
     }
-
-    displayFormattedResults(groupElement);
 
     if (isUndirected) {
         console.log("[INPUT CHANGE] Undirected update, Now updating dataText of groups referencing results from: ", group.name)
