@@ -111,6 +111,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
         invalidReferencedResults,
         notreadyReferencedResults,
         availableReferencedResults,
+        itemizedDataText,
         combinedReferencedResults
     } = await getReferencedResultsAndCombinedDataWithResults(data, group.name, groups);
 
@@ -119,33 +120,29 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     group.availableReferencedResults = availableReferencedResults;
 
     // if there's references, display them and use the combination of all references as currentData
-    if (availableReferencedResults.length > 0) {
 
-        displayCombinedReferencedResult(groupElement, combinedReferencedResults);
+    displayCombinedReferencedResult(groupElement, itemizedDataText);
 
-        currentData = combinedReferencedResults;
+    currentData = combinedReferencedResults;
 
-        for (const referencedResult of availableReferencedResults) {
+    for (const referencedResult of availableReferencedResults) {
 
-            console.log(`[COMPARING RESULT HASH] comparing result hashes for ${referencedResult.name}. 
+        console.log(`[COMPARING RESULT HASH] comparing result hashes for ${referencedResult.name}. 
                 New hash: ${referencedResult.resultHash}
                 Old hash: ${group.referenceHashes?.get(referencedResult.name)}`)
 
-            // if there was no previous reference to this result or if the hash is different, referenced results have changed
-            if (!group.referenceHashes?.get(referencedResult.name)
-                || referencedResult.resultHash !== group.referenceHashes.get(referencedResult.name)) {
-                referencedResultsChanged = true;
-                // break early once one result has changed
-                break;
-            }
+        // if there was no previous reference to this result or if the hash is different, referenced results have changed
+        if (!group.referenceHashes?.get(referencedResult.name)
+            || referencedResult.resultHash !== group.referenceHashes.get(referencedResult.name)) {
+            referencedResultsChanged = true;
+            // break early once one result has changed
+            break;
         }
-
-        // Having checked for changes, we create a new map of all references hashes to keep track of future changes
-        group.referenceHashes = new Map(availableReferencedResults.map(({ name, resultHash }) => [name, resultHash]));
-
-    } else {
-        displayDataText(groupElement);
     }
+
+    // Having checked for changes, we create a new map of all references hashes to keep track of future changes
+    group.referenceHashes = new Map(availableReferencedResults.map(({ name, resultHash }) => [name, resultHash]));
+
 
     group.combinedReferencedResults = currentData;
 
@@ -168,7 +165,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     }
 
     if (group.type === GROUP_TYPE.STATIC) {
-        console.log(`[CHANGE HANDLING] combining statict text: ${currentData}`);
+        console.log(`[CHANGE HANDLING] combining statict group: ${currentData}`);
 
         group.result = currentData;
 
@@ -186,7 +183,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     for (const result of availableReferencedResults) {
         if (result.type === GROUP_TYPE.IMAGE || result.type === GROUP_TYPE.IMPORTED_IMAGE) {
             imageB64 = await fileToBase64(result.result)
-            console.log("[PREPARING TO FETCH] image blob is ", imageB64)
+            console.log("[PREPARING TO FETCH] image blob is ", imageB64.substring(0, 9))
             break;
         }
     }
