@@ -21,7 +21,7 @@ function getReferencedGroupNamesFromDataText(data) {
     return matches;
 }
 
-async function replaceThisGroupReferenceWithResult(name, data, groups) {
+function replaceThisGroupReferenceWithResult(name, data, groups) {
 
     // Escape special regex characters in the name
     const escapedName = name.replace(/([.*+?^${}()|\[\]\\])/g, '\\$&');
