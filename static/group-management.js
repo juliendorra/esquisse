@@ -14,7 +14,7 @@ import { startWebcam, stopWebcam, switchWebcam, captureAndHandle, flipImageResul
 
 import { onInput, onKeyDown } from './autocomplete.js';
 
-const BASE_CSS_FOR_IFRAME_RESULT = "/iframebasestyle.css"
+const BASE_CSS_FOR_IFRAME_RESULT = "/styleiframebase.css"
 
 const groupsMap = {
     GROUPS: new Map(),
