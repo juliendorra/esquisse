@@ -1461,11 +1461,20 @@ function renderInIframe({ targetIframe, content, format = RESULT_DISPLAY_FORMAT.
 
 function renderInSpan(element, content) {
 
-    const sanitizedEscapedText = DOMPurify.sanitize(content);
+    const sanitized = DOMPurify.sanitize(content);
 
-    element.textContent = sanitizedEscapedText;
+    const lines = sanitized.split('\n');
 
-    console.log("[RENDERING SPAN] its text is ", sanitizedEscapedText);
+    element.textContent = '';
+
+    lines.forEach((line, index) => {
+        element.appendChild(document.createTextNode(line));
+        if (index < lines.length - 1) {
+            element.appendChild(document.createElement('br'));
+        }
+    });
+
+    console.log("[RENDERING SPAN] its text is ", sanitized);
 }
 
 function renderInImg(element, content) {
