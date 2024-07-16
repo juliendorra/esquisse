@@ -1,4 +1,5 @@
 import { getGroupNamesForAutocomplete } from './group-management.js';
+import { getCaretCoordinates } from "./ui-utils.js";
 
 export { onInput, onKeyDown };
 
@@ -78,7 +79,11 @@ async function showDropdown(input, triggerChar, query, words) {
         dropdown.show();
 
         // Position the dropdown below the cursor
-        const cursorPosition = getCursorPosition(input);
+        const cursorPosition = getCaretCoordinates(input, input.selectionEnd);
+
+        const { offsetLeft: inputX, offsetTop: inputY } = input;
+        cursorPosition.left = inputX + cursorPosition.left - input.scrollLeft;
+        cursorPosition.top = inputY + cursorPosition.top - input.scrollTop;
 
         dropdown.style.position = 'absolute';
         dropdown.style.left = `${cursorPosition.left}px`;
