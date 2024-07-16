@@ -74,9 +74,34 @@ async function showDropdown(input, triggerChar, query, words) {
 
         await customElements.whenDefined('sl-dropdown');
         dropdown.show();
+
+        // Position the dropdown below the cursor
+        const cursorPosition = getCursorPosition(input);
+        dropdown.style.position = 'absolute';
+        dropdown.style.left = `${cursorPosition.left}px`;
+        dropdown.style.top = `calc(${cursorPosition.top}px + 1.5em)`; // Add some offset
     } else {
         dropdown.hide();
     }
+}
+
+function getCursorPosition(input) {
+    const { offsetLeft: inputX, offsetTop: inputY } = input;
+    const selectionPoint = input.selectionStart;
+    const textBeforeCursor = input.value.substring(0, selectionPoint);
+    const span = document.createElement('span');
+    span.style.visibility = 'hidden';
+    span.style.position = 'absolute';
+    span.style.whiteSpace = 'pre-wrap';
+    span.style.font = window.getComputedStyle(input).font;
+    span.textContent = textBeforeCursor;
+    document.body.appendChild(span);
+    const { offsetWidth: spanWidth, offsetHeight: spanHeight } = span;
+    document.body.removeChild(span);
+    return {
+        left: inputX + (spanWidth % input.offsetWidth),
+        top: inputY + Math.floor(spanWidth / input.offsetWidth) * spanHeight
+    };
 }
 
 function selectWord(input, triggerChar, word) {
