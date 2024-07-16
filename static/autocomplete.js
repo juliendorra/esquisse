@@ -88,9 +88,9 @@ async function showDropdown(input, triggerChar, query, words) {
     }
 }
 
+
 function getCursorPosition(input) {
-    const { offsetLeft: inputX, offsetTop: inputY } = input;
-    const textBeforeCursor = input.value.substring(0, selectionPoint);
+    const div = document.createElement('div');
     const span = document.createElement('span');
     const text = input.value.substring(0, input.selectionStart);
 
