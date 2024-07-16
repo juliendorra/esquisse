@@ -414,6 +414,12 @@ function addEventListenersToGroup(groupElement) {
 
         console.log("[DATA ELEMENT EVENT] blur", group.name);
 
+        const dropdown = groupElement.querySelector(".autocomplete-selector");
+
+        if (dropdown && dropdown.open) {
+            return;
+        }
+
         // emit the change again if it wasn't handled
         if (dataTextHasChangedWithoutBeingHandled) {
             const changeEvent = new Event('change', {
