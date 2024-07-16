@@ -77,6 +77,7 @@ async function showDropdown(input, triggerChar, query, words) {
 
         // Position the dropdown below the cursor
         const cursorPosition = getCursorPosition(input);
+
         dropdown.style.position = 'absolute';
         dropdown.style.left = `${cursorPosition.left}px`;
         dropdown.style.top = `calc(${cursorPosition.top}px + 1.5em)`; // Add some offset
@@ -87,20 +88,39 @@ async function showDropdown(input, triggerChar, query, words) {
 
 function getCursorPosition(input) {
     const { offsetLeft: inputX, offsetTop: inputY } = input;
-    const selectionPoint = input.selectionStart;
     const textBeforeCursor = input.value.substring(0, selectionPoint);
     const span = document.createElement('span');
-    span.style.visibility = 'hidden';
-    span.style.position = 'absolute';
-    span.style.whiteSpace = 'pre-wrap';
-    span.style.font = window.getComputedStyle(input).font;
-    span.textContent = textBeforeCursor;
-    document.body.appendChild(span);
-    const { offsetWidth: spanWidth, offsetHeight: spanHeight } = span;
-    document.body.removeChild(span);
+    const text = input.value.substring(0, input.selectionStart);
+
+    // Copy the text styles from the textarea to the div
+    const computed = window.getComputedStyle(input);
+
+    for (let prop of computed) {
+        div.style[prop] = computed[prop];
+    }
+
+    div.style.position = 'absolute';
+    div.style.visibility = 'hidden';
+    div.style.whiteSpace = 'pre-wrap';
+    div.style.wordWrap = 'break-word';
+    div.style.overflow = 'hidden';
+    div.style.width = input.offsetWidth + 'px';
+
+    document.body.appendChild(div);
+
+    div.textContent = text;
+    span.textContent = text[text.length - 1] || '.';
+    div.appendChild(span);
+
+    const { offsetLeft: inputX, offsetTop: inputY } = input;
+    const spanX = span.offsetLeft;
+    const spanY = span.offsetTop;
+
+    document.body.removeChild(div);
+
     return {
-        left: inputX + (spanWidth % input.offsetWidth),
-        top: inputY + Math.floor(spanWidth / input.offsetWidth) * spanHeight
+        left: inputX + spanX - input.scrollLeft,
+        top: inputY + spanY - input.scrollTop
     };
 }
 
