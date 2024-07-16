@@ -210,7 +210,7 @@ function createGroupInLocalDataStructures(groupType) {
         data: "",
         transform: "",
         type: groupType,
-        result: null,
+        result: "",
         hashImportedImage: "",
         interactionState: INTERACTION_STATE.OPEN,
 
