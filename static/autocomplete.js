@@ -1,7 +1,7 @@
 import { getGroupNamesForAutocomplete } from './group-management.js';
 import { getCaretCoordinates } from "./ui-utils.js";
 
-export { onInput, onKeyDown };
+export { onInput, handleKeyNavigation };
 
 function onInput(e) {
     const input = e.target;
@@ -21,35 +21,32 @@ function onInput(e) {
     }
 }
 
-function onKeyDown(e) {
-    if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter') {
+function handleKeyNavigation(e) {
 
-        console.log("[AUTOCOMPLETE] handling arrows and enter keydown")
-        const dropdown = e.currentTarget.parentNode.querySelector(".autocomplete-selector");
-        if (dropdown && dropdown.open && dropdown.tagName === 'SL-DROPDOWN') {
-            e.preventDefault();
-            handleKeyNavigation(e, dropdown);
+    console.log("[AUTOCOMPLETE] handling arrows and enter keydown");
+
+    const dropdown = e.currentTarget.parentNode.querySelector(".autocomplete-selector");
+
+    if (dropdown && dropdown.open && dropdown.tagName === 'SL-DROPDOWN') {
+
+        const items = dropdown.querySelectorAll('sl-menu-item');
+        const focusedItem = document.activeElement;
+        let selectionIndex = Array.from(items).indexOf(focusedItem);
+
+        if (e.key === 'ArrowDown') {
+            console.log("[AUTOCOMPLETE] Arrow down");
+            selectionIndex = (selectionIndex + 1) % items.length;
+        } else if (e.key === 'ArrowUp') {
+            selectionIndex = (selectionIndex - 1 + items.length) % items.length;
+        } else if (e.key === 'Enter' && focusedItem) {
+            focusedItem.click();
+            return;
         }
-    }
-}
 
-function handleKeyNavigation(e, dropdown) {
-    const items = dropdown.querySelectorAll('sl-menu-item');
-    const activeItem = dropdown.querySelector('sl-menu-item[active]');
-    let newIndex = Array.from(items).indexOf(activeItem);
-
-    if (e.key === 'ArrowDown') {
-        newIndex = (newIndex + 1) % items.length;
-    } else if (e.key === 'ArrowUp') {
-        newIndex = (newIndex - 1 + items.length) % items.length;
-    } else if (e.key === 'Enter' && activeItem) {
-        activeItem.click();
-    }
-
-    items.forEach(item => item.removeAttribute('active'));
-    if (items[newIndex]) {
-        items[newIndex].setAttribute('active', '');
-        items[newIndex].scrollIntoView({ block: 'nearest' });
+        if (items[selectionIndex]) {
+            items[selectionIndex].focus();
+            // items[selectionIndex].scrollIntoView({ block: 'nearest' });
+        }
     }
 }
 
@@ -76,6 +73,9 @@ async function showDropdown(input, triggerChar, query, words) {
         });
 
         await customElements.whenDefined('sl-dropdown');
+
+        menu.addEventListener("keydown", handleKeyNavigation);
+
         dropdown.show();
 
         // Position the dropdown below the cursor
@@ -89,7 +89,7 @@ async function showDropdown(input, triggerChar, query, words) {
         dropdown.style.left = `${cursorPosition.left}px`;
         dropdown.style.top = `calc(${cursorPosition.top}px + 1.5em)`; // Add some offset
     } else {
-        dropdown.hide();
+        hideDropdown(input);
     }
 }
 
@@ -158,7 +158,7 @@ function selectWord(input, triggerChar, word) {
 
 function hideDropdown(input) {
     const dropdown = input.parentNode.querySelector(".autocomplete-selector");
-    if (dropdown && dropdown.tagName === 'SL-DROPDOWN') {
+    if (dropdown && dropdown.tagName === 'SL-DROPDOWN' && dropdown.hide) {
         dropdown.hide();
     }
 }

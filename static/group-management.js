@@ -13,7 +13,7 @@ import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 import { persistGroups, getAppMetaData } from "./persistence.js";
 import { startWebcam, stopWebcam, switchWebcam, captureAndHandle, flipImageResult } from "./webcam.js";
 
-import { onInput, onKeyDown } from './autocomplete.js';
+import { onInput, handleKeyNavigation } from './autocomplete.js';
 
 const BASE_CSS_FOR_IFRAME_RESULT = "/styleiframebase.css"
 
@@ -513,6 +513,13 @@ function addEventListenersToGroup(groupElement) {
         }
     });
 
+    const autocompleteElements = groupElement.querySelectorAll(".auto-complete");
+    for (const element of autocompleteElements) {
+        element.addEventListener('input', onInput);
+        element.addEventListener('keydown', handleKeyNavigation);
+    }
+
+
     transformElement?.addEventListener("keydown", (event) => {
         const dontLineReturn = event.code === 'NumpadEnter' || (event.shiftKey && event.key === 'Enter');
 
@@ -762,12 +769,6 @@ function addEventListenersToGroup(groupElement) {
     groupElement.querySelector(".refresh-btn")?.addEventListener("click", () => handleInputChange(groupElement, true, true, true, groups));
 
     groupElement.querySelector(".clear-btn")?.addEventListener("click", () => clearImportedImage(group, groupElement));
-
-    const autocompleteElements = groupElement.querySelectorAll(".auto-complete");
-    for (const element of autocompleteElements) {
-        element.addEventListener('input', onInput);
-        element.addEventListener('keydown', onKeyDown);
-    }
 
     // Result buttons
 
