@@ -104,33 +104,20 @@ async function init() {
                 handleDroppedText(file, groupElement, groupsMap.GROUPS);
             }
 
-            const textData = event.dataTransfer.getData('text/plain');
+            const textData = JSON.parse(event.dataTransfer.getData('application/json'));
 
-            if (textData) {
+            console.log("[TEXT DATA FROM DRAG] :", textData)
 
-                switch (textData) {
+            // expecting { add: [{ groupType: groupType }, ... ] } from dragging an add group button
 
-                    case GROUP_TYPE.BREAK:
-                        createGroupAndAddGroupElement(textData);
-                        break;
-
-                    case GROUP_TYPE.STATIC:
-                        createGroupAndAddGroupElement(textData);
-                        break;
-
-                    case GROUP_TYPE.IMPORTED_IMAGE:
-                        createGroupAndAddGroupElement(textData);
-                        break;
-
-                    case GROUP_TYPE.IMAGE:
-                        createGroupAndAddGroupElement(textData);
-                        break;
-
-                    default:
-                        createGroupAndAddGroupElement(GROUP_TYPE.STATIC);
+            if (textData && textData.add && textData.add.length > 0) {
+                const groupTypes = Object.values(GROUP_TYPE);
+                for (const group of textData.add) {
+                    if (groupTypes.includes(group.groupType)) {
+                        createGroupAndAddGroupElement(group.groupType);
+                    }
                 }
-
-            };
+            }
         }
     );
 
@@ -168,7 +155,7 @@ async function init() {
         const button = document.querySelector(buttonSelector);
 
         button.addEventListener('dragstart', (event) => {
-            event.dataTransfer.setData('text/plain', groupType);
+            event.dataTransfer.setData('application/json', JSON.stringify({ add: [{ groupType: groupType }] }));
         });
     }
 
