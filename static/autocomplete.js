@@ -22,7 +22,9 @@ function onInput(e) {
 
 function onKeyDown(e) {
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter') {
-        const dropdown = e.target.nextElementSibling;
+
+        console.log("[AUTOCOMPLETE] handling arrows and enter keydown")
+        const dropdown = e.currentTarget.parentNode.querySelector(".autocomplete-selector");
         if (dropdown && dropdown.open && dropdown.tagName === 'SL-DROPDOWN') {
             e.preventDefault();
             handleKeyNavigation(e, dropdown);
@@ -52,7 +54,7 @@ function handleKeyNavigation(e, dropdown) {
 
 async function showDropdown(input, triggerChar, query, words) {
     const filteredWords = words.filter(word => word.toLowerCase().startsWith(query.toLowerCase()));
-    let dropdown = input.nextElementSibling;
+    let dropdown = input.parentNode.querySelector(".autocomplete-selector");
 
     if (!dropdown || dropdown.tagName !== 'SL-DROPDOWN') {
         dropdown = document.createElement('sl-dropdown');
@@ -124,6 +126,7 @@ function getCursorPosition(input) {
     };
 }
 
+
 function selectWord(input, triggerChar, word) {
     const cursorPos = input.selectionStart;
     const value = input.value;
@@ -149,7 +152,7 @@ function selectWord(input, triggerChar, word) {
 }
 
 function hideDropdown(input) {
-    const dropdown = input.nextElementSibling;
+    const dropdown = input.parentNode.querySelector(".autocomplete-selector");
     if (dropdown && dropdown.tagName === 'SL-DROPDOWN') {
         dropdown.hide();
     }
