@@ -336,7 +336,7 @@ async function loadGroups(importedGroups) {
                         data: data || "",
                         transform: transform || "",
                         type: type || GROUP_TYPE.TEXT,
-                        result: null,
+                        result: "",
                         lastRequestTime: 0,
                         // Older apps might have an interaction state set to locked, which is now only a temp state when using another's app
                         interactionState: interactionState === INTERACTION_STATE.LOCKED ? INTERACTION_STATE.OPEN : interactionState,
