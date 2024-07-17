@@ -20,3 +20,15 @@ body {
 img {
     width: 4rem;
 }
+
+@media screen and (min-width: 20rem) {
+
+    img {
+        width: 12rem;
+    }
+
+    body {
+        font-size: 150%;
+    }
+
+}
