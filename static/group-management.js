@@ -1124,7 +1124,7 @@ function displayCombinedReferencedResult(groupElement, itemizedDataText) {
                         content: item.resultToInsert,
                         format: RESULT_DISPLAY_FORMAT.HTML,
                         scale: 0.7,
-                        margin: "2rem",
+                        margin: "2", // will be applied in rem
                     });
 
                     // A valid reference but the result is not ready
@@ -1355,7 +1355,7 @@ function displayFormattedResults(groupElement) {
             content: group.result,
             format: group.resultDisplayFormat,
             scale: 1,
-            margin: 0,
+            margin: "0",
         });
 
         if (group.result) {
@@ -1368,7 +1368,7 @@ function displayFormattedResults(groupElement) {
         }
     }
 }
-
+// margin will be applied in rem
 function renderInIframe({ targetIframe, content, format = RESULT_DISPLAY_FORMAT.HTML, scale = 1, margin = "0" }) {
 
     console.log("[RENDERING IFRAME] ", targetIframe);
@@ -1417,9 +1417,9 @@ function renderInIframe({ targetIframe, content, format = RESULT_DISPLAY_FORMAT.
             body{
                 transform-origin: top left; 
                 transform: scale(${scale}); 
-                width: calc((100% / ${scale}) -(2* ${margin}));
+                width: calc((100% / ${scale}) - (2 * ${margin}rem));
                 height: calc(100% / ${scale});
-                margin-left: ${margin};
+                margin-left: ${margin}rem;
             }
         </style>
         <title>Result</title>
