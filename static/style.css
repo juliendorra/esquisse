@@ -495,6 +495,13 @@ input[readonly] {
     border-right-width: 0;
 }
 
+.referenced-result-text .inline-result-html:first-child {
+    margin-top: 0;
+}
+
+.referenced-result-text .inline-result-html:last-child {
+    margin-bottom: 0;
+}
 
 
 .inline-result-image {
