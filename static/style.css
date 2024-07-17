@@ -1449,7 +1449,6 @@ canvas#mesh-background:has(~ .container.list-view) {
 .group.static .result-placeholder span {
     display: block;
     position: relative;
-    width: var(--result-width);
     height: 0.5em;
     background-color: var(--light-border);
     border-radius: 0.4em;
@@ -1472,7 +1471,6 @@ canvas#mesh-background:has(~ .container.list-view) {
 .group.imported-image .result-placeholder {
     display: none;
     aspect-ratio: 1 / 1;
-    width: var(--result-width);
     background-color: var(--light-border);
     border-radius: 0.2em;
 }
