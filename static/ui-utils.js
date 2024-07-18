@@ -86,7 +86,7 @@ function createZoomedIframe(originalIframe) {
     });
 
     let closeButton = document.createElement('button');
-    closeButton.classList.add('close-zoomed', 'footer-btn');
+    closeButton.classList.add('close-zoomed');
 
     closeButton.innerHTML = `
         <span class="text-btn">Close</span>
