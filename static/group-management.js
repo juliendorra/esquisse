@@ -1452,7 +1452,8 @@ function renderInImg(element, content) {
 
     console.log("[RENDERING IMG] its URI is ", content);
 
-    element.src = content;
+    if (content)
+        element.src = content;
 }
 
 function indexGroupsInNewOrder() {
