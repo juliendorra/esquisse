@@ -668,7 +668,6 @@ iframe.result {
 
 img.result {
     cursor: zoom-in;
-    width: var(--result-width);
 }
 
 iframe.zoomed {
