@@ -193,7 +193,7 @@ async function getReferencedResultsAndCombinedDataWithResults(dataText, currentG
 
                 notreadyReferencedResults.push(name);
 
-                itemizedDataText.push({ name, isReference: true, isValid: true, isReady: false, groupType: referencedGroup.type, contentType: contentType, Insert: name });
+                itemizedDataText.push({ name, isReference: true, isValid: true, isReady: false, groupType: referencedGroup.type, contentType: contentType, resultToInsert: name });
 
                 lastIndex = match.index + match[0].length;
 
