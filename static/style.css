@@ -1488,7 +1488,7 @@ canvas#mesh-background:has(~ .container.list-view) {
 /* Result placeholders */
 
 .result-placeholder {
-    display: none;
+    display: block;
 }
 
 .group.text .result-placeholder span,
@@ -1515,7 +1515,7 @@ canvas#mesh-background:has(~ .container.list-view) {
 
 .group.image .result-placeholder,
 .group.imported-image .result-placeholder {
-    display: none;
+    display: block;
     aspect-ratio: 1 / 1;
     background-color: var(--light-border);
     border-radius: 0.2em;
@@ -1534,11 +1534,6 @@ canvas#mesh-background:has(~ .container.list-view) {
     }
 }
 
-.group.text .result.empty-result~.result-placeholder,
-.group.static .result.empty-result~.result-placeholder {
-    display: block;
-}
-
 .group.text .zoom-out-btn,
 .group.static .zoom-out-btn {
     display: block;
@@ -1549,7 +1544,13 @@ canvas#mesh-background:has(~ .container.list-view) {
     display: none;
 }
 
-img.result:not([src])~.result-placeholder,
-img.result[src=""]~.result-placeholder {
-    display: block;
+.group.text .result:not(.empty-result)~.result-placeholder,
+.group.static .result:not(.empty-result)~.result-placeholder,
+.group.text sl-select~.result-placeholder,
+.group.static sl-select~.result-placeholder {
+    display: none;
+}
+
+img.result[src].result:not([src=""])~.result-placeholder {
+    display: none;
 }
