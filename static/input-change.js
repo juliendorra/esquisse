@@ -100,7 +100,6 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
     const dataElement = groupElement.querySelector(".data-text");
     const data = dataElement?.value.trim() || "";
-    const transform = "";
 
     let currentData = data;
     let referencedResultsChanged = false;
@@ -146,12 +145,10 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     group.combinedReferencedResults = currentData;
 
     const groups_structure_has_changed =
-        (group.interactionState !== INTERACTION_STATE.ENTRY && group.data !== data)
-        || group.transform !== transform;
+        (group.interactionState !== INTERACTION_STATE.ENTRY && group.data !== data);
 
     const groups_have_changed =
         group.data !== currentData
-        || group.transform !== transform
         || referencedResultsChanged;
 
     console.log("groups_have_changed: ", groups_have_changed)
@@ -172,7 +169,6 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     }
 
     group.data = data;
-    group.transform = transform;
 
     group.resultHash = await generateHash(group.result);
 
@@ -191,8 +187,6 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
     // Sending generative request for the group
 
-    const lastTransformValue = transform;
-
     const hasInvalidReferencedResults = notreadyReferencedResults.length > 0 || invalidReferencedResults.length > 0;
 
     // Ready to send request if: it's just text. Or references exists and are all valid
@@ -203,7 +197,6 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
         await sendRequestsForGroup({
             currentData,
             image: imageB64,
-            lastTransformValue,
             isUndirected,
             groupElement,
             group,
@@ -220,7 +213,6 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 async function sendRequestsForGroup({
     currentData,
     image,
-    lastTransformValue,
     isUndirected,
     groupElement,
     group,
@@ -234,7 +226,7 @@ async function sendRequestsForGroup({
         body: JSON.stringify({
             data: currentData,
             image: image,
-            transform: lastTransformValue,
+            transform: "",
             qualityEnabled: SETTINGS.qualityEnabled,
             controlnetEnabled: group.controlnetEnabled,
         }),
@@ -242,7 +234,7 @@ async function sendRequestsForGroup({
 
     if (group.type === GROUP_TYPE.IMAGE) {
 
-        console.log(`[REQUEST] image ||| ${currentData} ||| ${lastTransformValue}`);
+        console.log(`[REQUEST] image generation. ${image ? "with image input" : ""}, prompt is: ${currentData}`);
 
         groupElement.classList.remove("error");
         groupElement.classList.add("waiting");
@@ -323,7 +315,7 @@ async function sendRequestsForGroup({
 
             const maxPromptTextLength = 240 - group.name.length - 15;
 
-            let promptText = `${group.combinedReferencedResults} ${group.transform}`.substring(0, maxPromptTextLength);
+            const promptText = `${group.combinedReferencedResults}`.substring(0, maxPromptTextLength);
 
             const fileName = `${group.name} — ${promptText} — ${randomInt(1, 99999)}.${fileExtension}`.replace(/\s+/g, ' ').trim();
 
@@ -339,7 +331,7 @@ async function sendRequestsForGroup({
             console.error(`Fetch failed: ${error} `);
         }
     } else if (group.type === GROUP_TYPE.TEXT) {
-        console.log(`[REQUEST] text ||| ${currentData} ||| ${lastTransformValue} `);
+        console.log(`[REQUEST] text generation ${image ? "with image input" : ""}, with prompt: ${currentData} `);
 
         groupElement.classList.remove("error");
         groupElement.classList.add("waiting");
