@@ -99,9 +99,8 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     // Handling references: validity check, combining, displaying
 
     const dataElement = groupElement.querySelector(".data-text");
-    const transformElement = groupElement.querySelector(".transform-text");
-    const data = dataElement?.value || "";
-    const transform = transformElement?.value || "";
+    const data = dataElement?.value.trim() || "";
+    const transform = "";
 
     let currentData = data;
     let referencedResultsChanged = false;
@@ -199,7 +198,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     // Ready to send request if: it's just text. Or references exists and are all valid
     const dataReadyToSend = !hasReferences && currentData || availableReferencedResults.length > 0 && !hasInvalidReferencedResults;
 
-    if (dataReadyToSend && lastTransformValue) {
+    if (dataReadyToSend) {
 
         await sendRequestsForGroup({
             currentData,

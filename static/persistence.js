@@ -10,7 +10,7 @@ let ID = null;
 let CREATOR = null;
 let USERNAME = null;
 
-const VERSION = "2024-03-14";
+const VERSION = "2024-07-17";
 let APP_VERSION_TIMESTAMP;
 
 let PENDING_CHANGES = 0;
@@ -159,7 +159,7 @@ function packageGroups(groups, { packageIds = true } = { packageIds: true }) {
         name: group.name,
         // We don't package the data text if the block is set to Entry (i.e., as a temporary input)
         data: group.interactionState === INTERACTION_STATE.ENTRY ? "" : group.data,
-        transform: group.transform,
+        transform: "",
         type: group.type,
         interactionState: group.interactionState,
         controlnetEnabled: group.controlnetEnabled,
@@ -333,8 +333,9 @@ async function loadGroups(importedGroups) {
                         id: id || generateGroupUUID(),
                         index: index,
                         name: name || generateUniqueGroupName(type, groups),
-                        data: data || "",
-                        transform: transform || "",
+                        // for retro compatibilty with previous apps, load th transform into data
+                        data: data + "\n\n" + transform || "",
+                        transform: "",
                         type: type || GROUP_TYPE.TEXT,
                         result: "",
                         lastRequestTime: 0,
@@ -352,12 +353,10 @@ async function loadGroups(importedGroups) {
 
                     const groupNameElement = groupElement.querySelector(".group-name");
                     const dataElement = groupElement.querySelector(".data-text");
-                    const transformElement = groupElement.querySelector(".transform-text");
 
                     // Break groups elements don't have data and transform elements
                     if (groupNameElement) groupNameElement.value = group.name;
                     if (dataElement) dataElement.value = group.data;
-                    if (transformElement) transformElement.value = transform;
 
                     if (group.type === GROUP_TYPE.IMPORTED_IMAGE && group.hashImportedImage) {
 

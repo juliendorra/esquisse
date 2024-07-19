@@ -136,7 +136,6 @@ const GROUP_HTML = {
             <input type="text" class="group-name" placeholder="Name of this block">
             <textarea class="data-text auto-complete" placeholder="Data you want to use: text, #name or [another name] to get results from another block"></textarea>
             <div class="referenced-result-text" placeholder="Referenced Result"></div>
-            <textarea class="transform-text" placeholder="Instructions to transform data into result"></textarea>
 
             <div class="function-buttons-container">
 
@@ -169,7 +168,6 @@ const GROUP_HTML = {
             <input type="text" class="group-name" placeholder="Name of this Block">
             <textarea class="data-text auto-complete" placeholder="Data you want to use: visual keywords, #name or [another name] to get results from another block"></textarea>
             <div class="referenced-result-text" placeholder="Referenced Result"></div>
-            <textarea class="transform-text" placeholder="Visual keywords like 'oil painting', 'vector logo', etc. "></textarea>
 
             <div class="function-buttons-container">
 
@@ -364,7 +362,6 @@ function addEventListenersToGroup(groupElement) {
     const groupNameElement = groupElement.querySelector(".group-name");
     const dataElement = groupElement.querySelector(".data-text");
     const refResultElement = groupElement.querySelector(".referenced-result-text");
-    const transformElement = groupElement.querySelector(".transform-text");
 
     const group =
         groups.get(
@@ -381,7 +378,7 @@ function addEventListenersToGroup(groupElement) {
     groupElement.addEventListener("dragstart", onDragStart);
     groupElement.addEventListener("dragend", onDragEnd);
 
-    // Persist and handle change when a group's name, data or transform changes
+    // Persist and handle change when a group's name, data changes
 
     groupNameElement?.addEventListener("change", () => { nameChangeHandler(group, groupNameElement, groups); });
 
@@ -403,11 +400,6 @@ function addEventListenersToGroup(groupElement) {
             handleInputChange(groupElement, true, false, true, groups);
             dataTextHasChangedWithoutBeingHandled = false;
         });
-
-
-    transformElement?.addEventListener("change", () => {
-        handleInputChange(groupElement, true, false, true, groups);
-    });
 
 
     dataElement?.addEventListener("blur", () => {
@@ -457,11 +449,6 @@ function addEventListenersToGroup(groupElement) {
     dataElement?.addEventListener("input", () => {
         if (container && container.classList.contains('list-view')) {
             resizeTextArea(dataElement)
-        }
-    });
-    transformElement?.addEventListener("input", () => {
-        if (container && container.classList.contains('list-view')) {
-            resizeTextArea(transformElement)
         }
     });
 
@@ -519,18 +506,6 @@ function addEventListenersToGroup(groupElement) {
         element.addEventListener('keydown', handleKeyNavigation);
     }
 
-
-    transformElement?.addEventListener("keydown", (event) => {
-        const dontLineReturn = event.code === 'NumpadEnter' || (event.shiftKey && event.key === 'Enter');
-
-        if (event.key === 'Enter' && isCursorAtEndWithTwoEmptyLines(transformElement)) {
-            event.preventDefault();
-            focusOnNextElement(groupElement, ".group-name");
-        } else if (dontLineReturn) {
-            event.preventDefault();
-            focusOnNextElement(groupElement, ".group-name");
-        }
-    });
 
     function isCursorAtEndWithTwoEmptyLines(textarea) {
         const value = textarea.value;
@@ -852,7 +827,6 @@ function displayTextGroupDisplayFormatButtons(groupElement, resultDisplayFormat)
 function displayGroupInteractionState(groupElement, interactionState) {
     const groupNameElement = groupElement.querySelector(".group-name");
     const dataElement = groupElement.querySelector(".data-text");
-    const transformElement = groupElement.querySelector(".transform-text");
 
     const openButton = groupElement.querySelector(".open-btn");
     const entryButton = groupElement.querySelector(".entry-btn");
@@ -875,7 +849,6 @@ function displayGroupInteractionState(groupElement, interactionState) {
         case INTERACTION_STATE.OPEN:
             groupNameElement?.removeAttribute("readonly");
             dataElement?.removeAttribute("readonly");
-            transformElement?.removeAttribute("readonly");
 
             openButton?.classList.add("selected")
             entryButton?.classList.remove("selected")
@@ -884,7 +857,6 @@ function displayGroupInteractionState(groupElement, interactionState) {
         case INTERACTION_STATE.ENTRY:
             groupNameElement?.setAttribute("readonly", "readonly");
             dataElement?.removeAttribute("readonly");
-            transformElement?.setAttribute("readonly", "readonly");
 
             openButton?.classList.remove("selected")
             entryButton?.classList.add("selected")
@@ -893,7 +865,6 @@ function displayGroupInteractionState(groupElement, interactionState) {
         case INTERACTION_STATE.LOCKED:
             groupNameElement?.setAttribute("readonly", "readonly");
             dataElement?.setAttribute("readonly", "readonly");
-            transformElement?.setAttribute("readonly", "readonly");
 
             openButton?.classList.remove("selected")
             entryButton?.classList.remove("selected")
