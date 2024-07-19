@@ -243,7 +243,7 @@ function getResultToInsert(name, groups) {
 
     const referencedGroup = getGroupFromName(name, groups);
 
-    if (!referencedGroup || referencedGroup.result === undefined) {
+    if (!referencedGroup || !referencedGroup.result) {
 
         return "";
     }
@@ -254,8 +254,11 @@ function getResultToInsert(name, groups) {
 
     if (!isImageResult) {
         return referencedGroup.result;
-    } else {
+    } else if (referencedGroup.resultBlobURI) {
         return referencedGroup.resultBlobURI;
+    }
+    else {
+        return "";
     }
 }
 
@@ -263,7 +266,7 @@ function getResult(name, groups) {
 
     const referencedGroup = getGroupFromName(name, groups);
 
-    if (!referencedGroup || referencedGroup.result === undefined) {
+    if (!referencedGroup || !referencedGroup.result) {
 
         return "";
     }
