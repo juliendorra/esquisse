@@ -450,8 +450,8 @@ input[readonly] {
 /* Reference rendered as previews of the data-text */
 
 .referenced-result-text {
-    background-color: none;
-    height: 10em;
+    background-color: transparent;
+    height: 20em;
     overflow-y: scroll;
     resize: vertical;
 }
@@ -540,7 +540,7 @@ input[readonly] {
 
 .data-text,
 .transform-text {
-    height: 10em;
+    height: 20em;
     border: 1px;
     border-style: solid;
     border-color: #cccccc;
