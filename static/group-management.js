@@ -70,10 +70,7 @@ const GROUP_HTML = {
                 <button class="tool-btn list-mode-btn"><img alt="List mode" src="/icons/list-mode.svg"></button>
                 </div>
             
-                <div class="group-btn">
-                <button class="tool-btn open-btn" aria-label="Entry"><img src="/icons/open.svg"></button>
                 <button class="tool-btn entry-btn" aria-label="Entry"><img src="/icons/entry.svg"></button>
-                </div>
 
             </div>
 
@@ -112,10 +109,7 @@ const GROUP_HTML = {
 
                 <button class="tool-btn start-webcam-btn" aria-label="Start webcam"><img src="/icons/start-webcam.svg"></button>
 
-                <div class="group-btn">
-                <button class="tool-btn open-btn" aria-label="Entry"><img src="/icons/open.svg"></button>
                 <button class="tool-btn entry-btn" aria-label="Entry"><img src="/icons/entry.svg"></button>
-                </div>
                 
                 <button class="tool-btn clear-btn" aria-label="Clear" ><img src="/icons/clear.svg"></button>
                 </div>
@@ -145,11 +139,6 @@ const GROUP_HTML = {
                 <button class="tool-btn list-mode-btn"><img alt="List mode" src="/icons/list-mode.svg"></button>
                 </div>
 
-                <div class="group-btn">
-                <button class="tool-btn open-btn" aria-label="Entry"><img src="/icons/open.svg"></button>
-                <button class="tool-btn entry-btn" aria-label="Entry"><img src="/icons/entry.svg"></button>
-                </div>
-
                 <button class="tool-btn refresh-btn" aria-label="Refresh"><img src="/icons/refresh.svg"></button>
             </div>
 
@@ -174,11 +163,6 @@ const GROUP_HTML = {
                 <div class="group-btn">
                 <button class="tool-btn image-to-image-btn" aria-label="Image to image"><img src="/icons/image-to-image.svg"></button>
                 <button class="tool-btn controlnet-btn" aria-label="Controlnet"><img src="/icons/controlnet.svg"></button>
-                </div>
-
-                <div class="group-btn">
-                <button class="tool-btn open-btn" aria-label="Entry"><img src="/icons/open.svg"></button>
-                <button class="tool-btn entry-btn" aria-label="Entry"><img src="/icons/entry.svg"></button>
                 </div>
 
                 <button class="tool-btn refresh-btn" aria-label="Refresh"><img src="/icons/refresh.svg"></button>
@@ -214,7 +198,6 @@ function createGroupInLocalDataStructures(groupType) {
 
         // properties below are used client side but not persisted
         index: groups.size,
-        lastRequestTime: 0,
         resultDisplayFormat: (groupType === GROUP_TYPE.TEXT || groupType === GROUP_TYPE.STATIC) ? RESULT_DISPLAY_FORMAT.HTML : "",
         webcamEnabled: false,
         resultBlobURI: "",
@@ -302,12 +285,6 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
     const imageToImageButton = groupElement.querySelector(".image-to-image-btn");
     if (imageToImageButton) {
         imageToImageButton.classList.add("selected");
-    }
-
-    // Initially set interaction state button to open
-    const openButton = groupElement.querySelector(".open-btn");
-    if (openButton) {
-        openButton.classList.add("selected");
     }
 
     // Initially hide the download button
@@ -719,24 +696,18 @@ function addEventListenersToGroup(groupElement) {
         persistGroups(groupsMap.GROUPS);
     });
 
-    groupElement.querySelector(".open-btn")?.addEventListener("click", async (event) => {
+    groupElement.querySelector(".entry-btn")?.addEventListener("click", async (event) => {
 
         const previousInteractionState = group.interactionState;
 
-        group.interactionState = INTERACTION_STATE.OPEN;
+        group.interactionState = group.interactionState === INTERACTION_STATE.ENTRY ? INTERACTION_STATE.OPEN : INTERACTION_STATE.ENTRY;
 
         displayGroupInteractionState(groupElement, group.interactionState);
 
-        if (previousInteractionState === INTERACTION_STATE.ENTRY && group.type === GROUP_TYPE.IMPORTED_IMAGE) {
+        if (group.type === GROUP_TYPE.IMPORTED_IMAGE && previousInteractionState === INTERACTION_STATE.ENTRY && INTERACTION_STATE.OPEN) {
             group.hashImportedImage = await hashAndPersist(group.interactionState, group.result)
         }
 
-        persistGroups(groups);
-    });
-
-    groupElement.querySelector(".entry-btn")?.addEventListener("click", (event) => {
-        group.interactionState = INTERACTION_STATE.ENTRY;
-        displayGroupInteractionState(groupElement, group.interactionState);
         persistGroups(groups);
     });
 
@@ -828,9 +799,7 @@ function displayGroupInteractionState(groupElement, interactionState) {
     const groupNameElement = groupElement.querySelector(".group-name");
     const dataElement = groupElement.querySelector(".data-text");
 
-    const openButton = groupElement.querySelector(".open-btn");
     const entryButton = groupElement.querySelector(".entry-btn");
-    const lockButton = groupElement.querySelector(".lock-btn");
 
     const { CREATOR, USERNAME, ID } = getAppMetaData();
 
@@ -850,25 +819,27 @@ function displayGroupInteractionState(groupElement, interactionState) {
             groupNameElement?.removeAttribute("readonly");
             dataElement?.removeAttribute("readonly");
 
-            openButton?.classList.add("selected")
             entryButton?.classList.remove("selected")
-            lockButton?.classList.remove("selected")
             break;
+
         case INTERACTION_STATE.ENTRY:
-            groupNameElement?.setAttribute("readonly", "readonly");
+            if (userIsAppAuthor) {
+                groupNameElement?.removeAttribute("readonly");
+            }
+            else {
+                groupNameElement?.setAttribute("readonly", "readonly");
+            }
+
             dataElement?.removeAttribute("readonly");
 
-            openButton?.classList.remove("selected")
             entryButton?.classList.add("selected")
-            lockButton?.classList.remove("selected")
             break;
+
         case INTERACTION_STATE.LOCKED:
             groupNameElement?.setAttribute("readonly", "readonly");
             dataElement?.setAttribute("readonly", "readonly");
 
-            openButton?.classList.remove("selected")
             entryButton?.classList.remove("selected")
-            lockButton?.classList.add("selected")
             break;
     }
 }

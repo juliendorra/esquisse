@@ -329,18 +329,36 @@ async function loadGroups(importedGroups) {
                     { id, name, data, transform, type, interactionState, controlnetEnabled, resultDisplayFormat, hashImportedImage },
                     index) => {
 
+                    // for retro compatibilty with previous apps, load any transform text into data
+                    let compatibleData = "";
+                    if (data) {
+                        if (transform) {
+                            compatibleData = data + "\n\n" + transform;
+                        } else {
+                            compatibleData = data;
+                        }
+                    }
+
+                    let compatibleInteractionState = interactionState;
+
+                    // Older apps might have text generation groups state set to entry, which is now reserved to Static and Imported image groups
+                    if ((type === GROUP_TYPE.TEXT || type === GROUP_TYPE.IMAGE) && interactionState === INTERACTION_STATE.ENTRY) {
+                        compatibleInteractionState = INTERACTION_STATE.OPEN;
+                    }
+                    // Older apps might have an interaction state set to locked, which is now only a temp state when using another's app
+                    if (interactionState === INTERACTION_STATE.LOCKED) {
+                        compatibleInteractionState = INTERACTION_STATE.OPEN;
+                    }
+
                     const group = {
                         id: id || generateGroupUUID(),
                         index: index,
                         name: name || generateUniqueGroupName(type, groups),
-                        // for retro compatibilty with previous apps, load th transform into data
-                        data: data + "\n\n" + transform || "",
+                        data: compatibleData,
                         transform: "",
                         type: type || GROUP_TYPE.TEXT,
                         result: "",
-                        lastRequestTime: 0,
-                        // Older apps might have an interaction state set to locked, which is now only a temp state when using another's app
-                        interactionState: interactionState === INTERACTION_STATE.LOCKED ? INTERACTION_STATE.OPEN : interactionState,
+                        interactionState: compatibleInteractionState,
                         controlnetEnabled: controlnetEnabled || undefined,
                         resultDisplayFormat: resultDisplayFormat
                             || (type === GROUP_TYPE.TEXT || type === GROUP_TYPE.STATIC ? RESULT_DISPLAY_FORMAT.HTML : ""),
