@@ -550,6 +550,15 @@ input[readonly] {
     height: 22em;
 }
 
+.group.static.entry textarea.data-text,
+.group.static.entry div.referenced-result-text,
+.group.entry .image-import-container .drop-zone {
+    background-image: url("/icons/entry-dimmed.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 5rem;
+}
+
 .data-text.error,
 .referenced-result-text.error {
     border-color: red;

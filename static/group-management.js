@@ -816,6 +816,8 @@ function displayGroupInteractionState(groupElement, interactionState) {
 
     switch (interactionStateAfterAuthorCheck) {
         case INTERACTION_STATE.OPEN:
+            groupElement.classList.remove("entry");
+
             groupNameElement?.removeAttribute("readonly");
             dataElement?.removeAttribute("readonly");
 
@@ -830,12 +832,15 @@ function displayGroupInteractionState(groupElement, interactionState) {
                 groupNameElement?.setAttribute("readonly", "readonly");
             }
 
+            groupElement.classList.add("entry");
             dataElement?.removeAttribute("readonly");
 
             entryButton?.classList.add("selected")
             break;
 
         case INTERACTION_STATE.LOCKED:
+            groupElement.classList.remove("entry");
+
             groupNameElement?.setAttribute("readonly", "readonly");
             dataElement?.setAttribute("readonly", "readonly");
 
