@@ -203,6 +203,7 @@ function createGroupInLocalDataStructures(groupType) {
         resultBlobURI: "",
         resultHash: "",
         referenceHashes: new Map(),
+        hasReferences: false,
         availableReferencedResults: [], //[{ name, result, type, resultHash },..} 
         combinedReferencedResults: [],
         // used by displayFormattedResults function
@@ -827,6 +828,36 @@ function displayGroupInteractionState(groupElement, interactionState) {
         case INTERACTION_STATE.ENTRY:
             if (userIsAppAuthor) {
                 groupNameElement?.removeAttribute("readonly");
+
+                const group = getGroupFromName(groupNameElement.value, groupsMap.GROUPS);
+
+                if (group.result) {
+                    let message;
+
+                    if (group.type === GROUP_TYPE.STATIC && group.hasReferences) {
+                        message = "References and text won't be saved";
+                    }
+                    else if (group.type === GROUP_TYPE.STATIC) {
+                        message = "Text entered won't be saved";
+                    }
+                    else if (group.type === GROUP_TYPE.IMPORTED_IMAGE) {
+                        message = "The imported image won't be saved";
+                    }
+                    else {
+                        message = "Data won't be saved";
+                    }
+
+                    displayAlert(
+                        {
+                            issue: `${group.name} is set as an user input block`,
+                            action: message,
+                            variant: "warning",
+                            icon: "exclamation-octagon",
+                            duration: 5000
+                        }
+                    );
+                }
+
             }
             else {
                 groupNameElement?.setAttribute("readonly", "readonly");
