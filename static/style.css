@@ -1563,3 +1563,140 @@ canvas#mesh-background:has(~ .container.list-view) {
 img.result[src].result:not([src=""])~.result-placeholder {
     display: none;
 }
+
+.data-text-container {
+    resize: vertical;
+    overflow: auto;
+    height: 20em;
+    width: var(--result-width);
+    margin: 0;
+    border: 1px solid #cccccc;
+    background-color: transparent;
+    padding: 0.4rem;
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.data-text,
+.referenced-result-text {
+    width: 100%;
+    height: 100%;
+    border: none;
+    resize: none;
+    margin: 0;
+    padding: 0.4rem;
+    overflow: auto;
+    background-color: transparent;
+}
+
+.data-text {
+    display: block;
+}
+
+.referenced-result-text {
+    display: none;
+}
+
+.data-text-container .data-text {
+    display: block;
+}
+
+.data-text-container .referenced-result-text {
+    display: block;
+}
+
+@media screen and (max-width: 450px) {
+    .data-text-container {
+        width: 100%;
+        height: auto;
+        margin: 0.75rem 0;
+    }
+
+    .data-text,
+    .referenced-result-text {
+        font-size: 100%;
+    }
+}
+
+@media screen and (max-width: 450px) {
+    .data-text-container {
+        width: 100%;
+        align-self: center;
+        margin: 0.75rem 0;
+    }
+}
+
+.referenced-result-text:empty {
+    display: none;
+}
+
+.referenced-result-text .inline-result-html {
+    width: 98%;
+    height: 5em;
+    margin: 1rem 1%;
+    border-radius: 2em;
+    box-shadow: inset 0 0px 14px 0px rgba(var(--group-color-code), 0.2);
+    border: solid rgba(var(--group-color-code), 0.2) 1px;
+    vertical-align: middle;
+}
+
+.referenced-result-text .inline-result-html:first-child {
+    margin-top: 0;
+}
+
+.referenced-result-text .inline-result-html:last-child {
+    margin-bottom: 0;
+}
+
+.inline-result-image {
+    width: 2em;
+    border-radius: 0.5em;
+    vertical-align: middle;
+}
+
+.inline-data-text {
+    vertical-align: middle;
+}
+
+.inline-reference-text {
+    border-radius: 0.15rem;
+    padding: 0 0.2rem;
+}
+
+.inline-reference-text.not-ready {
+    color: white;
+    background: orange;
+}
+
+.inline-reference-text.not-valid {
+    color: white;
+    background: red;
+}
+
+.data-text.error,
+.referenced-result-text.error {
+    border-color: red;
+}
+
+.data-text.warning,
+.referenced-result-text.warning {
+    border-color: orange;
+}
+
+.data-text.valid,
+.referenced-result-text.valid {
+    border-color: blue;
+}
+
+.data-text.error:focus {
+    border-color: red;
+}
+
+.data-text.warning:focus {
+    border-color: orange;
+}
+
+.data-text.valid:focus {
+    border-color: blue;
+}

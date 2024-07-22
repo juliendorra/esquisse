@@ -58,9 +58,13 @@ const GROUP_HTML = {
                 <div class="drag-handle">···</div>
                 <button class="tool-btn delete-btn" aria-label="Delete"><img src="/icons/delete.svg"></button>
             </div>
+
             <input type="text" class="group-name" placeholder="Name of this block">
-            <textarea class="data-text auto-complete" placeholder="Data you want to use: text, #name or [another name] to get results from another block"></textarea>
-            <div class="referenced-result-text" placeholder="Referenced Result"></div>
+            
+            <div class="data-text-container">
+                <textarea class="data-text auto-complete" placeholder="Data you want to use: text, #name or [another name] to get results from another block"></textarea>
+                <div class="referenced-result-text" placeholder="Referenced Result"></div>
+            </div>
 
             <div class="function-buttons-container">
 
@@ -128,8 +132,11 @@ const GROUP_HTML = {
             </div>
 
             <input type="text" class="group-name" placeholder="Name of this block">
-            <textarea class="data-text auto-complete" placeholder="Data you want to use: text, #name or [another name] to get results from another block"></textarea>
-            <div class="referenced-result-text" placeholder="Referenced Result"></div>
+
+            <div class="data-text-container">
+                <textarea class="data-text auto-complete" placeholder="Data you want to use: text, #name or [another name] to get results from another block"></textarea>
+                <div class="referenced-result-text" placeholder="Referenced Result"></div>
+            </div>
 
             <div class="function-buttons-container">
 
