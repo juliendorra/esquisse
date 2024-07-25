@@ -67,62 +67,121 @@ function initMeshBackground() {
         }`,
 
         fragmentShader: `
-
         #define MAX_DIVS 100
+        #define TAU 6.28318530718
+        #define SRGB_EPSILON 1e-5
 
         precision mediump float;
-
+    
         uniform vec2 divPositions[MAX_DIVS];
         uniform vec3 divColors[MAX_DIVS];
         uniform float divWidth[MAX_DIVS];
         uniform float divHeight[MAX_DIVS];
         uniform int activeDivCount;
         uniform vec2 resolution;
-        uniform float circleExpansion; 
+        uniform float circleExpansion;
+            
+        mat3 m1=mat3(
+            .4122214708,.5363325363,.0514459929,
+            .2119034982,.6806995451,.1073969566,
+            .0883024619,.2817188376,.6299787005
+        );
 
-        vec4 gradient(vec4 bgColor, vec4 fgColor, float interpolator){
-            return vec4(mix(bgColor, fgColor, interpolator));
+        mat3 inverse_m1=mat3(
+            4.0767416621,-3.3077115913,.2309699292,
+            -1.2684380046,2.6097574011,-.3413193965,
+            -.0041960863,-.7034186147,1.7076147010
+        );
+
+        mat3 m2=mat3(
+            .2104542553,.7936177850,-.0040720468,
+            1.9779984951,-2.4285922050,.4505937099,
+            .0259040371,.7827717662,-.8086757660
+        );
+
+        mat3 inverse_m2=mat3(
+            1.,.3963377774,.2158037573,
+            1.,-.1055613458,-.0638541728,
+            1.,-.0894841775,-1.2914855480
+        );
+
+        float cbrt(float x){
+            return sign(x)*pow(abs(x),1./3.);
+        }
+
+        vec3 cbrt(vec3 xyz){
+            return vec3(cbrt(xyz.x),cbrt(xyz.y),cbrt(xyz.z));
+        }
+
+        float srgb2rgb(const in float v){
+            return(v<.04045)?v*.0773993808:pow((v+.055)*.947867298578199,2.4);
+        }
+
+        vec3 srgb2rgb(const in vec3 srgb){
+            return vec3(srgb2rgb(srgb.r+SRGB_EPSILON),srgb2rgb(srgb.g+SRGB_EPSILON),srgb2rgb(srgb.b+SRGB_EPSILON));
+        }
+
+        float rgb2srgb(const in float c){
+            return(c<.0031308)?c*12.92:1.055*pow(c,.4166666666666667)-.055;
+        }
+
+        vec3 rgb2srgb(const in vec3 rgb){
+            return clamp(vec3(rgb2srgb(rgb.r-SRGB_EPSILON),rgb2srgb(rgb.g-SRGB_EPSILON),rgb2srgb(rgb.b-SRGB_EPSILON)),0.,1.);
+        }
+
+        vec3 rgb2oklab(vec3 rgb){
+            return cbrt(rgb*m1)*m2;
+        }
+
+        vec3 oklab2rgb(vec3 oklab){
+            return pow(oklab*inverse_m2,vec3(3.))*inverse_m1;
         }
 
         void main(){
-            vec2 uv = gl_FragCoord.xy / resolution;
-
-            float aspectRatio = resolution.x / resolution.y;
-            uv.x *= aspectRatio; // Correct for the aspect ratio
-
-            vec4 accumulatedColor = vec4(1.0);  // Start with a white background color
-            float totalWeight = 1.0; // Start with a weight of 1 for the white background
-
-            for(int i = 0; i < MAX_DIVS; i++){
-                if(i >= activeDivCount) break;
-
-                vec2 correctedPosition = divPositions[i];
-                correctedPosition.x *= aspectRatio;
-
+            
+            vec2 uv=gl_FragCoord.xy/resolution;
+            
+            float aspectRatio=resolution.x/resolution.y;
+            uv.x*=aspectRatio;// Correct for the aspect ratio
+            
+            // Start with a white background color in OKLAB space
+            vec3 accumulatedColorOKLAB=rgb2oklab(vec3(1.,1.,1.));
+            float accumulatedAlpha=1.;
+            
+            // Start with a weight of 1 for the white background
+            float totalWeight=1.;
+            
+            for(int i=0;i<MAX_DIVS;i++){
+                if(i>=activeDivCount)break;
+                
+                vec2 correctedPosition=divPositions[i];
+                correctedPosition.x*=aspectRatio;
+                
                 // Get the maximum dimension for this circle and convert it to normalized value
-                float maxDimension = max(divWidth[i], divHeight[i]) + circleExpansion;
-                float normalizedCircleSize = maxDimension / resolution.y; 
-
-                float distance = distance(uv, correctedPosition);
-
-                if (distance > normalizedCircleSize) continue;
-
+                float maxDimension=max(divWidth[i],divHeight[i])+circleExpansion;
+                float normalizedCircleSize=maxDimension/resolution.y;
+                
+                float distance=distance(uv,correctedPosition);
+                
+                if(distance>normalizedCircleSize)continue;
+                
                 // Adjust influence computation for a softer fade
-                float influence = clamp((normalizedCircleSize - distance) / (0.5 * normalizedCircleSize), 0.0, 1.0);
-
-                // Accumulate the weighted color
-                accumulatedColor += vec4(divColors[i], 1.0) * influence;
-                totalWeight += influence;
+                float influence=clamp((normalizedCircleSize-distance)/(.9*normalizedCircleSize),0.,1.);
+                
+                vec3 colorOKLAB=rgb2oklab(srgb2rgb(divColors[i]));
+                
+                // Interpolate the color in OKLAB space
+                accumulatedColorOKLAB=mix(accumulatedColorOKLAB,colorOKLAB,influence);
+                
+                accumulatedAlpha=mix(accumulatedAlpha,.8,influence);
+                
+                totalWeight=mix(totalWeight,1.,influence);
             }
-
-            // Normalize the accumulated color
-            if(totalWeight > 0.0) {
-                accumulatedColor /= totalWeight;
-            }
-
-            gl_FragColor = accumulatedColor;
+            
+            vec3 accumulatedColorRGB=rgb2srgb(oklab2rgb(accumulatedColorOKLAB));
+            
+            gl_FragColor=vec4(accumulatedColorRGB,accumulatedAlpha);
         }
-    
         `
     });
 
