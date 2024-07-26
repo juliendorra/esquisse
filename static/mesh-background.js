@@ -51,7 +51,8 @@ function initMeshBackground() {
             value: new Array(MAX_DIVS).fill().map(() => new THREE.Vector3(1.0, 0.0, 0.0))
         },
 
-        circleExpansion: { value: 0.05 },
+        // multiply the normalized [0, 1] size of the ellipse
+        shapeExpansion: { value: 1.7 },
 
         activeDivCount: { value: ACTIVE_DIVS },
 
@@ -79,7 +80,7 @@ function initMeshBackground() {
         uniform float divHeight[MAX_DIVS];
         uniform int activeDivCount;
         uniform vec2 resolution;
-        uniform float circleExpansion;
+        uniform float shapeExpansion;
             
         mat3 m1=mat3(
             .4122214708,.5363325363,.0514459929,
@@ -157,16 +158,18 @@ function initMeshBackground() {
                 vec2 correctedPosition=divPositions[i];
                 correctedPosition.x*=aspectRatio;
                 
-                // Get the maximum dimension for this circle and convert it to normalized value
-                float maxDimension=max(divWidth[i],divHeight[i])+circleExpansion;
-                float normalizedCircleSize=maxDimension/resolution.y;
+                float ellipseWidth=(divWidth[i]/resolution.x)*shapeExpansion;
+                float ellipseHeight=(divHeight[i]/resolution.y)*shapeExpansion;
                 
-                float distance=distance(uv,correctedPosition);
+                vec2 ellipseRadius=vec2(ellipseWidth,ellipseHeight)*.5;
+                vec2 dist=(uv-correctedPosition)/ellipseRadius;
                 
-                if(distance>normalizedCircleSize)continue;
+                float distance=length(dist);
+                
+                if(distance>1.)continue;
                 
                 // Adjust influence computation for a softer fade
-                float influence=clamp((normalizedCircleSize-distance)/(.9*normalizedCircleSize),0.,1.);
+                float influence=clamp((1.-distance)/.9,0.,1.);
                 
                 vec3 colorOKLAB=rgb2oklab(srgb2rgb(divColors[i]));
                 
