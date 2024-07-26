@@ -12,14 +12,10 @@
     --title-text-color: #929292;
     --footer-btn-color: #363636;
 
-    --slight-passthrough-color: rgba(245, 245, 245, 0.5);
-
-    --group-break-color-code-button: #929292;
-    --group-break-color-code-border: #ffffff;
-
     --tooltip-color: rgb(254, 253, 226);
     --tooltip-border-color: rgb(253, 251, 191);
 
+    --group-break-color-code: #e3dfcc;
     --group-static-color-code: rgb(154, 123, 212);
     --group-text-color-code: rgb(186, 226, 127);
     --group-image-color-code: rgb(233, 107, 168);
@@ -183,9 +179,8 @@ textarea {
 .group.break {
     flex-basis: 100%;
     height: fit-content;
-    background-color: var(--slight-passthrough-color);
     max-width: none;
-    border-color: var(--group-break-color-code-border);
+    border-color: var(--group-break-color-code);
 }
 
 .group.break input {
@@ -270,18 +265,13 @@ textarea {
 }
 
 .group.break .group-header small {
-    background-color: var(--group-break-color-code-border);
+    background-color: var(--group-break-color-code);
 }
 
 .group-header small img {
     filter: brightness(0) invert();
     height: 0.75rem;
 }
-
-.group.break .group-header small img {
-    filter: brightness(0) invert() contrast(40%);
-}
-
 
 .group-header .drag-handle {
     -webkit-touch-callout: none;
@@ -910,7 +900,7 @@ img.result.zoomed {
 }
 
 .add-break-group-btn {
-    border-color: var(--group-break-color-code-button)
+    border-color: var(--group-break-color-code)
 }
 
 .add-static-group-btn {
