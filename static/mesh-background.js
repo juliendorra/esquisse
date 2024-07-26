@@ -58,6 +58,8 @@ function initMeshBackground() {
 
         resolution: { value: new THREE.Vector2(CANVASWIDTH, CANVASHEIGHT) },
 
+        backgroundColor: { value: new THREE.Vector3(.97, .95, .90) },
+
     };
 
     SHADER_MATERIAL = new THREE.ShaderMaterial({
@@ -81,6 +83,7 @@ function initMeshBackground() {
         uniform int activeDivCount;
         uniform vec2 resolution;
         uniform float shapeExpansion;
+        uniform vec3 backgroundColor;
             
         mat3 m1=mat3(
             .4122214708,.5363325363,.0514459929,
@@ -146,7 +149,7 @@ function initMeshBackground() {
             uv.x*=aspectRatio;// Correct for the aspect ratio
             
             // Start with a white background color in OKLAB space
-            vec3 accumulatedColorOKLAB=rgb2oklab(vec3(1.,1.,1.));
+            vec3 accumulatedColorOKLAB=rgb2oklab(backgroundColor);
             float accumulatedAlpha=1.;
             
             // Start with a weight of 1 for the white background
