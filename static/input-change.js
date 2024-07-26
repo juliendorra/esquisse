@@ -101,7 +101,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     const dataElement = groupElement.querySelector(".data-text");
     const data = dataElement?.value.trim() || "";
 
-    let currentData = data;
+    let consolidatedData = data;
     let referencedResultsChanged = false;
 
     const {
@@ -122,7 +122,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
     displayCombinedReferencedResult(groupElement, itemizedDataText);
 
-    currentData = combinedReferencedResults;
+    consolidatedData = combinedReferencedResults;
 
     for (const referencedResult of availableReferencedResults) {
 
@@ -143,14 +143,16 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     group.referenceHashes = new Map(availableReferencedResults.map(({ name, resultHash }) => [name, resultHash]));
 
 
-    group.combinedReferencedResults = currentData;
-
     const groups_structure_has_changed =
         (group.interactionState !== INTERACTION_STATE.ENTRY && group.data !== data);
 
     const groups_have_changed =
-        group.data !== currentData
+        group.data !== data
         || referencedResultsChanged;
+
+
+    // this is used by static groups as their result, and by generative groups has their base prompt
+    group.combinedReferencedResults = consolidatedData;
 
     console.log("groups_have_changed: ", groups_have_changed)
     console.log("groups_structure_has_changed: ", groups_structure_has_changed)
@@ -162,16 +164,14 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     }
 
     if (group.type === GROUP_TYPE.STATIC) {
-        console.log(`[CHANGE HANDLING] combining statict group: ${currentData}`);
+        console.log(`[CHANGE HANDLING] combining statict group: ${consolidatedData}`);
 
-        group.result = currentData;
+        group.result = consolidatedData;
 
         displayFormattedResults(groupElement);
     }
 
     group.data = data;
-
-    group.resultHash = await generateHash(group.result);
 
     // If there's an image result referenced, we get it and prepare it to send in the generative request 
     let imageB64;
@@ -186,17 +186,17 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
     if (groups_structure_has_changed) persistGroups(groups);
 
-    // Sending generative request for the group
+    // Sending generative request for the group, if references are available
 
     const hasInvalidReferencedResults = notreadyReferencedResults.length > 0 || invalidReferencedResults.length > 0;
 
-    // Ready to send request if: it's just text. Or references exists and are all valid
-    const dataReadyToSend = !hasReferences && currentData || availableReferencedResults.length > 0 && !hasInvalidReferencedResults;
+    // Ready to send request if: it's just text, no references. Or references exists and are all valid
+    const dataReadyToSend = !hasReferences && consolidatedData || availableReferencedResults.length > 0 && !hasInvalidReferencedResults;
 
     if (dataReadyToSend) {
 
         await sendRequestsForGroup({
-            currentData,
+            consolidatedData,
             image: imageB64,
             isUndirected,
             groupElement,
@@ -205,6 +205,10 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
         });
     }
 
+    // After the results were combined or a request for result sent, 
+    // we can compute the result hash to help other groups check for result change
+    group.resultHash = await generateHash(group.result);
+
     if (isUndirected) {
         console.log("[INPUT CHANGE] Undirected update, Now updating dataText of groups referencing results from: ", group.name)
         updateGroupsReferencingIt(group.id);
@@ -212,7 +216,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 }
 
 async function sendRequestsForGroup({
-    currentData,
+    consolidatedData,
     image,
     isUndirected,
     groupElement,
@@ -225,7 +229,7 @@ async function sendRequestsForGroup({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            data: currentData,
+            data: consolidatedData,
             image: image,
             transform: "",
             qualityEnabled: SETTINGS.qualityEnabled,
@@ -235,7 +239,7 @@ async function sendRequestsForGroup({
 
     if (group.type === GROUP_TYPE.IMAGE) {
 
-        console.log(`[REQUEST] image generation. ${image ? "with image input" : ""}, prompt is: ${currentData}`);
+        console.log(`[REQUEST] image generation. ${image ? "with image input" : ""}, prompt is: ${consolidatedData}`);
 
         groupElement.classList.remove("error");
         groupElement.classList.add("waiting");
@@ -303,6 +307,8 @@ async function sendRequestsForGroup({
 
             groupElement.querySelector(".refresh-btn").style.display = "block";
 
+            // Building a download button with a proper name for the image file
+
             const downloadButton = groupElement.querySelector(".download-btn");
             downloadButton.style.display = "block";
             downloadButton.href = blobUrl;
@@ -313,6 +319,8 @@ async function sendRequestsForGroup({
             } else if (contentType === 'image/png') {
                 fileExtension = 'png';
             }
+
+            // We need to shorten the name to avoid download bugs on Safari
 
             const maxPromptTextLength = 240 - group.name.length - 15;
 
@@ -332,7 +340,7 @@ async function sendRequestsForGroup({
             console.error(`Fetch failed: ${error} `);
         }
     } else if (group.type === GROUP_TYPE.TEXT) {
-        console.log(`[REQUEST] text generation ${image ? "with image input" : ""}, with prompt: ${currentData} `);
+        console.log(`[REQUEST] text generation ${image ? "with image input" : ""}, with prompt: ${consolidatedData} `);
 
         groupElement.classList.remove("error");
         groupElement.classList.add("waiting");
@@ -370,7 +378,7 @@ async function sendRequestsForGroup({
 
 // List selection change
 
-function handleListSelectionChange(selectElement, group, listItems) {
+async function handleListSelectionChange(selectElement, group, listItems) {
 
     console.log(`[LIST SELECTION] group ${group.name} result is now: ${selectElement.value ? listItems[parseInt(selectElement.value)] : "a random choice"}`)
 
@@ -381,6 +389,8 @@ function handleListSelectionChange(selectElement, group, listItems) {
     else {
         group.result = listItems[parseInt(selectElement.value)];
     }
+
+    group.resultHash = await generateHash(group.result);
 
     updateGroupsReferencingIt(group.id)
 }
@@ -410,7 +420,8 @@ async function handleDroppedImage(imageFile, groupElement) {
     try {
         const processedBlob = await processImage(imageFile);
 
-        displayAndAddToGroupImportedImageBlob(groupElement, processedBlob, group);
+        // this will add the blob, blobURI and resultHash to the group, and display the image
+        await displayAndAddToGroupImportedImageBlob(groupElement, processedBlob, group);
 
         const previousHashImportedImage = group.hashImportedImage
 
@@ -430,7 +441,7 @@ async function handleDroppedImage(imageFile, groupElement) {
     }
 }
 
-function displayAndAddToGroupImportedImageBlob(groupElement, processedBlob, group) {
+async function displayAndAddToGroupImportedImageBlob(groupElement, processedBlob, group) {
     const resultElement = groupElement.querySelector(".result");
     const functionButtonsContainer = groupElement.querySelector(".function-buttons-container");
 
@@ -447,6 +458,10 @@ function displayAndAddToGroupImportedImageBlob(groupElement, processedBlob, grou
     resultElement.addEventListener('click', createZoomedImage);
 
     group.result = processedBlob;
+
+    // we cannot use the hash of the imported image sent back by the server, 
+    // as it's empty for entry groups (the image is not sent to the server)
+    group.resultHash = await generateHash(group.result);
 }
 
 async function hashAndPersist(interactionState, importedImageBlob) {
@@ -488,8 +503,15 @@ function clearImportedImage(group, groupElement) {
 // Utils
 
 async function generateHash(content) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(content);
+    let data;
+
+    if (content instanceof Blob) {
+        data = await content.arrayBuffer();
+    } else {
+        const encoder = new TextEncoder();
+        data = encoder.encode(content);
+    }
+
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
