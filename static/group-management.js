@@ -162,8 +162,11 @@ const GROUP_HTML = {
             </div>
 
             <input type="text" class="group-name" placeholder="Name of this Block">
-            <textarea class="data-text auto-complete" placeholder="Data you want to use: visual keywords, #name or [another name] to get results from another block"></textarea>
-            <div class="referenced-result-text" placeholder="Referenced Result"></div>
+
+            <div class="data-text-container">
+                <textarea class="data-text auto-complete" placeholder="Data you want to use: visual keywords, #name or [another name] to get results from another block"></textarea>
+                <div class="referenced-result-text" placeholder="Referenced Result"></div>
+            </div>
 
             <div class="function-buttons-container">
 
