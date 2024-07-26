@@ -99,9 +99,9 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     // Handling references: validity check, combining, displaying
 
     const dataElement = groupElement.querySelector(".data-text");
-    const data = dataElement?.value.trim() || "";
+    const dataText = dataElement?.value || "";
 
-    let consolidatedData = data;
+    let consolidatedData = dataText;
     let referencedResultsChanged = false;
 
     const {
@@ -111,7 +111,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
         availableReferencedResults,
         itemizedDataText,
         combinedReferencedResults
-    } = await getReferencedResultsAndCombinedDataWithResults(data, group.name, groups);
+    } = await getReferencedResultsAndCombinedDataWithResults(dataText, group.name, groups);
 
     displayDataTextReferenceStatus({ groupElement, hasReferences, invalidReferencedResults, notreadyReferencedResults, availableReferencedResults });
 
@@ -143,22 +143,22 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
     group.referenceHashes = new Map(availableReferencedResults.map(({ name, resultHash }) => [name, resultHash]));
 
 
-    const groups_structure_has_changed =
-        (group.interactionState !== INTERACTION_STATE.ENTRY && group.data !== data);
+    const group_structure_has_changed =
+        (group.interactionState !== INTERACTION_STATE.ENTRY && group.data !== dataText);
 
-    const groups_have_changed =
-        group.data !== data
+    const group_input_has_changed =
+        group.data !== dataText
         || referencedResultsChanged;
 
 
     // this is used by static groups as their result, and by generative groups has their base prompt
     group.combinedReferencedResults = consolidatedData;
 
-    console.log("groups_have_changed: ", groups_have_changed)
-    console.log("groups_structure_has_changed: ", groups_structure_has_changed)
+    console.log("[CHANGE HANDLING] group has changed: ", group_input_has_changed)
+    console.log("[CHANGE HANDLING] group structure has changed: ", group_structure_has_changed)
 
     // we do nothing more if no change and not an explicit refresh request
-    if (!isRefresh && !groups_have_changed) {
+    if (!isRefresh && !group_input_has_changed) {
         console.log("[CHANGE HANDLING] No values changed, not a manual refresh, aborting input change");
         return;
     }
@@ -171,7 +171,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
         displayFormattedResults(groupElement);
     }
 
-    group.data = data;
+    group.data = dataText;
 
     // If there's an image result referenced, we get it and prepare it to send in the generative request 
     let imageB64;
@@ -184,7 +184,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
         }
     }
 
-    if (groups_structure_has_changed) persistGroups(groups);
+    if (group_structure_has_changed) persistGroups(groups);
 
     // Sending generative request for the group, if references are available
 
