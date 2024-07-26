@@ -138,9 +138,14 @@ async function init(hideDeletedApps = true, scrollY = 0) {
 
 function createAppsList({ apps, appscreator, currentuser, hideDeletedApps = true, results }) {
 
+    const pageTitle = appscreator !== currentuser ? `${appscreator}'s apps` : 'Your apps';
+
+    // Name the page
+    document.title = `${pageTitle} · Esquisse AI`;
+
     // Add a title
     const title = document.querySelector(".apps-page-title");
-    title.textContent = appscreator !== currentuser ? `${appscreator}'s apps` : 'Your apps';
+    title.textContent = pageTitle;
 
     // Create the list
     const appList = document.querySelector(".apps-list");
