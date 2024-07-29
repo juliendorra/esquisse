@@ -1088,10 +1088,10 @@ function displayCombinedReferencedResult(groupElement, itemizedDataText) {
     const referencedResultText = groupElement.querySelector(".referenced-result-text");
     const dataText = groupElement.querySelector(".data-text");
 
+    referencedResultText.innerHTML = '';
+
     if (referencedResultText && itemizedDataText.length > 0) {
         console.log(`[DISPLAY COMBINED REFS] Displaying the results referenced for ${dataText.value}`, itemizedDataText);
-
-        referencedResultText.innerHTML = '';
 
         for (const item of itemizedDataText) {
             let element;
@@ -1277,8 +1277,6 @@ function displayFormattedResults(groupElement) {
     const resultElement = groupElement.querySelector(".result");
 
     const group = groupsMap.GROUPS.get(getGroupIdFromElement(groupElement));
-
-    if (!group.result) { return; }
 
     if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.LIST) {
 
