@@ -419,6 +419,21 @@ function addEventListenersToGroup(groupElement) {
 
     if (refResultElement) {
 
+        // Mousedown gives us an immediate feedback of focusing data input when starting a click anywhere in the data input element, except inside a rendered result iframe.
+        // It's useful because it avoids the mentally surprising experience of instinctively selecting a text in the rendered referenced results and loosing the selection when the pointer button is released
+
+        refResultElement.addEventListener("mousedown", () => {
+            refResultElement.style.display = "none";
+            dataElement.style.display = "block";
+            // Delay focusing on the dataElement until the next event loop cycle
+            // to avoid a focus then immediate blur of dataElement during the mousedown cycle
+            setTimeout(() => {
+                dataElement.focus();
+            }, 0);
+        });
+
+        // Click, in turn, focus the data input textArea when clicking anywhere, including a rendered result iframe, giving us an acceptable fallback for these cases
+
         refResultElement.addEventListener("click", () => {
             refResultElement.style.display = "none";
             dataElement.style.display = "block";
