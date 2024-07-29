@@ -216,7 +216,7 @@ function createGroupInLocalDataStructures(groupType) {
         hasReferences: false,
         availableReferencedResults: [], //[{ name, result, type, resultHash },..} 
         combinedReferencedResults: [],
-        // used by displayFormattedResults function
+        // used by displayFormattedResults for list mode management 
         savedResult: "",
         listItems: [],
     };
