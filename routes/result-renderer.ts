@@ -4,6 +4,7 @@ import { retrieveResultMetadata, retrieveResultsByUser } from "../lib/apps.ts";
 import { downloadResult } from "../lib/file-storage.ts";
 
 import { JSDOM } from 'npm:jsdom';
+import { Marked } from "npm:marked";
 import DOMPurify from 'npm:dompurify';
 
 const window = new JSDOM('').window;
@@ -95,7 +96,12 @@ async function renderResult(ctx) {
 
             const replacedIMGresult = replaceSrcAttributes(group, result.groups)
 
-            group.resultHTML = purify.sanitize(replacedIMGresult, sanitizeOptions)
+            // useful because instruct LLMs tend to return markdown formatted answers 
+            const marked = new Marked();
+
+            const parsedForMarkdown = marked.parse(replacedIMGresult, { breaks: true, });
+
+            group.resultHTML = purify.sanitize(parsedForMarkdown, sanitizeOptions)
 
             group.resultText = purify.sanitize(replacedIMGresult, sanitizeOptions)
                 .replace(/&/g, "&amp;")
