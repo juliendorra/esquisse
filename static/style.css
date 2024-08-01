@@ -1576,6 +1576,10 @@ img.result[src].result:not([src=""])~.result-placeholder {
 
 .referenced-result-text {
     display: none;
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .data-text-container .data-text {
