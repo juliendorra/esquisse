@@ -162,7 +162,7 @@ async function init(hideDeletedApps = true, scrollY = 0) {
         );
 
         // Create the used apps list
-        if (appListData.appscreator === appListData.currentuser) {
+        if (appListData.appscreator === appListData.currentuser && usedListData.apps.length > 0) {
 
             // it's important to display the container before creating the list, so macy can do its job properly
             document.querySelector('.used-apps-section').style.display = 'block';
