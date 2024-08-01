@@ -446,9 +446,6 @@ input[readonly] {
     resize: vertical;
 }
 
-.group.static .referenced-result-text {
-    height: 22em;
-}
 
 .referenced-result-text:empty {
     display: none;
@@ -528,16 +525,11 @@ input[readonly] {
     background: red;
 }
 
-.data-text,
-.transform-text {
+.data-text {
     height: 20em;
     border: 1px;
     border-style: solid;
     border-color: #cccccc;
-}
-
-.group.static .data-text {
-    height: 22em;
 }
 
 .group.static.entry textarea.data-text,
@@ -1262,8 +1254,7 @@ sl-drawer::part(footer) {
         display: none;
     }
 
-    .data-text,
-    .transform-text {
+    .data-text {
         display: none;
     }
 
@@ -1401,8 +1392,7 @@ canvas#mesh-background:has(~ .container.list-view) {
     border-radius: 0;
 }
 
-.container.list-view .data-text,
-.container.list-view .transform-text {
+.container.list-view .data-text {
 
     /* this is the future but not supported on Safari and Firefox */
     field-sizing: content;
