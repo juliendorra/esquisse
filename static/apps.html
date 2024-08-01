@@ -339,17 +339,21 @@
     <div class="fetching-indicator"></div>
 
     <div class="apps-list-container">
+
+        <div class="used-apps-section" style="display: none;">
+            <div class="apps-page-header">
+                <span class="used-apps-page-title">The last apps you used</span>
+            </div>
+            <ul class="apps-list used-apps"></ul>
+        </div>
+
         <div class="apps-page-header">
             <span class="apps-page-title"></span>
-
-            <div class="deleted-apps-switch">
-
-            </div>
-
+            <div class="deleted-apps-switch"></div>
         </div>
-        <ul class="apps-list"></ul>
-    </div>
+        <ul class="apps-list all-apps-by-user"></ul>
 
+    </div>
 
     <script type="module" src="/list-apps.js"></script>
 </body>

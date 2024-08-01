@@ -13,7 +13,7 @@ const DELETED_APP_SWITCH = `
 <sl-switch class="quality-switch"></sl-switch>&nbsp;Show&nbsp;deleted&nbsp;apps
 `
 
-let macyInstance;
+let macyAppList, macyUsedAppList;
 
 if (document.readyState === "loading") {
     window.addEventListener("DOMContentLoaded", init);
@@ -32,8 +32,22 @@ async function init(hideDeletedApps = true, scrollY = 0) {
         username = pathParts[2];
     }
 
-    macyInstance = Macy({
-        container: '.apps-list',
+    macyAppList = Macy({
+        container: '.all-apps-by-user',
+        trueOrder: true,
+        waitForImages: false,
+        margin: 24,
+        columns: 4,
+        breakAt: {
+            1400: 4,
+            1000: 3,
+            940: 2,
+            520: 1
+        }
+    });
+
+    macyUsedAppList = Macy({
+        container: '.used-apps',
         trueOrder: true,
         waitForImages: false,
         margin: 24,
@@ -62,22 +76,33 @@ async function init(hideDeletedApps = true, scrollY = 0) {
             method: 'GET',
         });
 
-        const [apps, results] = await Promise.allSettled([responseApps, responseResults]);
+        const responseUsedApps = fetch('/list-used-apps', {
+            method: 'GET',
+        });
 
-        console.log(apps, results);
+        const [apps, results, used] = await Promise.allSettled([responseApps, responseResults, responseUsedApps]);
 
-        if (!results.status === 'fulfilled' || !results.value.ok) {
-            throw new Error(results);
-        }
+        console.log(apps, results, used);
 
         if (!apps.status === 'fulfilled' || !apps.value.ok) {
-            throw new Error(apps);
+            throw new Error(JSON.stringify(apps));
+        }
+
+        if (!results.status === 'fulfilled' || !results.value.ok) {
+            throw new Error(JSON.stringify(results));
+        }
+
+        if (!used.status === 'fulfilled' || !used.value.ok) {
+            throw new Error(JSON.stringify(used));
         }
 
         //  App data is: { currentuser, appscreator, apps }
         const appListData = await apps.value.json();
         // results data is [{resultid,username,timestamp,appid,appversiontimestamp},...]
-        const resultListData = await results.value.json();
+        const resultListData = await results.value.json()
+        //  Useed data is: { currentuser, apps }
+        const usedListData = await used.value.json();
+
 
         const deletedAppsSwitch = document.querySelector(".deleted-apps-switch");
 
@@ -87,7 +112,7 @@ async function init(hideDeletedApps = true, scrollY = 0) {
 
             deletedAppsSwitch.addEventListener('sl-change', (event) => {
 
-                const appList = document.querySelector(".apps-list");
+                const appList = document.querySelector(".all-apps-by-user");
 
                 const deletedApps = appList.querySelectorAll("li[data-status='deleted-app']");
                 const liveApps = appList.querySelectorAll("li[data-status='live-app']");
@@ -99,7 +124,7 @@ async function init(hideDeletedApps = true, scrollY = 0) {
                     for (const appElement of liveApps) {
                         appElement.style.display = "none";
                     }
-                    macyInstance.recalculate(true);
+                    macyAppList.recalculate(true);
                 }
                 else {
                     for (const appElement of deletedApps) {
@@ -108,13 +133,22 @@ async function init(hideDeletedApps = true, scrollY = 0) {
                     for (const appElement of liveApps) {
                         appElement.style.display = "list-item";
                     }
-                    macyInstance.recalculate(true);
+                    macyAppList.recalculate(true);
                 }
             });
         };
 
         // has the scrolled changed since a delete?
         scrollY = scrollY !== window.scrollY ? window.scrollY : scrollY;
+
+        // Name the page
+        const pageTitle = appListData.appscreator !== appListData.currentuser ? `${appListData.appscreator}'s apps` : 'Your apps';
+
+        document.title = `${pageTitle} · Esquisse AI`;
+
+        // the main app list title is the same as the page
+        const title = document.querySelector(".apps-page-title");
+        title.textContent = pageTitle;
 
         // Create the list of apps
         createAppsList(
@@ -127,152 +161,61 @@ async function init(hideDeletedApps = true, scrollY = 0) {
             }
         );
 
+        // Create the used apps list
+        if (appListData.appscreator === appListData.currentuser) {
+
+            // it's important to display the container before creating the list, so macy can do its job properly
+            document.querySelector('.used-apps-section').style.display = 'block';
+
+            createUsedAppsList({ apps: usedListData.apps, currentuser: appListData.currentuser, results: resultListData });
+
+        }
+        else {
+
+            document.querySelector('.used-apps-section').style.display = 'none';
+        }
+
         window.scroll({
             top: scrollY
         });
 
     } catch (error) {
-        console.error('Error fetching apps:', JSON.stringify(error));
+        console.error('Error during apps and results retrieval and building:', error);
     }
 };
 
 function createAppsList({ apps, appscreator, currentuser, hideDeletedApps = true, results }) {
 
-    const pageTitle = appscreator !== currentuser ? `${appscreator}'s apps` : 'Your apps';
-
-    // Name the page
-    document.title = `${pageTitle} · Esquisse AI`;
-
-    // Add a title
-    const title = document.querySelector(".apps-page-title");
-    title.textContent = pageTitle;
-
-    // Create the list
-    const appList = document.querySelector(".apps-list");
-
+    const appList = document.querySelector(".all-apps-by-user");
     appList.textContent = '';
 
     apps.sort(sortTextByAscendingOrder);
 
-    let allAppAsListItemsHTML = [];
-
-    for (const app of apps) {
-
-        // console.log(app);
-
-        const groupIconImgHTML = app.groupstypes.map(
-            (type, index) => {
-
-                let icon;
-
-                switch (type) {
-
-                    case GROUP_TYPE.BREAK:
-                        icon = "break.svg";
-                        break;
-
-                    case GROUP_TYPE.STATIC:
-                        icon = "text-static.svg";
-                        break;
-
-                    case GROUP_TYPE.IMPORTED_IMAGE:
-                        icon = "imported-image.svg";
-                        break;
-                    case GROUP_TYPE.IMAGE:
-                        icon = "image-gen.svg";
-                        break;
-
-                    case GROUP_TYPE.TEXT:
-                        icon = "text-gen.svg";
-                        break;
-
-                    default:
-                        icon = "text-gen.svg";
-                };
-
-                const iconpath = "/icons/"
-                const iconElementHTML = `<img src="${iconpath}${icon}" class="group-type-icon">`;
-
-                let wrapper;
-
-                if (index === 0 && type === GROUP_TYPE.BREAK) {
-
-                    wrapper = `
-                            <span>${iconElementHTML}</span>
-                            <br />
-                            `
-                }
-                else if (index !== 0 && type === GROUP_TYPE.BREAK) {
-
-                    wrapper = `
-                            <br />
-                            <span>${iconElementHTML}</span>
-                            <br />
-                            `
-                }
-                else {
-                    wrapper = `<span>${iconElementHTML}</span>`
-                }
-
-                return wrapper;
-            });
-
-        const appNameHTML = `<div class="app-name">${app.name}</div>`
-
-        const groupIconsHTML = `<div class="group-icons">${groupIconImgHTML.join("")}</div>`
-
-        let headerHTML = "";
-
-        if (appscreator === currentuser) {
-            headerHTML = `<div class="app-header">${app.isdeleted ? DELETED_APP_HEADER : LIVE_APP_HEADER}</div>`
-        }
-
-        let AppResultsListHTML = "";
-
-        if (results.length > 0) {
-            AppResultsListHTML = getAppResultsListHTML(app.appid, results);
-        }
-
-        let appAsListItemHTML = "";
-
-        if (app.isdeleted) {
-
-            appAsListItemHTML = ` 
-            <li data-appid="${app.appid}" data-status="${app.isdeleted ? 'deleted-app' : 'live-app'}">
-            ${headerHTML}
-            ${appNameHTML}
-            ${groupIconsHTML}
-            ${AppResultsListHTML}
-            </li> 
-            `
-        }
-        else {
-            appAsListItemHTML = ` 
-
-            <li data-appid="${app.appid}" data-status="${app.isdeleted ? 'deleted-app' : 'live-app'}">
-            ${headerHTML}
-            <a href="${app.link}">
-            ${appNameHTML}
-            ${groupIconsHTML}
-            </a>
-            ${AppResultsListHTML}
-            </li> 
-            `
-        }
-
-        allAppAsListItemsHTML.push(appAsListItemHTML)
-
-    }
+    const allAppAsListItemsHTML = buildAppListItems(apps, appscreator, currentuser, results);
 
     appList.innerHTML = allAppAsListItemsHTML.join("");
 
     removeGlobalWaitingIndicator();
 
-    addEventListeners(appList)
+    addEventListeners(appList);
 
     hideApps(appList, hideDeletedApps);
 
-    macyInstance.recalculate(true);
+    macyAppList.recalculate(true);
+}
+
+function createUsedAppsList({ apps, currentuser, results }) {
+
+    const usedAppsList = document.querySelector(".used-apps");
+    usedAppsList.textContent = '';
+
+    const allUsedAppAsListItemsHTML = buildAppListItems(apps, "", currentuser, results);
+
+    usedAppsList.innerHTML = allUsedAppAsListItemsHTML.join("");
+
+    addEventListeners(usedAppsList);
+
+    macyUsedAppList.recalculate(true);
 
 }
 
@@ -527,4 +470,68 @@ function removeGlobalWaitingIndicator() {
         const fetchingIndicatorElement = document.querySelector(".fetching-indicator");
         fetchingIndicatorElement.classList.remove("waiting");
     }
+}
+
+
+// Utility function to build app list items
+function buildAppListItems(apps, appscreator, currentuser, results) {
+    return apps.map(app => {
+        const groupIconImgHTML = app.groupstypes.map(
+            (type, index) => {
+                let icon;
+                switch (type) {
+                    case GROUP_TYPE.BREAK: icon = "break.svg"; break;
+                    case GROUP_TYPE.STATIC: icon = "text-static.svg"; break;
+                    case GROUP_TYPE.IMPORTED_IMAGE: icon = "imported-image.svg"; break;
+                    case GROUP_TYPE.IMAGE: icon = "image-gen.svg"; break;
+                    case GROUP_TYPE.TEXT: icon = "text-gen.svg"; break;
+                    default: icon = "text-gen.svg";
+                }
+                const iconpath = "/icons/"
+                const iconElementHTML = `<img src="${iconpath}${icon}" class="group-type-icon">`;
+                let wrapper;
+                if (index === 0 && type === GROUP_TYPE.BREAK) {
+                    wrapper = `<span>${iconElementHTML}</span><br />`;
+                } else if (index !== 0 && type === GROUP_TYPE.BREAK) {
+                    wrapper = `<br /><span>${iconElementHTML}</span><br />`;
+                } else {
+                    wrapper = `<span>${iconElementHTML}</span>`;
+                }
+                return wrapper;
+            }).join("");
+
+        const appNameHTML = `<div class="app-name">${app.name}</div>`;
+        const groupIconsHTML = `<div class="group-icons">${groupIconImgHTML}</div>`;
+        let headerHTML = "";
+        if (appscreator === currentuser) {
+            headerHTML = `<div class="app-header">${app.isdeleted ? DELETED_APP_HEADER : LIVE_APP_HEADER}</div>`;
+        }
+
+        let AppResultsListHTML = results.length > 0 ? getAppResultsListHTML(app.appid, results) : "";
+
+        let appContent;
+        if (app.isdeleted) {
+            appContent = `
+                ${headerHTML}
+                ${appNameHTML}
+                ${groupIconsHTML}
+                ${AppResultsListHTML}
+            `;
+        } else {
+            appContent = `
+                ${headerHTML}
+                <a href="${app.link}">
+                    ${appNameHTML}
+                    ${groupIconsHTML}
+                </a>
+                ${AppResultsListHTML}
+            `;
+        }
+
+        return `
+            <li data-appid="${app.appid}" data-status="${app.isdeleted ? 'deleted-app' : 'live-app'}">
+                ${appContent}
+            </li>
+        `;
+    });
 }
