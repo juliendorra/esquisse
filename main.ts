@@ -15,6 +15,7 @@ import { handleUserFacingURLs, handleStaticFiles } from './routes/user-facing-an
 import { renderResult, renderUserResults } from "./routes/result-renderer.ts";
 import { serveThumbnail } from "./routes/thumbnail.ts";
 import { serveImportedImage } from "./routes/imported-image.ts";
+import { handleListUsedApps } from './routes/api.ts';
 
 
 const router = new Router();
@@ -29,6 +30,7 @@ router
   .post('/clone', handleClone)
   .post('/recover', handleRecover)
   .post('/list-apps', handleListApps)
+  .get('/list-used-apps', handleListUsedApps)
   .get('/list-results', handleListResults)
   .post('/load-versions', handleLoadVersions)
   .post('/load-version', handleLoadVersion)
@@ -69,7 +71,7 @@ const exactRoutes = [
   '/stability', '/chatgpt',
   '/persist', '/persist-result', '/persist-image', '/clone', '/recover',
   '/load', '/load-version', '/load-versions', '/load-result',
-  "/app", "/apps", "/list-apps",
+  "/app", "/apps", "/list-apps", "/list-used-apps",
   "/results", '/list-results',
   "/admin",
   "/list-users", "/bulk-create-users",

@@ -11,10 +11,9 @@ import {
     storeApp,
     retrieveLatestAppVersion, retrieveMultipleLastAppVersions, retrieveAppVersion, checkAppIdExists,
     storeResultMetadata, retrieveResultMetadata,
-    checkAppIsByUser, retrieveAppsByUser,
+    checkAppIsByUser, retrieveAppsByUser, retrieveResultsByUser
 } from "../lib/apps.ts";
-import { retrieveResultsByUser } from "../lib/apps.ts";
-
+import { addUsageEntry, listLastUsagesByUser } from "../lib/usage.ts";
 
 export {
     handleStability, handleChatGPT,
@@ -25,7 +24,8 @@ export {
     handleRecover,
     handlePersistResult, handleListApps,
     handleListResults,
-    handleListUsers, handleBulkCreateUsers
+    handleListUsers, handleBulkCreateUsers,
+    handleListUsedApps,
 }
 
 // Constants and utilities
@@ -85,6 +85,16 @@ async function handleStability(ctx) {
         }
 
         ctx.response.body = jpegData;
+
+        if (body.appid) {
+            await addUsageEntry({
+                timestamp: new Date().toISOString(),
+                username: ctx.state.user.username,
+                appid: body.appid,
+                endpoint: '/stability',
+                type: 'IMAGE'
+            });
+        }
         return;
     }
     else {
@@ -121,6 +131,17 @@ async function handleChatGPT(ctx) {
     const response = await callGPT(gptParameters);
 
     ctx.response.body = JSON.stringify(response);
+
+    if (body.appid) {
+        await addUsageEntry({
+            timestamp: new Date().toISOString(),
+            username: ctx.state.user.username,
+            appid: body.appid,
+            endpoint: '/chatgpt',
+            type: 'TEXT'
+        });
+    }
+
     return;
 }
 
@@ -132,7 +153,7 @@ async function handleLoad(ctx) {
 
     const id = body.id;
 
-    console.log("Loading groups from KV: ", body);
+    // console.log("Loading groups from KV: ", body);
 
     //  {type,timestamp,value:{versiongroups,appid,timestamp,username}}
     const groups = await retrieveLatestAppVersion(id);
@@ -575,6 +596,20 @@ async function handleListApps(ctx) {
 
     const apps = await retrieveAppsByUser(targetUsername);
 
+    let allApps = await packageAppList(apps, username, targetUsername);
+
+    ctx.response.body = JSON.stringify(
+        {
+            currentuser: username,
+            appscreator: targetUsername,
+            apps: allApps,
+        }
+    );
+}
+
+
+async function packageAppList(apps, username: any, targetUsername: any) {
+
     let allApps = [];
 
     for (const app of apps) {
@@ -618,23 +653,15 @@ async function handleListApps(ctx) {
             }
         );
     }
-
-    ctx.response.body = JSON.stringify(
-        {
-            currentuser: username,
-            appscreator: targetUsername,
-            apps: allApps,
-        }
-    );
+    return allApps;
 }
-
 
 // Handler for '/list-results' endpoint
 async function handleListResults(ctx) {
 
     const user = ctx.state.user;
 
-    console.log(ctx.state)
+    // console.log(ctx.state)
 
     if (!user.username) {
         ctx.response.status = 400;
@@ -686,3 +713,49 @@ async function handleBulkCreateUsers(ctx) {
 
     ctx.response.body = JSON.stringify(userList);
 }
+
+async function handleListUsedApps(ctx) {
+
+    const username = ctx.state.user?.username;
+
+    const usages = await listLastUsagesByUser(username, 100);
+
+    // Get unique app IDs from the usages, preserving order
+    const uniqueAppIds = [...new Set(usages.map(usage => usage.appid))];
+
+    const lastFiveUniqueAppIds = uniqueAppIds.slice(0, 5);
+
+    // Retrieve app versions for the unique app IDs
+    const usedApps = await Promise.all(
+        lastFiveUniqueAppIds.map(async appId => {
+            const appVersion = await retrieveLatestAppVersion(appId);
+            return appVersion ? appVersion.value : null;
+        })
+    );
+
+    // console.log("[List Used Apps], Used apps are ", usedApps);
+
+    // [
+    //     {
+    //     "appid",
+    //     "version",
+    //     "timestamp",
+    //     "username",
+    //     "groups": [{id", "name","data","transform","type","interactionState","resultDisplayFormat"}, ...],
+    //         },
+    //     ...
+    // ]
+
+    // Filter out null values and package the app list
+    let packagedAppList = await packageAppList(
+        usedApps.filter(app => app !== null),
+        username,
+        username
+    );
+
+    ctx.response.body = JSON.stringify({
+        currentuser: username,
+        apps: packagedAppList,
+    });
+}
+
