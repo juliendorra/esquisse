@@ -2,7 +2,7 @@ import { GROUP_TYPE, INTERACTION_STATE, RESULT_DISPLAY_FORMAT, generateUniqueGro
 import { updateGroups, updateGroupsReferencingIt, displayCombinedReferencedResult, displayDataText, displayDataTextReferenceStatus, displayFormattedResults, groupsMap } from "./group-management.js"
 import { getReferencedResultsAndCombinedDataWithResults } from "./reference-matching.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
-import { persistGroups, persistImage } from "./persistence.js";
+import { persistGroups, persistImage, getAppMetaData } from "./persistence.js";
 import { SETTINGS } from "./app.js";
 import { displayAlert, removeGlobalWaitingIndicator, createZoomedImage } from "./ui-utils.js";
 import { fetchWithCheck } from "./network.js";
@@ -225,6 +225,9 @@ async function sendRequestsForGroup({
 }
 ) {
 
+    const appid = getAppMetaData().ID;
+    console.log("[SENDING REQUEST] with appid ", appid)
+
     const fetchOptions = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -234,6 +237,7 @@ async function sendRequestsForGroup({
             transform: "",
             qualityEnabled: SETTINGS.qualityEnabled,
             controlnetEnabled: group.controlnetEnabled,
+            appid: appid,
         }),
     };
 
