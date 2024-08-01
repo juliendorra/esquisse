@@ -831,11 +831,6 @@
                 display: none;
             }
 
-            .data-text,
-            .transform-text {
-                display: none;
-            }
-
             input {
                 outline: none;
                 border: none;
