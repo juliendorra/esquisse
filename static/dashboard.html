@@ -2,49 +2,213 @@
 <html lang="en">
 
 <head>
-    <!DOCTYPE html>
-    <html lang="en">
+    <!-- Generated using https://realfavicongenerator.net/ -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/public/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/public/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/public/favicon-16x16.png">
+    <link rel="manifest" href="/public/site.webmanifest">
+    <meta name="apple-mobile-web-app-title" content="Esquisse">
+    <meta name="application-name" content="Esquisse">
+    <link rel="shortcut icon" href="/public/favicon.ico">
+    <meta name="msapplication-TileColor" content="#603cba">
+    <meta name="msapplication-config" content="/public/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
 
-    <head>
-        <!-- Generated using https://realfavicongenerator.net/ -->
-        <link rel="apple-touch-icon" sizes="180x180" href="/public/apple-touch-icon.png">
-        <link rel="icon" type="image/png" sizes="32x32" href="/public/favicon-32x32.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="/public/favicon-16x16.png">
-        <link rel="manifest" href="/public/site.webmanifest">
-        <meta name="apple-mobile-web-app-title" content="Esquisse">
-        <meta name="application-name" content="Esquisse">
-        <link rel="shortcut icon" href="/public/favicon.ico">
-        <meta name="msapplication-TileColor" content="#603cba">
-        <meta name="msapplication-config" content="/public/browserconfig.xml">
-        <meta name="theme-color" content="#ffffff">
+    <meta property='og:title' content='Esquisse. Quick AI Workflow Prototyping' />
+    <meta property='og:image' content='https://user-images.githubusercontent.com/109677/241988208-2d42c609-91b9-49de-80d2-839322a3faae.png' />
+    <meta property='og:description' content='Esquisse. Quick AI workflow prototyping. Draft and test AI ideas, move up from basic prompts to your own mini AI apps.' />
+    <meta property='og:url' content='' />
 
-        <meta property='og:title' content='Esquisse. Quick AI Workflow Prototyping' />
-        <meta property='og:image' content='https://user-images.githubusercontent.com/109677/241988208-2d42c609-91b9-49de-80d2-839322a3faae.png' />
-        <meta property='og:description' content='Esquisse. Quick AI workflow prototyping. Draft and test AI ideas, move up from basic prompts to your own mini AI apps.' />
-        <meta property='og:url' content='' />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.9.0/cdn/themes/light.css" />
 
-        <link rel="stylesheet" href="style.css">
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.9.0/cdn/shoelace-autoloader.js"></script>
 
-        <title>Dashboard · Esquisse AI</title>
-    </head>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        body {
+            background-color: var(--apps-background-color);
+        }
+
+        :root {
+            --footer-height: 3rem;
+            --scale: 0.4;
+
+            --neutral-color: #FaFaFa;
+            --neutral-color-highlight: #fefefe;
+            --light-border: #E0E0E0;
+            --title-text-color: #929292;
+            --footer-btn-color: #363636;
+
+            --slight-passthrough-color: rgba(245, 245, 245, 0.5);
+
+            --group-break-color-code-button: #929292;
+            --group-break-color-code-border: #ffffff;
+
+            --group-static-color-code: rgb(154, 123, 212);
+
+            --group-text-color-code: rgb(186, 226, 127);
+            --group-image-color-code: rgb(233, 107, 168);
+
+            --card-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            --primary-font: 'Helvetica Neue', sans-serif;
+
+            --apps-app-title-link-color: rgb(93, 64, 147);
+            --apps-background-color: rgb(223, 167, 253);
+        }
+
+        html {
+            font-family: var(--primary-font);
+            box-sizing: border-box;
+        }
+
+        body {
+            position: relative;
+            margin: 0;
+            padding: 0;
+            font-weight: normal;
+            background-color: var(--apps-background-color);
+        }
+
+        :not(:defined) {
+            visibility: hidden;
+        }
+
+        img {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -webkit-user-drag: none;
+            user-select: none;
+            user-drag: none;
+        }
+
+        .no-scroll {
+            overflow: hidden;
+            /* Prevent vertical movement */
+            height: 100%;
+            /* Prevent horizontal movement */
+            width: 100%;
+        }
+
+        .waiting * {
+            opacity: 0.8;
+            cursor: wait !important;
+        }
+
+        .fetching-indicator {
+            display: none;
+        }
+
+        .waiting.fetching-indicator {
+            display: block;
+            position: fixed;
+            z-index: 99;
+            width: 80vw;
+            margin-left: 10vw;
+            margin-top: 35vh;
+            height: 4ex;
+            border-radius: 10ex;
+            color: #f8a7ff;
+
+            background-image: repeating-linear-gradient(-270deg, #f8a7ff, #e2cbfe 45.38%, rgb(198, 154, 254) 57.56%, #f8a7ff);
+
+            animation: scrollingBackground 20s infinite linear;
+        }
+
+        @keyframes scrollingBackground {
+            0% {
+                background-position: 0 0
+            }
+
+            100% {
+                background-position: 1000vw 0
+            }
+        }
+
+        .dashboard-container {
+            margin: 0;
+            padding-left: 10vw;
+            padding-top: 2rem;
+            border: none;
+        }
+
+        .apps-page-header {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+            font-size: 1.5em;
+            margin-block-start: 0.83em;
+            margin-block-end: 0.83em;
+        }
+
+
+        .dashboard-section {
+            border-radius: 1em;
+            padding: 1.5em;
+
+            margin-bottom: 2rem;
+            margin-right: 2rem;
+            background-color: white;
+
+            /* box-shadow: var(--card-shadow);*/
+        }
+
+        .dashboard-section h2 {
+            margin-top: 0;
+            width: max-content;
+            color: var(--apps-app-title-link-color);
+            border-bottom: 1px solid var(--light-border);
+            padding-bottom: 0.5rem;
+        }
+
+        .dashboard-section ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .dashboard-section li {
+            padding: 0.5rem 0;
+        }
+
+        .dashboard-section li:last-child {
+            border-bottom: none;
+            margin-left: 0;
+        }
+
+        .panel-container {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+        }
+    </style>
+
+    <title>Dashboard · Esquisse AI</title>
+</head>
 
 <body>
+    <div class="fetching-indicator"></div>
     <div class="dashboard-container">
-        <h1>Dashboard</h1>
-        <div class="dashboard-section">
-            <h2>Last Active Users</h2>
-            <ul id="lastActiveUsers"></ul>
+        <div class="apps-page-header">
+            <span class="apps-page-title">Dashboard</span>
         </div>
-        <div class="dashboard-section">
-            <h2>Most Active Users</h2>
-            <ul id="mostActiveUsers"></ul>
-        </div>
-        <div class="dashboard-section">
-            <h2>Most Used Apps</h2>
-            <ul id="mostUsedApps"></ul>
+        <div class="panel-container">
+            <div class="dashboard-section">
+                <h2>Last Active Users</h2>
+                <ul id="lastActiveUsers"></ul>
+            </div>
+            <div class="dashboard-section">
+                <h2>Most Active Users</h2>
+                <ul id="mostActiveUsers"></ul>
+            </div>
+            <div class="dashboard-section">
+                <h2>Most Used Apps</h2>
+                <ul id="mostUsedApps"></ul>
+            </div>
         </div>
     </div>
     <script src="dashboard.js"></script>
