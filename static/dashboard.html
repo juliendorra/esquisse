@@ -146,6 +146,11 @@
             margin-block-end: 0.83em;
         }
 
+        .panel-container {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+        }
 
         .dashboard-section {
             border-radius: 1em;
@@ -175,15 +180,25 @@
             padding: 0.5rem 0;
         }
 
+        .dashboard-section li a {
+            text-decoration: none;
+        }
+
         .dashboard-section li:last-child {
             border-bottom: none;
             margin-left: 0;
         }
 
-        .panel-container {
-            width: 100%;
-            display: flex;
-            flex-wrap: wrap;
+        .count-badge {
+            background-color: var(--group-static-color-code);
+            color: white;
+            border-radius: 12px;
+            padding: 0.2em 0.6em;
+            font-size: 0.8em;
+            font-weight: bold;
+            display: inline-block;
+            text-align: center;
+            min-width: 24px;
         }
     </style>
 
