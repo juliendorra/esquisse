@@ -15,12 +15,12 @@ function displayList(data, elementId) {
             if ('username' in item) {
                 const userLink = document.createElement('a');
                 userLink.href = `/apps/${item.username}`;
-                userLink.innerHTML = `${item.username} <span class="count-badge">${item.count}</span>`;
+                userLink.innerHTML = `${item.username}&nbsp;<span class="count-badge">${item.count}</span>`;
                 li.appendChild(userLink);
             } else if ('appid' in item) {
                 const appLink = document.createElement('a');
                 appLink.href = `${item.link}`;
-                appLink.innerHTML = `${item.appid} <span class="count-badge">${item.count}</span>`;
+                appLink.innerHTML = `<span class="app-name">${item.name}</span>&nbsp;<span class="count-badge">${item.count}</span>`;
                 li.appendChild(appLink);
             }
         } else {

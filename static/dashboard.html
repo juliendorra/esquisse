@@ -189,7 +189,18 @@
             margin-left: 0;
         }
 
+        .app-name {
+
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 16rem;
+            display: inline-block;
+            vertical-align: text-bottom;
+        }
+
         .count-badge {
+            margin-left: 0.5rem;
             background-color: var(--group-static-color-code);
             color: white;
             border-radius: 12px;
@@ -197,8 +208,9 @@
             font-size: 0.8em;
             font-weight: bold;
             display: inline-block;
-            text-align: center;
             min-width: 24px;
+            text-align: center;
+            vertical-align: middle;
         }
     </style>
 
