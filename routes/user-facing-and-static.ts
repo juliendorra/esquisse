@@ -59,6 +59,27 @@ async function handleUserFacingURLs(ctx) {
         }
     }
 
+    else if (pathname === '/dashboard') {
+
+        if (!ctx.state.user.isAdmin) {
+            ctx.response.status = 401;
+            ctx.response.body = 'Unauthorized';
+            ctx.response.headers.set('WWW-Authenticate', 'Basic realm="Esquisse"');
+        }
+
+        try {
+            const filePath = 'dashboard.html';
+            await ctx.send({
+                root: `${Deno.cwd()}/static`,
+                index: "index.html",
+                path: filePath,
+            });
+        } catch {
+            ctx.response.status = 404;
+            ctx.response.body = 'URL not found';
+        }
+    }
+
     else {
 
         ctx.response.status = 404;
@@ -84,4 +105,3 @@ async function handleStaticFiles(ctx) {
     }
 
 }
-

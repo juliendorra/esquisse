@@ -16,6 +16,7 @@ import { renderResult, renderUserResults } from "./routes/result-renderer.ts";
 import { serveThumbnail } from "./routes/thumbnail.ts";
 import { serveImportedImage } from "./routes/imported-image.ts";
 import { handleListUsedApps } from './routes/api.ts';
+import { handleListMostUsedApps, handleListLastActiveUsers, handleListMostActiveUsers } from './routes/dashboard.ts';
 
 
 const router = new Router();
@@ -36,6 +37,14 @@ router
   .post('/load-version', handleLoadVersion)
   .post('/load-result', handleLoadResult)
   .post('/load', handleLoad)
+  ;
+
+// Dashboard routes
+router
+  .get('/list-most-used-apps', handleListMostUsedApps)
+  .get('/list-last-active-users', handleListLastActiveUsers)
+  .get('/list-most-active-users', handleListMostActiveUsers)
+  .get('/dashboard', handleUserFacingURLs)
   ;
 
 
@@ -73,8 +82,9 @@ const exactRoutes = [
   '/load', '/load-version', '/load-versions', '/load-result',
   "/app", "/apps", "/list-apps", "/list-used-apps",
   "/results", '/list-results',
-  "/admin",
+  "/admin", "/dashboard",
   "/list-users", "/bulk-create-users",
+  "/list-most-used-apps", "/list-last-active-users", "/list-most-active-users",
 ];
 
 app.use(async (ctx, next) => {
@@ -134,5 +144,4 @@ const port = Deno.env.get("PORT") ? parseInt(Deno.env.get("PORT")) : 8000;
 console.log(`HTTP webserver running. Access it at: http://localhost:${port}/`);
 
 await app.listen({ port });
-
 

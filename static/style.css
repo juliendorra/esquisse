@@ -1684,3 +1684,34 @@ img.result[src].result:not([src=""])~.result-placeholder {
 .data-text.valid:focus {
     border-color: blue;
 }
+
+
+/* Dashboard Styles */
+
+.dashboard-container {
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.dashboard-section {
+    margin-bottom: 2rem;
+}
+
+.dashboard-section h2 {
+    color: var(--title-text-color);
+    border-bottom: 1px solid var(--light-border);
+    padding-bottom: 0.5rem;
+}
+
+.dashboard-section ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.dashboard-section li {
+    padding: 0.5rem 0;
+}
+
+.dashboard-section li:last-child {
+    border-bottom: none;
+}
