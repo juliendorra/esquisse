@@ -7,70 +7,86 @@ const FAL_API_KEY = Deno.env.get("FAL_API_KEY");
 
 const MODELS = {
     TEXT_TO_IMAGE_FAST_CHEAP: {
-        endpoint: "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image",
-        id: "stable-diffusion-xl-1024-v1-0",
+        endpoint: "https://fal.run/fal-ai/flux/schnell",
         width: 1024,
         height: 1024,
-        widthWide: 1152,
-        heightWide: 896,
-        steps: 15,
+        widthWide: 1024,
+        heightWide: 576,
+        steps: 1,
+        caller: getFal(),
     },
     TEXT_TO_IMAGE_QUALITY_EXPENSIVE: {
-        endpoint: "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image",
-        id: "stable-diffusion-xl-1024-v1-0",
-        width: 1024,
-        height: 1024,
-        widthWide: 1152,
-        heightWide: 896,
-        steps: 45,
-    },
-    IMAGE_TO_IMAGE_FAST_CHEAP: {
-        endpoint: "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/image-to-image",
-        id: "stable-diffusion-xl-1024-v1-0",
-        width: 1024,
-        height: 1024,
-        widthWide: 1152,
-        heightWide: 896,
-        steps: 15,
-    },
-    IMAGE_TO_IMAGE_QUALITY_EXPENSIVE: {
-        endpoint: "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/image-to-image",
-        id: "stable-diffusion-xl-1024-v1-0",
-        width: 1024,
-        height: 1024,
-        widthWide: 1152,
-        heightWide: 896,
-        steps: 45,
-    },
-    CONTROLNET_SEGMIND_FAST_CHEAP: {
-        endpoint: "https://api.segmind.com/v1/ssd-canny",
-        id: "ssd-canny",
-        steps: 15,
-    },
-    CONTROLNET_SEGMIND_QUALITY_EXPENSIVE: {
-        endpoint: "https://api.segmind.com/v1/ssd-canny",
-        id: "ssd-canny",
-        steps: 30,
-    },
-    CONTROLNET_FAL_QUALITY_EXPENSIVE: {
-        endpoint: "https://fal.run/fal-ai/fast-sdxl-controlnet-canny",
-        id: "ssd-canny",
-        steps: 30,
-        deepcache: false,
-    },
-    CONTROLNET_FAL_FAST_CHEAP: {
-        endpoint: "https://fal.run/fal-ai/fast-sdxl-controlnet-canny",
-        id: "ssd-canny",
-        steps: 15,
-        deepcache: true,
-    },
-    REALTIME_TEXT_TO_IMAGE: {
-        endpoint: "https://fal.run/fal-ai/fast-lightning-sdxl",
+        endpoint: "https://fal.run/fal-ai/flux/schnell",
         width: 1024,
         height: 1024,
         widthWide: 1024,
         heightWide: 576,
         steps: 4,
+        caller: getFal(),
+    },
+
+    IMAGE_TO_IMAGE_FAST_CHEAP: {
+        endpoint: "https://fal.run/fal-ai/fast-sdxl/image-to-image",
+        width: 1024,
+        height: 1024,
+        widthWide: 1152,
+        heightWide: 896,
+        imageStrength: 0.9,
+        guidanceScaleCFG: 9.5,
+        steps: 10,
+        caller: getFal(),
+    },
+    IMAGE_TO_IMAGE_QUALITY_EXPENSIVE: {
+        endpoint: "https://fal.run/fal-ai/fast-sdxl/image-to-image",
+        width: 1024,
+        height: 1024,
+        widthWide: 1152,
+        heightWide: 896,
+        imageStrength: 0.85,
+        guidanceScaleCFG: 8.5,
+        steps: 25,
+        caller: getFal(),
+    },
+
+    CONTROLNET_SEGMIND_FAST_CHEAP: {
+        endpoint: "https://api.segmind.com/v1/sdxl-controlnet", //https://www.segmind.com/models/sdxl-controlnet
+        steps: 10,
+        scheduler: "UniPC",
+        controlNetModel: "sdxl_canny",
+        guidanceScaleCFG: 6,
+        controlnetScale: 0.9,
+        caller: getSegmindControlnet(),
+    },
+    CONTROLNET_SEGMIND_QUALITY_EXPENSIVE: {
+        endpoint: "https://api.segmind.com/v1/sdxl-controlnet", //https://www.segmind.com/models/sdxl-controlnet
+        steps: 30,
+        scheduler: "UniPC",
+        controlNetModel: "sdxl_canny",
+        guidanceScaleCFG: 6,
+        controlnetScale: 0.9,
+        caller: getSegmindControlnet(),
+    },
+    CONTROLNET_FAL_FAST_CHEAP: {
+        endpoint: "https://fal.run/fal-ai/fast-sdxl-controlnet-canny",
+        steps: 15,
+        deepcache: true,
+        caller: getFalControlnet(),
+    },
+    CONTROLNET_FAL_QUALITY_EXPENSIVE: {
+        endpoint: "https://fal.run/fal-ai/fast-sdxl-controlnet-canny",
+        steps: 30,
+        deepcache: false,
+        caller: getFalControlnet(),
+    },
+
+    REALTIME_TEXT_TO_IMAGE: {
+        endpoint: "https://fal.run/fal-ai/fast-lightning-sdxl/",
+        width: 1024,
+        height: 1024,
+        widthWide: 1024,
+        heightWide: 576,
+        steps: 2,
+        caller: getFal(),
     },
     REALTIME_IMAGE_TO_IMAGE: {
         endpoint: "https://fal.run/fal-ai/fast-lightning-sdxl/image-to-image",
@@ -78,9 +94,31 @@ const MODELS = {
         height: 1024,
         widthWide: 1024,
         heightWide: 576,
-        steps: 4,
+        steps: 2,
+        caller: getFal(),
     },
 };
+
+
+type Model = {
+    endpoint: string,
+    width: number,
+    height: number,
+    widthWide: number,
+    heightWide: number,
+    steps: number,
+    // optionals, depends on APIs
+    id?: string,
+    model?: string,
+    deepcache?: true,
+    scheduler?: string,
+    guidanceScaleCFG?: number,
+    imageStrength?: number,
+    controlNetModel: string,
+    controlnetScale: number,
+    // the API-specific calling function
+    caller: (params: ImageGenParameters, model: Model) => ImageGenGenerated,
+}
 
 type ImageGenParameters = {
     prompt: string,
@@ -193,150 +231,188 @@ async function handleInvalidPrompt(params: ImageGenParameters): Promise<ImageGen
 
 async function generate(params: ImageGenParameters): Promise<any> {
 
-    if (!params.qualityEnabled && !params.controlnetEnabled) {
-        return callFalAPI(params);
-    } else if (params.image && params.controlnetEnabled) {
-        return callFalControlnetdAPI(params);
-    } else {
-        return callStabilityAPI(params);
+    // text to image models
+
+    if (!params.qualityEnabled && !params.image) {
+
+        return MODELS.TEXT_TO_IMAGE_FAST_CHEAP.caller(params, MODELS.TEXT_TO_IMAGE_FAST_CHEAP);
+
+    }
+    else if (params.qualityEnabled && !params.image) {
+
+        return MODELS.TEXT_TO_IMAGE_QUALITY_EXPENSIVE.caller(params, MODELS.TEXT_TO_IMAGE_QUALITY_EXPENSIVE);
+    }
+
+    // controlnet models
+
+    else if (!params.qualityEnabled && params.image && params.controlnetEnabled) {
+
+        return MODELS.CONTROLNET_SEGMIND_FAST_CHEAP.caller(params, MODELS.CONTROLNET_SEGMIND_FAST_CHEAP);
+    }
+
+    else if (params.qualityEnabled && params.image && params.controlnetEnabled) {
+
+        return MODELS.CONTROLNET_SEGMIND_QUALITY_EXPENSIVE.caller(params, MODELS.CONTROLNET_SEGMIND_QUALITY_EXPENSIVE);
+
+    }
+
+    // image to image models
+
+    else if (!params.qualityEnabled && params.image && !params.controlnetEnabled) {
+
+        return MODELS.IMAGE_TO_IMAGE_FAST_CHEAP.caller(params, MODELS.IMAGE_TO_IMAGE_FAST_CHEAP);
+
+    } else if (params.qualityEnabled && params.image && !params.controlnetEnabled) {
+
+        return MODELS.IMAGE_TO_IMAGE_QUALITY_EXPENSIVE.caller(params, MODELS.IMAGE_TO_IMAGE_QUALITY_EXPENSIVE);
     }
 }
 
-async function callFalAPI({ prompt, image, format }: ImageGenParameters): Promise<any> {
-    const model = image ? MODELS.REALTIME_IMAGE_TO_IMAGE : MODELS.REALTIME_TEXT_TO_IMAGE;
+function getFal() {
+    return async function callFalAPI({ prompt, image, format }: ImageGenParameters, model: Model) {
+        const headers = {
+            Accept: "image/png",
+            Authorization: `Key ${FAL_API_KEY}`,
+            "Content-Type": 'application/json',
+        };
 
-    const headers: imageAPIHeaders = {
-        Accept: "image/png",
-        Authorization: `Key ${FAL_API_KEY}`,
-        "Content-Type": 'application/json',
+        const body = image ?
+            JSON.stringify({
+                model: model.model,
+                image_url: `data:image/jpeg;base64,${image}`,
+                prompt,
+                image_size: format === 'wide' ? 'landscape_16_9' : 'square_hd',
+                num_inference_steps: model.steps,
+                strength: model.imageStrength,
+                guidance_scale: model.guidanceScaleCFG,
+                num_images: 1,
+                format: 'jpeg',
+                sync_mode: true,
+                enable_safety_checker: false,
+
+            })
+            : JSON.stringify({
+                prompt,
+                image_size: format === 'wide' ? 'landscape_16_9' : 'square_hd',
+                num_inference_steps: model.steps,
+                num_images: 1,
+                format: 'jpeg',
+                sync_mode: true,
+                enable_safety_checker: false,
+            });
+
+        return fetchAPI(model.endpoint, headers, body);
     };
-
-    const body = image ? JSON.stringify({
-        image_url: `data:image/jpeg;base64,${image}`,
-        prompt,
-        image_size: format === 'wide' ? 'landscape_16_9' : 'square_hd',
-        num_inference_steps: model.steps,
-        strength: 0.95,
-        num_images: 1,
-        format: 'jpeg',
-        sync_mode: true,
-    }) : JSON.stringify({
-        prompt,
-        image_size: format === 'wide' ? 'landscape_16_9' : 'square_hd',
-        num_inference_steps: model.steps,
-        num_images: 1,
-        format: 'jpeg',
-        sync_mode: true,
-    });
-
-    return fetchAPI(model.endpoint, headers, body);
 }
 
-async function callSegmindControlnetAPI({ prompt, image, qualityEnabled }: ImageGenParameters): Promise<any> {
-    const model = qualityEnabled ? MODELS.CONTROLNET_SEGMIND_QUALITY_EXPENSIVE : MODELS.CONTROLNET_SEGMIND_FAST_CHEAP;
+function getSegmindControlnet() {
+    return async function callSegmindControlnetAPI({ prompt, image, format }: ImageGenParameters, model: Model): Promise<any> {
 
-    const headers: imageAPIHeaders = {
-        "x-api-key": SEGMIND_API_KEY,
-        "Content-Type": 'application/json',
-    };
+        const headers: imageAPIHeaders = {
+            "x-api-key": SEGMIND_API_KEY,
+            "Content-Type": 'application/json',
+        };
 
-    const body = JSON.stringify({
-        image: image,
-        prompt: prompt,
-        // negative_prompt: negativeprompt,
-        samples: 1,
-        scheduler: "UniPC",
-        num_inference_steps: model.steps,
-        guidance_scale: 7.5,
-        seed: -1,
-        controlnet_scale: 0.8,
-        base64: false,
-    });
-
-    return fetchAPI(model.endpoint, headers, body);
-}
-
-async function callFalControlnetdAPI({ prompt, image, qualityEnabled }: ImageGenParameters): Promise<any> {
-    const model = qualityEnabled ? MODELS.CONTROLNET_FAL_QUALITY_EXPENSIVE : MODELS.CONTROLNET_FAL_FAST_CHEAP;
-
-    const headers: imageAPIHeaders = {
-        Accept: "image/png",
-        Authorization: `Key ${FAL_API_KEY}`,
-        "Content-Type": 'application/json',
-    };
-
-
-    const body = JSON.stringify({
-        prompt,
-        control_image_url: `data:image/jpeg;base64,${image}`,
-        controlnet_conditioning_scale: 0.5,
-        image_size: 'square_hd',
-        num_inference_steps: model.steps,
-        guidance_scale: 7.5,
-        num_images: 1,
-        "loras": [],
-        format: 'jpeg',
-        enable_deep_cache: model.deepcache || false, // might degrades quality
-        sync_mode: true,
-    });
-
-
-    return fetchAPI(model.endpoint, headers, body);
-}
-
-async function callStabilityAPI({ prompt, image, format, qualityEnabled }: ImageGenParameters): Promise<any> {
-    const model = image ? (qualityEnabled ? MODELS.IMAGE_TO_IMAGE_QUALITY_EXPENSIVE : MODELS.IMAGE_TO_IMAGE_FAST_CHEAP)
-        : (qualityEnabled ? MODELS.TEXT_TO_IMAGE_QUALITY_EXPENSIVE : MODELS.TEXT_TO_IMAGE_FAST_CHEAP);
-
-    const width = format === 'wide' ? model.widthWide : model.width;
-    const height = format === 'wide' ? model.heightWide : model.height;
-
-    let body;
-
-    const headers: imageAPIHeaders = {
-        Accept: "image/png",
-        Authorization: `Bearer ${STABILITY_API_KEY}`,
-    };
-
-    if (image) {
-        const formData = new FormData();
-        formData.append('init_image', new File([base64ToUint8Array(image)], 'image.jpeg', { type: 'image/jpeg' }));
-
-        formData.append('cfg_scale', '7');
-        formData.append('clip_guidance_preset', 'FAST_BLUE');
-
-        formData.append('samples', '1');
-        formData.append('seed', '0');
-        formData.append('steps', model.steps.toString());
-        formData.append('text_prompts[0][text]', prompt);
-        formData.append('text_prompts[0][weight]', '1.0');
-
-        // if (negativeprompt) {
-        //     formData.append('text_prompts[1][text]', negativeprompt);
-        //     formData.append('text_prompts[1][weight]', '-1.0');
-        // }
-
-        body = formData;
-        // We don't need to set Content-Type for FormData
-
-    } else {
-        // Prepare JSON body for text-to-image generation
-        headers["Content-Type"] = 'application/json';
-
-        body = JSON.stringify({
-            cfg_scale: 7,
-            clip_guidance_preset: "FAST_BLUE",
-            height,
-            width,
+        const body = JSON.stringify({
+            image: image,
+            prompt: prompt,
+            // negative_prompt: negativeprompt,
             samples: 1,
-            seed: 0,
-            steps: model.steps,
-            text_prompts: [{ text: prompt, weight: 1.0 }],
+            scheduler: model.scheduler,
+            num_inference_steps: model.steps,
+            guidance_scale: model.guidanceScaleCFG,
+            seed: -1,
+            controlnet_scale: model.controlnetScale,
+            base64: false,
         });
 
+        return fetchAPI(model.endpoint, headers, body);
+    }
+}
+
+function getFalControlnet() {
+    return async function callFalControlnetdAPI({ prompt, image, format }: ImageGenParameters, model: Model): Promise<any> {
+
+        const headers: imageAPIHeaders = {
+            Accept: "image/png",
+            Authorization: `Key ${FAL_API_KEY}`,
+            "Content-Type": 'application/json',
+        };
+
+
+        const body = JSON.stringify({
+            prompt,
+            control_image_url: `data:image/jpeg;base64,${image}`,
+            controlnet_conditioning_scale: 0.5,
+            image_size: 'square_hd',
+            num_inference_steps: model.steps,
+            guidance_scale: 7.5,
+            num_images: 1,
+            "loras": [],
+            format: 'jpeg',
+            enable_deep_cache: model.deepcache || false, // might degrades quality
+            sync_mode: true,
+        });
+
+
+        return fetchAPI(model.endpoint, headers, body);
     }
 
-    return fetchAPI(model.endpoint, headers, body);
+}
+
+function getStability() {
+    return async function callStabilityAPI({ prompt, image, format }: ImageGenParameters, model: Model): Promise<any> {
+
+        const width = format === 'wide' ? model.widthWide : model.width;
+        const height = format === 'wide' ? model.heightWide : model.height;
+
+        let body;
+
+        const headers: imageAPIHeaders = {
+            Accept: "image/png",
+            Authorization: `Bearer ${STABILITY_API_KEY}`,
+        };
+
+        if (image) {
+            const formData = new FormData();
+            formData.append('init_image', new File([base64ToUint8Array(image)], 'image.jpeg', { type: 'image/jpeg' }));
+
+            formData.append('cfg_scale', '7');
+            formData.append('clip_guidance_preset', 'FAST_BLUE');
+
+            formData.append('samples', '1');
+            formData.append('seed', '0');
+            formData.append('steps', model.steps.toString());
+            formData.append('text_prompts[0][text]', prompt);
+            formData.append('text_prompts[0][weight]', '1.0');
+
+            // if (negativeprompt) {
+            //     formData.append('text_prompts[1][text]', negativeprompt);
+            //     formData.append('text_prompts[1][weight]', '-1.0');
+            // }
+
+            body = formData;
+            // We don't need to set Content-Type for FormData
+
+        } else {
+            // Prepare JSON body for text-to-image generation
+            headers["Content-Type"] = 'application/json';
+
+            body = JSON.stringify({
+                cfg_scale: 7,
+                clip_guidance_preset: "FAST_BLUE",
+                height,
+                width,
+                samples: 1,
+                seed: 0,
+                steps: model.steps,
+                text_prompts: [{ text: prompt, weight: 1.0 }],
+            });
+
+        }
+
+        return fetchAPI(model.endpoint, headers, body);
+    }
 }
 
 async function fetchAPI(endpoint: string, headers: imageAPIHeaders, body): Promise<any> {
