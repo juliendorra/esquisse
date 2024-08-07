@@ -104,20 +104,30 @@ async function init() {
                 handleDroppedText(file, groupElement, groupsMap.GROUPS);
             }
 
-            const textData = JSON.parse(event.dataTransfer.getData('application/json'));
+            try {
 
-            console.log("[TEXT DATA FROM DRAG] :", textData)
+                const textData = event.dataTransfer.getData('application/json');
 
-            // expecting { add: [{ groupType: groupType }, ... ] } from dragging an add group button
+                const jsonData = JSON.parse(textData);
 
-            if (textData && textData.add && textData.add.length > 0) {
-                const groupTypes = Object.values(GROUP_TYPE);
-                for (const group of textData.add) {
-                    if (groupTypes.includes(group.groupType)) {
-                        createGroupAndAddGroupElement(group.groupType);
+                console.log("[JSON DATA FROM DRAG] :", jsonData)
+
+                // expecting { add: [{ groupType: groupType }, ... ] } from dragging an add group button
+
+                if (jsonData && jsonData.add && jsonData.add.length > 0) {
+                    const groupTypes = Object.values(GROUP_TYPE);
+                    for (const group of jsonData.add) {
+                        if (groupTypes.includes(group.groupType)) {
+                            createGroupAndAddGroupElement(group.groupType);
+                        }
                     }
                 }
             }
+            catch {
+                //
+            }
+
+
         }
     );
 
