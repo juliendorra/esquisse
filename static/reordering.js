@@ -115,6 +115,21 @@ function onEndSortable(event) {
 
     const groupElements = document.querySelectorAll('.container .group');
 
+    // in case of multidrag, event.items is the list of sorted elements, 
+    // but in case of single drag, it is empty!
+
+    const items = event.items?.length > 0 ? event.items : [event.item];
+
+    const sorted = new CustomEvent("sorted", {
+        detail: "",
+        bubbles: false,
+        cancelable: true
+    });
+
+    for (const item of items) {
+        item.dispatchEvent(sorted);
+    }
+
     groupElements.forEach(element => {
         Sortable.utils.deselect(element);
     });

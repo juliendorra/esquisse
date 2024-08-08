@@ -366,6 +366,10 @@ function addEventListenersToGroup(groupElement) {
     groupElement.addEventListener("dragstart", onDragStart);
     groupElement.addEventListener("dragend", onDragEnd);
 
+    groupElement.addEventListener("sorted", () => {
+        displayFormattedResults(groupElement, { silent: true });
+    });
+
     // Persist and handle change when a group's name, data changes
 
     groupNameElement?.addEventListener("change", () => { nameChangeHandler(group, groupNameElement, groups); });
@@ -1273,18 +1277,30 @@ function parseResultsAsList(text) {
     return items.length >= 2 ? items : [];
 }
 
-function displayFormattedResults(groupElement) {
-    const resultElement = groupElement.querySelector(".result");
+function displayFormattedResults(groupElement, options = { silent: false }) {
 
     const group = groupsMap.GROUPS.get(getGroupIdFromElement(groupElement));
 
     if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.LIST) {
 
+        const resultElement = groupElement.querySelector("iframe.result");
+
+        const existingSlSelect = groupElement.querySelector("sl-select");
+
+        let existingSelectPosition;
+
+        if (existingSlSelect) {
+            existingSelectPosition = existingSlSelect.value;
+            group.result = group.savedResult;
+            group.listItems = [];
+            existingSlSelect.remove();
+        }
+
         const listItems = parseResultsAsList(group.result);
 
         console.log("[DISPLAYING FORMATTED RESULT] ", listItems)
 
-        if (listItems.length === 0) {
+        if (listItems.length === 0 && options.silent == false) {
             displayAlert(
                 {
                     issue: `No list found in ${group.name}'s results`,
@@ -1302,15 +1318,7 @@ function displayFormattedResults(groupElement) {
 
         resultElement.style.display = 'none';
 
-        let existingSelectPosition;
-
-        const existingSlSelect = groupElement.querySelector("sl-select");
-        if (existingSlSelect) {
-            existingSelectPosition = existingSlSelect.value;
-            existingSlSelect.remove();
-        }
-
-        let selectElement = document.createElement('sl-select');
+        const selectElement = document.createElement('sl-select');
         selectElement.setAttribute('placeholder', 'Random choice');
         selectElement.setAttribute('clearable', '');
         selectElement.setAttribute('size', 'small');
@@ -1341,7 +1349,7 @@ function displayFormattedResults(groupElement) {
         resultElement.after(selectElement);
 
     }
-    else if (!group.resultDisplayFormat || group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.TEXT || group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.HTML) {
+    else if (group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.TEXT || group.resultDisplayFormat === RESULT_DISPLAY_FORMAT.HTML) {
 
         const existingSlSelect = groupElement.querySelector("sl-select");
 
@@ -1350,6 +1358,8 @@ function displayFormattedResults(groupElement) {
             group.listItems = [];
             existingSlSelect.remove();
         }
+
+        const resultElement = groupElement.querySelector("iframe.result");
 
         renderInIframe({
             targetIframe: resultElement,
@@ -1369,7 +1379,8 @@ function displayFormattedResults(groupElement) {
         }
     }
 }
-// margin will be applied in rem
+
+// The iframe body margins will be applied in rem
 function renderInIframe({ targetIframe, content, format = RESULT_DISPLAY_FORMAT.HTML, scale = 1, margin = "0" }) {
 
     console.log("[RENDERING IFRAME] ", targetIframe);
@@ -1432,7 +1443,7 @@ function renderInIframe({ targetIframe, content, format = RESULT_DISPLAY_FORMAT.
     </html>
 `;
 
-    // listening and re-emiting to the clicks inside the iFrame
+    // listening to and re-emiting the clicks from inside the iFrame
     // we ensure the event is attached after the iframe content has fully loaded
 
     targetIframe.onload = function () {
