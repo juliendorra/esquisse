@@ -159,7 +159,7 @@ async function renderUserResults(ctx) {
 
     if (!resultsMetadata) {
         ctx.response.status = 404;
-        ctx.response.body = ("No metadata found for this result");
+        ctx.response.body = ("No results metadata found for this user");
         return;
     }
 
