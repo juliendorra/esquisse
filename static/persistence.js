@@ -367,7 +367,9 @@ async function loadGroups(importedGroups) {
 
                     groups.set(group.id, group);
 
-                    const groupElement = addGroupElement(group.type, group.id);
+                    const scrollIntoView = false;
+
+                    const groupElement = addGroupElement(group.type, group.id, scrollIntoView);
 
                     const groupNameElement = groupElement.querySelector(".group-name");
                     const dataElement = groupElement.querySelector(".data-text");
@@ -474,7 +476,9 @@ async function loadGroups(importedGroups) {
 
         const group = createGroupInLocalDataStructures(GROUP_TYPE.TEXT);
 
-        const groupElement = addGroupElement(GROUP_TYPE.TEXT, group.id);
+        const scrollIntoView = false;
+
+        const groupElement = addGroupElement(GROUP_TYPE.TEXT, group.id, scrollIntoView);
 
         ID = "";
 

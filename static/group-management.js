@@ -232,7 +232,7 @@ function createGroupInLocalDataStructures(groupType) {
     return groups.get(group.id);
 }
 
-function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
+function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId, scrollIntoView = true) {
 
     const groups = groupsMap.GROUPS;
 
@@ -312,7 +312,9 @@ function addGroupElement(groupType = GROUP_TYPE.TEXT, groupId) {
     groupNameElement.focus();
     groupNameElement.select();
 
-    groupElement.scrollIntoView(true, { behavior: "auto", block: "end" });
+    if (scrollIntoView) {
+        groupElement.scrollIntoView(true, { behavior: "auto", block: "end" });
+    }
 
     const animationendHandler = () => {
         groupElement.classList.remove('new-group-appearing');
