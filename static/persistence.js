@@ -259,7 +259,7 @@ async function loadGroups(importedGroups) {
 
     if (importedGroups) {
         decodedGroups = importedGroups;
-        ID = null;
+        ID = "";
     }
     // Check if the URL path is of the form /app/[NANOID]
     else if (urlPath.startsWith('/app/') && nanoidRegex.test(urlPath)) {
@@ -293,9 +293,9 @@ async function loadGroups(importedGroups) {
 
             APP_VERSION_TIMESTAMP = appVersion.timestamp;
 
-            decodedGroups = appVersion.value;
-            CREATOR = decodedGroups.username;
-            USERNAME = response.headers.get("x-username") || null;
+            decodedGroups = appVersion.value || [];
+            CREATOR = decodedGroups.username || "";
+            USERNAME = response.headers.get("x-username") || "";
 
         } catch (error) {
             console.error("[LOADING] Error loading groups from server", error);
@@ -450,12 +450,12 @@ async function loadGroups(importedGroups) {
         );
     } catch (error) {
 
-        ID = null;
-
         console.error("[LOADING] Error loading groups", error);
+
+        return createBlankApp();
     }
 
-    if (!ID) { persistGroups(groups); }
+    if (!ID && importedGroups) { persistGroups(groups); }
 
     console.log("[LOADING] groups loaded: ", groups);
 
@@ -476,7 +476,7 @@ async function loadGroups(importedGroups) {
 
         const groupElement = addGroupElement(GROUP_TYPE.TEXT, group.id);
 
-        ID = null;
+        ID = "";
 
         history.pushState(groups, "", "/app");
 
