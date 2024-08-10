@@ -6,9 +6,9 @@ import { displayAlert, removeGlobalWaitingIndicator, createZoomedImage, showAddB
 import { captureThumbnail } from "./screen-capture.js"
 import { fetchWithCheck } from "./network.js";
 
-let ID = null;
-let CREATOR = null;
-let USERNAME = null;
+let ID = "";
+let CREATOR = "";
+let USERNAME = "";
 
 const VERSION = "2024-07-17";
 let APP_VERSION_TIMESTAMP;
