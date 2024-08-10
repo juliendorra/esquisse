@@ -119,7 +119,7 @@ async function persistGroupsUnthrottled(groups) {
 
     await persistOnServer(packagedGroups, ID); // side-effect mutate ID and CREATOR
 
-    const isFreshApp = previousId === null;
+    const isFreshApp = previousId ? false : true;
     const isNewByDifferentUser = previousId !== ID && previousCreator !== CREATOR;
 
     if (!isFreshApp && isNewByDifferentUser) {
