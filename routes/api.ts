@@ -14,6 +14,7 @@ import {
     checkAppIsByUser, retrieveAppsByUser, retrieveResultsByUser
 } from "../lib/apps.ts";
 import { addUsageEntry, listLastUsagesByUser } from "../lib/usage.ts";
+import { blobToFullHash } from "../lib/utility.ts";
 
 export {
     handleStability, handleChatGPT,
@@ -471,35 +472,6 @@ async function handleRecover(ctx) {
     ctx.response.body = JSON.stringify({ id: appid, username: username });
 }
 
-// utils for handlePersistImage
-
-async function blobToFullHash(blob: Blob): Promise<string> {
-    const arrayBuffer: ArrayBuffer = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            if (reader.result instanceof ArrayBuffer) {
-                resolve(reader.result);
-            } else {
-                reject(new Error("Read result is not an ArrayBuffer"));
-            }
-        };
-        reader.onerror = () => reject(reader.error);
-        reader.readAsArrayBuffer(blob);
-    });
-
-    const hashBuffer: ArrayBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
-    const hashBase64: string = bufferToBase64(hashBuffer);
-
-    const urlSafeHash = hashBase64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-
-    return urlSafeHash;
-}
-
-function bufferToBase64(buffer: ArrayBuffer): string {
-    const byteArray = new Uint8Array(buffer);
-    const binaryString = Array.from(byteArray, byte => String.fromCharCode(byte)).join('');
-    return btoa(binaryString);
-}
 
 // Handler for '/persist-result' endpoint
 async function handlePersistResult(ctx) {
