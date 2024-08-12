@@ -43,7 +43,9 @@ export async function uploadImage(buffer: Uint8Array, id: string) {
       key,
       buffer,
       {
-        ContentType: "image/jpeg",
+        metadata: {
+          "Content-Type": "image/jpeg",
+        }
       });
 
     console.log(`[IMAGE UPLOAD] response `, JSON.stringify(response))
@@ -62,18 +64,21 @@ export async function uploadResult(data: string, id: string) {
   const dataString = JSON.stringify(data);
 
   try {
-    await s3client.putObject(key, new TextEncoder().encode(dataString), {
-      ContentType: "application/json; charset=utf-8",
-    });
+    await s3client.putObject(
+      key,
+      new TextEncoder().encode(dataString),
+      {
+        metadata: {
+          "Content-Type": "application/json; charset=utf-8",
+        }
+      });
 
     return {
       success: true,
       url: `https://${S3_ENDPOINT}/${S3_BUCKET}/${key}`,
     };
   } catch (error) {
-
-    console.log("Upload failed: ", error.message)
-
+    console.log("Upload failed: ", error.message);
     return { success: false, reason: "Upload failed: " + error.message };
   }
 }
@@ -88,9 +93,7 @@ export async function downloadImage(id: string) {
     return response;
 
   } catch (error) {
-
-    console.log("Upload failed: ", error.message)
-
+    console.log("Download failed: ", error.message);
     return;
   }
 }
@@ -102,11 +105,44 @@ export async function downloadResult(id: string) {
     const response = await s3client.getObject(key);
 
     return response;
-
   } catch (error) {
+    console.log("Download failed: ", error.message);
+    return;
+  }
+}
 
-    console.log("Upload failed: ", error.message)
+export async function uploadAppVersion(data: string, appid: string, versionhash: string) {
 
+  const key = `${appid}-${versionhash}.json`;
+
+  try {
+    await s3client.putObject(
+      key, new TextEncoder().encode(data),
+      {
+        metadata: {
+          "Content-Type": "application/json; charset=utf-8",
+        }
+      });
+
+    return {
+      success: true,
+      url: `https://${S3_ENDPOINT}/${S3_BUCKET}/${key}`,
+    };
+  } catch (error) {
+    console.log("[APP VERSION FILE] Upload failed: ", error.message);
+    return { success: false, reason: "Upload failed: " + error.message };
+  }
+}
+
+export async function downloadAppVersion(appid: string, versionhash: string) {
+
+  const key = `${appid}-${versionhash}.json`;
+
+  try {
+    const response = await s3client.getObject(key);
+    return response ? new TextDecoder().decode(await response.arrayBuffer()) : null;
+  } catch (error) {
+    console.log("[APP VERSION FILE] Download failed: ", error.message);
     return;
   }
 }
