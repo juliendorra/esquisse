@@ -62,7 +62,9 @@ async function createUser(userInfos: UserInfos): Promise<any> {
 
         const result = await db.users.add(user);
 
-        console.log("User added to kv store: ", result.id, result);
+        if (result.ok) {
+            console.log("User added to kv store: ", result.id, result);
+        }
 
         return result;
     }
@@ -115,7 +117,10 @@ async function bulkCreateUsers(listOfUsersInfos: ListOfUsersInfos) {
         console.log("Validation of bulk list of users successful")
     }
 
-    let results = {
+    const results: {
+        userscreated: UserInfos[];
+        usersrejected: UserInfos[];
+    } = {
         userscreated: [],
         usersrejected: [],
     };
