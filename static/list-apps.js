@@ -520,7 +520,7 @@ function buildAppListItems(apps, appscreator, currentuser, results) {
         } else {
             appContent = `
                 ${headerHTML}
-                <a href="${app.link}">
+                <a href="${app.link}" target="_blank">
                     ${appNameHTML}
                     ${groupIconsHTML}
                 </a>
