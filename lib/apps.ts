@@ -203,7 +203,7 @@ async function storeResultMetadata(result: Result): Promise<any> {
     return addOperationResult;
 }
 
-async function retrieveResultMetadata(resultid: string): Promise<Document<Result> | null> {
+async function retrieveResultMetadata(resultid: string): Promise<Document<Result, string> | null> {
 
     try {
         const resultByResultid = await db.results.findByPrimaryIndex("resultid", resultid);
