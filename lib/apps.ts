@@ -176,15 +176,18 @@ async function checkAppIsByUser(appid: string, username: string | null): Promise
 
         let isByUser = false
 
-        if (latestGroups) {
-
+        if (latestGroups && latestGroups.type == "write") {
             isByUser = (latestGroups.value.username === username)
+        }
+
+        else if (latestGroups && latestGroups.type == "delete") {
+            throw new Error("The app was marked as deleted in the KVdex history");
         }
 
         return isByUser;
 
     } catch (error) {
-        console.error("Error checking for url ID:", error);
+        console.error("Error checking for URL ID:", error);
         return false;
     }
 }
