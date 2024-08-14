@@ -193,19 +193,19 @@ async function storeResultMetadata(result: Result): Promise<any> {
 
     const addOperationResult = await db.results.add(result);
 
-    console.log("Result added to kv store: ", addOperationResult.id, addOperationResult);
+    if (addOperationResult.ok) {
+        console.log("Result added to kv store: ", addOperationResult.id, addOperationResult);
+    }
 
     return addOperationResult;
 }
 
-async function retrieveResultMetadata(resultid: string): Promise<{ id: string, versionstamp: string, value: Result } | null> {
+async function retrieveResultMetadata(resultid: string): Promise<Document<Result> | null> {
 
     try {
-        const resultByResultid = await db.results.findByPrimaryIndex("resultid", resultid)
-
+        const resultByResultid = await db.results.findByPrimaryIndex("resultid", resultid);
         return resultByResultid;
-    }
-    catch (error) {
+    } catch (error) {
         console.error("Error retrieving result of ID: ", resultid, "Error: ", error);
         return null;
     }
