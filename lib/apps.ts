@@ -1,4 +1,6 @@
-import { kvdex, model, collection, HistoryEntry } from "https://deno.land/x/kvdex/mod.ts";
+import { kvdex, model, collection, Document, HistoryEntry } from "https://deno.land/x/kvdex/mod.ts";
+import { uploadAppVersion, downloadAppVersion } from "./file-storage.ts";
+import { blobToFullHash } from "./utility.ts";
 
 export {
     storeApp, retrieveLatestAppVersion, retrieveMultipleLastAppVersions, retrieveAppVersion, checkAppIdExists,
@@ -8,22 +10,36 @@ export {
 };
 export type { Apps };
 
-type Apps = {
-    appid: string,
-    timestamp: string,
+type Groups = {
+    id: string;
+    name: string;
+    data?: string;
+    transform?: string;
+    type: string;
+    interactionState: string;
+    controlnetEnabled: boolean;
+    resultDisplayFormat?: string;
+};
+
+type AppsBase = {
+    appid: string;
+    timestamp: string;
     version: string;
     username: string;
-    groups: Array<{
-        id: string;
-        name: string;
-        data?: string;
-        transform?: string;
-        type: string;
-        interactionState: string;
-        controlnetEnabled: boolean;
-        resultDisplayFormat?: string;
-    }>;
-}
+};
+
+// Two types for apps: one with `versionhash` (stored on S3) and one with `groups` (stored on KV, legacy)
+type AppsOnlyMetadata = AppsBase & {
+    versionhash: string;
+    groups?: never;
+};
+
+type AppsWithGroups = AppsBase & {
+    versionhash?: never;
+    groups: Array<Groups>;
+};
+
+type Apps = AppsOnlyMetadata | AppsWithGroups;
 
 type Result = {
     resultid: string;
@@ -67,13 +83,31 @@ const db = kvdex(kv, {
         })
 });
 
-async function storeApp(app: Apps): Promise<any> {
+async function storeApp(app: AppsWithGroups): Promise<any> {
+    const appDataString = JSON.stringify(app);
+    const versionhash = await blobToFullHash(new Blob([appDataString], { type: "application/json" }));
 
-    console.log(app);
+    const uploadStatus = await uploadAppVersion(appDataString, app.appid, versionhash);
 
-    const result = await db.apps.set(app.appid, app, { overwrite: true });
+    if (!uploadStatus.success) {
+        throw new Error("Failed to upload app version to S3");
+    }
 
-    console.log(`app ${app.appid}, (${app.groups[0]?.name || 'Unnamed App'}) written to kv store: `, result);
+    const appMetadata: AppsOnlyMetadata = {
+        appid: app.appid,
+        timestamp: app.timestamp,
+        version: app.version,
+        username: app.username,
+        versionhash,
+    };
+
+    const result = await db.apps.set(app.appid, appMetadata, { overwrite: true });
+
+    if (app.groups && app.groups[0]) {
+        console.log(`App ${app.appid}, (${app.groups[0]?.name || 'Unnamed App'}) written to KV store: `, result);
+    } else {
+        console.log(`App ${app.appid}, (empty app) written to KV store: `, result);
+    }
 
     return result;
 }
@@ -89,12 +123,31 @@ async function retrieveMultipleLastAppVersions(appid: string, limit = 5): Promis
                 reverse: true, // newer first
             });
 
-        // [ { type, timestamp, value: { version, appid, timestamp, username, groups:[...] } }, ... ]
-        // console.log("All versions: ", history);
-        return history.result.length > 0 ? history.result : [];
+        console.log("[RETRIEVING MULTIPLE VERSIONS] history result is: ", history.result);
+
+        // legacy full groups: [ { type, timestamp, value: { version, appid, timestamp, username, groups:[...] } }, ... ]
+        // metadata only: [ { type, timestamp, value: { version, appid, timestamp, username, versionhash } }, ... ]
+
+        const multipleLastAppVersions: HistoryEntry<Apps>[] = [];
+
+        for (const doc of history.result) {
+
+            if (doc.type === "write" && doc.value) {
+
+                const version = await retrieveAppVersionFromSource(doc);
+
+                console.log("Retrievied version of app ", appid, "Version is: ", version);
+
+                if (version) {
+                    multipleLastAppVersions.push(version);
+                }
+            }
+        }
+
+        return multipleLastAppVersions
 
     } catch (error) {
-        console.error("Error retrieving all versions for url ID: ", appid, "Error: ", error);
+        console.error("Error retrieving all versions for URL ID: ", appid, "Error: ", error);
         return [];
     }
 }
@@ -109,16 +162,17 @@ async function retrieveLatestAppVersion(appid: string): Promise<HistoryEntry<App
                 reverse: true, // newer first
             });
 
-        const appVersion = history.result.length > 0 ? history.result[0] : null
+        const appVersion = history.result.length > 0 ? history.result[0] : null;
 
-        console.log("Latest app Version: ", appVersion);
+        // legacy full groups { type, timestamp, value: { version, appid, timestamp, username, groups:[...] } }
+        // metadata only { type, timestamp, value: { version, appid, timestamp, username, versionhash } }
 
-        // { type, timestamp, value: { version, appid, timestamp, username, groups:[...] } }
+        if (!appVersion) return null;
 
-        return appVersion;
+        return await retrieveAppVersionFromSource(appVersion);
 
     } catch (error) {
-        console.error("Error retrieving latest version for url ID: ", appid, "Error: ", error);
+        console.error("Error retrieving latest version for URL ID: ", appid, "Error: ", error);
         return null;
     }
 }
@@ -134,21 +188,21 @@ async function retrieveAppVersion(appid: string, timestamp: string): Promise<His
             {
                 filter: (doc) => {
                     // timestamps are not stored as strings
-                    return doc.timestamp.toISOString() === timestamp
+                    return doc.timestamp.toISOString() === timestamp;
                 }
             });
 
+        const appVersion = history.result.length > 0 ? history.result[0] : null;
 
-        const appVersion = history.result.length > 0 ? history.result[0] : null
+        if (!appVersion) return null;
 
-        console.log("App Version: ", appVersion);
+        // legacy full groups { type, timestamp, value: { version, appid, timestamp, username, groups:[...] } }
+        // metadata only { type, timestamp, value: { version, appid, timestamp, username, versionhash } }
 
-        // { type, timestamp, value: { version, appid, timestamp, username, groups:[...] } }
-
-        return appVersion;
+        return await retrieveAppVersionFromSource(appVersion);
 
     } catch (error) {
-        console.error(`Error retrieving version ${timestamp} for url ID: `, appid, "Error: ", error);
+        console.error(`Error retrieving version ${timestamp} for URL ID: `, appid, "Error: ", error);
         return null;
     }
 }
@@ -157,12 +211,12 @@ async function checkAppIdExists(appid: string): Promise<boolean> {
     try {
         const appDocument = await db.apps.find(appid);
 
-        console.log("checked if ", appid, " exists ", appDocument.value.appid === appid);
+        console.log("checked if ", appid, " exists ", appDocument?.value.appid === appid);
 
-        return appDocument.value.appid === appid;
+        return appDocument?.value.appid === appid;
 
     } catch (error) {
-        console.error("Error checking for url ID:", error);
+        console.error("Error checking for URL ID:", error);
         return false;
     }
 }
@@ -226,9 +280,25 @@ async function retrieveAppsByUser(username: string): Promise<Apps[] | []> {
 
         // console.log(`Retrieved apps for user ${username}: `, apps.result);
 
-        // document is { id, versionstamp,  value: { version, appid, timestamp, username, groups:[...] } } }
+        // legacy document is { id, versionstamp,  value: { version, appid, timestamp, username, groups:[...] } }
+        // metadata only document is { id, versionstamp,  value: { version, appid, timestamp, username, versionhash } } }
+
         // returning an array of apps objects
-        return apps.result.map(doc => doc.value);
+
+        const appsByUser: Apps[] = [];
+
+        for (const doc of apps.result) {
+
+            const app = await retrieveAppFromSource(doc.value);
+
+            console.log("Retrieved app by user: ", username, "App is: ", app);
+
+            if (app) {
+                appsByUser.push(app);
+            }
+        }
+
+        return appsByUser
 
     } catch (error) {
         console.error("Error retrieving apps by user: ", username, "Error: ", error);
@@ -255,5 +325,61 @@ async function retrieveResultsByUser(username: string): Promise<Result[] | []> {
     } catch (error) {
         console.error("Error retrieving results by user: ", username, "Error: ", error);
         return [];
+    }
+}
+
+
+async function retrieveAppVersionFromSource(appVersion: HistoryEntry<Apps>) {
+
+    try {
+        if (appVersion.type === "write" && appVersion.value.versionhash) {
+
+            const downloadResponse = await downloadAppVersion(appVersion.value.appid, appVersion.value.versionhash);
+
+            if (!downloadResponse) {
+                throw new Error("Failed to download app version from S3");
+            }
+
+            appVersion.value = JSON.parse(downloadResponse);
+
+            return appVersion;
+
+        } else {
+            return appVersion;
+        }
+    }
+    catch (error) {
+        if (appVersion.type === "write" && appVersion.value.versionhash) {
+            console.error("Error retrieving app version from source: ", appVersion.value.appid, "Error: ", error);
+        }
+        else {
+            console.error("Error retrieving app version from source: ", appVersion, "Error: ", error);
+        }
+        return null;
+    }
+}
+
+async function retrieveAppFromSource(app: Apps) {
+
+    try {
+        if (app.versionhash) {
+
+            const downloadResponse = await downloadAppVersion(app.appid, app.versionhash);
+
+            if (!downloadResponse) {
+                throw new Error("Failed to download app version from S3");
+            }
+
+            app = JSON.parse(downloadResponse);
+
+            return app;
+
+        } else {
+            return app;
+        }
+    }
+    catch (error) {
+        console.error("Error retrieving app version from source: ", app.appid, "Error: ", error);
+        return;
     }
 }
