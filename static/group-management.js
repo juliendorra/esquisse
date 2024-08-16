@@ -835,7 +835,9 @@ function displayGroupInteractionState(groupElement, interactionState) {
 
     const { CREATOR, USERNAME, ID } = getAppMetaData();
 
-    const userIsAppAuthor = CREATOR === USERNAME || ID === null;
+    const userIsAppAuthor = CREATOR === USERNAME || ID === "";
+
+    console.log("[DISPLAY INTERACTION STATE] CREATOR, USERNAME, ID: ", CREATOR, USERNAME, ID);
 
     let interactionStateAfterAuthorCheck
 
