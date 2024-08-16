@@ -188,10 +188,13 @@ async function persistOnServer(packagedGroups, existingId = null) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
+        USERNAME = response.headers.get("x-username") || "";
+
         ({ id: ID, username: CREATOR } = await response.json());
 
-        console.log("[PERSIST] Id sent by server", ID);
-        console.log("[PERSIST] Username sent back by server", CREATOR);
+        console.log("[PERSIST] App ID sent by server", ID);
+        console.log("[PERSIST] Username of creator sent back by server", CREATOR);
+        console.log("[PERSIST] Username of current useer sent back by server", USERNAME);
 
         return { ID, CREATOR };
 
