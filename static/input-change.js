@@ -151,7 +151,9 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
         || referencedResultsChanged;
 
 
-    // this is used by static groups as their result, and by generative groups has their base prompt
+    // this is used by static groups as their result
+    // this includes replacements IMG tags for image references 
+    // and reference tags if the reference is invalid
     group.combinedReferencedResults = consolidatedData;
 
     console.log("[CHANGE HANDLING] group has changed: ", group_input_has_changed)
@@ -195,13 +197,14 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
     if (dataReadyToSend) {
 
+        // This does not contain image references and invalid or not ready references
+        const dataToSend = buildTextPrompt(itemizedDataText);
+
         await sendRequestsForGroup({
-            consolidatedData,
+            dataToSend,
             image: imageB64,
-            isUndirected,
             groupElement,
             group,
-            groups
         });
     }
 
@@ -216,23 +219,21 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 }
 
 async function sendRequestsForGroup({
-    consolidatedData,
+    dataToSend,
     image,
-    isUndirected,
     groupElement,
     group,
-    groups
 }
 ) {
 
     const appid = getAppMetaData().ID;
-    console.log("[SENDING REQUEST] with appid ", appid)
+    console.log("[SENDING REQUEST] with appid ", appid);
 
     const fetchOptions = {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            data: consolidatedData,
+            data: dataToSend,
             image: image,
             transform: "",
             qualityEnabled: SETTINGS.qualityEnabled,
@@ -243,7 +244,7 @@ async function sendRequestsForGroup({
 
     if (group.type === GROUP_TYPE.IMAGE) {
 
-        console.log(`[REQUEST] image generation. ${image ? "with image input" : ""}, prompt is: ${consolidatedData}`);
+        console.log(`[REQUEST] image generation. ${image ? "with image input" : ""}, prompt is: ${dataToSend}`);
 
         groupElement.classList.remove("error");
         groupElement.classList.add("waiting");
@@ -323,14 +324,10 @@ async function sendRequestsForGroup({
             } else if (contentType === 'image/png') {
                 fileExtension = 'png';
             }
+            const imageType = group.controlnetEnabled ? 'controlnet' : 'image-to-image';
 
-            // We need to shorten the name to avoid download bugs on Safari
-
-            const maxPromptTextLength = 240 - group.name.length - 15;
-
-            const promptText = `${group.combinedReferencedResults}`.substring(0, maxPromptTextLength);
-
-            const fileName = `${group.name} — ${promptText} — ${randomInt(1, 99999)}.${fileExtension}`.replace(/\s+/g, ' ').trim();
+            const imageName = buildImageFilename(group, imageType, dataToSend);
+            const fileName = `${imageName}.${fileExtension}`;
 
             downloadButton.download = fileName;
 
@@ -344,7 +341,7 @@ async function sendRequestsForGroup({
             console.error(`Fetch failed: ${error} `);
         }
     } else if (group.type === GROUP_TYPE.TEXT) {
-        console.log(`[REQUEST] text generation ${image ? "with image input" : ""}, with prompt: ${consolidatedData} `);
+        console.log(`[REQUEST] text generation ${image ? "with image input" : ""}, with prompt: ${dataToSend} `);
 
         groupElement.classList.remove("error");
         groupElement.classList.add("waiting");
@@ -586,4 +583,25 @@ function processImage(imageFile) {
             reject(new Error("Failed to load image."));
         };
     });
+}
+
+function buildTextPrompt(itemizedDataText) {
+    return itemizedDataText.filter(item => {
+        return item.contentType !== 'IMAGE' &&
+            (item.contentType === 'TEXT' || (item.contentType === 'HTML' && item.isReady && item.isValid));
+    }).map(item => item.resultToInsert).join('\n');
+}
+
+
+function buildImageFilename(group, imageType, promptText) {
+
+    const imageTypeIndicator = imageType === 'image-to-image' ? "[image to image]" : "[controlnet]";
+
+    // We need to shorten the name to avoid download bugs on Safari
+
+    const maxPromptTextLength = 240 - group.name.length - imageTypeIndicator.length - 15;
+
+    const shortenedPrompt = promptText.substring(0, maxPromptTextLength);
+
+    return `${group.name} — ${shortenedPrompt} ${imageTypeIndicator} — ${randomInt(1, 99999)}`.replace(/\s+/g, ' ').trim();
 }
