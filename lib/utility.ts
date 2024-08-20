@@ -36,3 +36,7 @@ export function bufferToBase64(buffer: ArrayBuffer): string {
     return btoa(binaryString);
 }
 
+// type guard function that checks if a value is not undefined, tells TypeScript that after filtering, the value is indeed of type T 
+export function isDefined<T>(value: T | undefined): value is T {
+    return value !== undefined;
+}

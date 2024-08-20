@@ -97,3 +97,25 @@ export async function listMostActiveUsers(limit = 10): Promise<{ username: strin
         return [];
     }
 }
+
+export async function listRecentlyUsedApps(limit = 10): Promise<{ appid: string, timestamp: string }[]> {
+    try {
+        const usages = await db.usage.getMany({
+            limit,
+            reverse: true, // newer first
+        });
+
+        const recentlyUsedApps = usages.result.reduce((acc, doc) => {
+            const appid = doc.value.appid;
+            if (!acc.some(app => app.appid === appid)) {
+                acc.push({ appid, timestamp: doc.value.timestamp });
+            }
+            return acc;
+        }, [] as { appid: string, timestamp: string }[]);
+
+        return recentlyUsedApps.slice(0, limit);
+    } catch (error) {
+        console.error("Error retrieving recently used apps: ", error);
+        return [];
+    }
+}

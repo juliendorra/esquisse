@@ -367,7 +367,13 @@
       <li>
         <a href="<%= app.link %>">
           <span class="app-name"><%= app.name %></span>
+          <span class="count-badge"><%= app.count %></span>
         </a>
+        <div class="group-icons">
+          <% app.groupstypes.forEach(function(type){ %>
+            <img src="/icons/<%= type %>.svg" class="group-type-icon">
+          <% }) %>
+        </div>
       </li>
       <% }) %>
     </ul>
@@ -380,6 +386,11 @@
         <a href="<%= app.link %>">
           <span class="app-name"><%= app.name %></span>
         </a>
+        <div class="group-icons">
+          <% app.groupstypes.forEach(function(type){ %>
+            <img src="/icons/<%= type %>.svg" class="group-type-icon">
+          <% }) %>
+        </div>
       </li>
       <% }) %>
     </ul>
@@ -391,6 +402,7 @@
       <li>
         <a href="/apps/<%= user.username %>">
           <%= user.username %>
+          <span class="count-badge"><%= user.count %></span>
         </a>
       </li>
       <% }) %>
@@ -405,6 +417,7 @@
     </ul>
   </div>
   </div>
+  <script src="community.js"></script>
 </body>
 
 </html>
