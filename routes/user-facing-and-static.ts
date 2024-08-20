@@ -80,6 +80,20 @@ async function handleUserFacingURLs(ctx) {
         }
     }
 
+    else if (pathname === '/community') {
+        try {
+            const filePath = 'community.html';
+            await ctx.send({
+                root: `${Deno.cwd()}/static`,
+                index: "index.html",
+                path: filePath,
+            });
+        } catch {
+            ctx.response.status = 404;
+            ctx.response.body = 'URL not found';
+        }
+    }
+
     else {
 
         ctx.response.status = 404;

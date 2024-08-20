@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Generated using https://realfavicongenerator.net/ -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/public/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/public/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/public/favicon-16x16.png">
+  <link rel="manifest" href="/public/site.webmanifest">
+  <meta name="apple-mobile-web-app-title" content="Esquisse">
+  <meta name="application-name" content="Esquisse">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <meta name="msapplication-TileColor" content="#603cba">
+  <meta name="msapplication-config" content="/public/browserconfig.xml">
+  <meta name="theme-color" content="#ffffff">
+
+  <meta property='og:title' content='Esquisse Community' />
+  <meta property='og:image' content='https://user-images.githubusercontent.com/109677/241988208-2d42c609-91b9-49de-80d2-839322a3faae.png' />
+  <meta property='og:description' content='Esquisse Community. Explore the most used and recently used apps.' />
+  <meta property='og:url' content='' />
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.9.0/cdn/themes/light.css" />
+
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.9.0/cdn/shoelace-autoloader.js"></script>
+
+  <title>Esquisse Community</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    :root {
+      --footer-height: 3rem;
+      --scale: 0.4;
+
+      --neutral-color: #FaFaFa;
+      --neutral-color-highlight: #fefefe;
+      --light-border: #E0E0E0;
+      --title-text-color: #929292;
+      --footer-btn-color: #363636;
+
+      --slight-passthrough-color: rgba(245, 245, 245, 0.5);
+
+      --group-break-color-code-button: #929292;
+      --group-break-color-code-border: #ffffff;
+
+      --group-static-color-code: rgb(154, 123, 212);
+
+      --group-text-color-code: rgb(186, 226, 127);
+      --group-image-color-code: rgb(233, 107, 168);
+
+      --card-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+      --primary-font: 'Helvetica Neue', sans-serif;
+
+      --apps-app-title-link-color: rgb(93, 64, 147);
+      --apps-background-color: rgb(223, 167, 253);
+
+    }
+
+    html {
+      font-family: var(--primary-font);
+      box-sizing: border-box;
+    }
+
+    body {
+      position: relative;
+      margin: 0;
+      padding: 0;
+      font-weight: normal;
+      background-color: var(--apps-background-color);
+    }
+
+    :not(:defined) {
+      visibility: hidden;
+    }
+
+    img {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -webkit-user-drag: none;
+      user-select: none;
+      user-drag: none;
+    }
+
+    .no-scroll {
+      overflow: hidden;
+      /* Prevent vertical movement */
+      height: 100%;
+      /* Prevent horizontal movement */
+      width: 100%;
+    }
+
+    .waiting * {
+      opacity: 0.8;
+      cursor: wait !important;
+    }
+
+    .fetching-indicator {
+      display: none;
+    }
+
+    .waiting.fetching-indicator {
+      display: block;
+      position: fixed;
+      z-index: 99;
+      width: 80vw;
+      margin-left: 10vw;
+      margin-top: 35vh;
+      height: 4ex;
+      border-radius: 10ex;
+      color: #f8a7ff;
+
+      background-image: repeating-linear-gradient(-270deg, #f8a7ff, #e2cbfe 45.38%, rgb(198, 154, 254) 57.56%, #f8a7ff);
+
+      animation: scrollingBackground 20s infinite linear;
+    }
+
+    @keyframes scrollingBackground {
+      0% {
+        background-position: 0 0
+      }
+
+      100% {
+        background-position: 1000vw 0
+      }
+    }
+
+    .apps-list-container {
+      padding: 3em 10vw;
+    }
+
+    .apps-page-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+
+      color: white;
+      font-size: 1.5em;
+      margin-block-start: 0.83em;
+      margin-block-end: 0.83em;
+
+    }
+
+    .deleted-apps-switch {
+      font-size: 75%;
+    }
+
+    sl-switch {
+      --width: 3rem;
+      --height: 1.5rem;
+      --thumb-size: 1.5rem;
+    }
+
+    sl-icon {
+      vertical-align: text-bottom;
+    }
+
+    .apps-list {
+      list-style-type: none;
+    }
+
+    .apps-list li {
+      background-color: white;
+      border-radius: 1em;
+
+      padding-left: 0.75em;
+      padding-right: 0.75em;
+      padding-bottom: 1.5em;
+      padding-top: 0.7em;
+
+      box-sizing: border-box;
+      margin-bottom: 1em;
+    }
+
+    .apps-list li.just-deleted {
+      background-color: grey;
+      opacity: 0%;
+      transition: 0.5s;
+    }
+
+    .apps-list li[data-status='deleted-app'] .app-name {
+      color: var(--title-text-color);
+      filter: grayscale(100%);
+    }
+
+    .apps-list li[data-status='deleted-app'] .group-icons img {
+      filter: grayscale(100%) brightness(150%) contrast(10%);
+    }
+
+    .apps-list li.just-cloned {
+      animation: popOut 0.12s ease-in-out;
+    }
+
+    @keyframes popOut {
+      0% {
+        transform: scale(0.75);
+        opacity: 0;
+      }
+
+      70% {
+        transform: scale(1.1);
+        opacity: 1;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .results-container {
+      position: relative;
+      margin-top: 1.5rem;
+    }
+
+    .results-container:has(> .results-list:empty) {
+      display: none;
+    }
+
+    .results-list {
+      list-style-type: none;
+      display: flex;
+      overflow: scroll;
+
+      margin-block-start: 0;
+      margin-block-end: 0;
+      margin-inline-start: 0px;
+      margin-inline-end: 0px;
+      padding-inline-start: 0;
+    }
+
+    .overflow-left {
+      border-left: 4px solid #cccccc93;
+    }
+
+    .overflow-right {
+      border-right: 4px solid #cccccc;
+    }
+
+
+    .results-list li {
+      background-color: white;
+      padding: 0;
+      max-width: fit-content;
+      border-radius: 0.3rem;
+      border: 1px solid #cccccc;
+
+      margin-bottom: 0;
+      margin-left: 0.7rem;
+    }
+
+    .results-list li:first-child {
+      margin-left: 0;
+    }
+
+
+    .results-list img {
+      padding: 0.2rem;
+      width: 5rem;
+      height: 5rem;
+      border-radius: 0.4em;
+    }
+
+    @media (max-width: 600px) {
+      .apps-list-container {
+        padding: 1em;
+      }
+
+      .apps-list li {
+        padding: 1em;
+      }
+    }
+
+    .tool-btn {
+      padding: 0.3rem 0.4rem 0.25rem 0.4rem;
+      align-self: flex-end;
+
+      border-radius: 0.3rem;
+      border: 1px solid #cccccc;
+      cursor: pointer;
+      background-color: transparent;
+
+      border-color: var(--light-border);
+      background-color: transparent;
+      transition: background-color 0.1s;
+
+    }
+
+    .tool-btn:last-child {
+      margin-left: 0.5em;
+    }
+
+    .tool-btn.selected {
+      box-shadow: inset 0.25em 0.3em var(--light-border);
+    }
+
+    .tool-btn:hover {
+      background-color: var(--neutral-color);
+    }
+
+    .app-header {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 0.75rem;
+    }
+
+    .apps-list li .app-header .tool-btn img {
+      height: 0.55rem;
+    }
+
+    .apps-list a {
+      text-decoration: none;
+      color: var(--apps-app-title-link-color);
+    }
+
+    .apps-list .app-name {
+      margin-bottom: 0.8em;
+      text-align: center;
+    }
+
+    .group-icons {
+      padding-left: 0.5em;
+      padding-right: 0.5em;
+    }
+
+    .apps-list .group-type-icon {
+      height: 1rem;
+      margin-left: 0.25rem;
+      vertical-align: text-bottom;
+    }
+
+    .community-container {
+      padding: 3em 10vw;
+    }
+
+    .community-section {
+      margin-bottom: 2em;
+    }
+
+    .community-section h2 {
+      color: var(--apps-app-title-link-color);
+      border-bottom: 1px solid var(--light-border);
+      padding-bottom: 0.5rem;
+    }
+
+    .count-badge {
+      margin-left: 0.5rem;
+      background-color: var(--group-static-color-code);
+      color: white;
+      border-radius: 12px;
+      padding: 0.2em 0.6em;
+      font-size: 0.8em;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="fetching-indicator"></div>
+  <div class="community-section">
+    <h2>Most Used Apps</h2>
+    <ul class="apps-list most-used-apps">
+      <% it.mostUsedApps.forEach(function(app){ %>
+      <li>
+        <a href="<%= app.link %>">
+          <span class="app-name"><%= app.name %></span>
+        </a>
+      </li>
+      <% }) %>
+    </ul>
+  </div>
+  <div class="community-section">
+    <h2>Recently Used Apps</h2>
+    <ul class="apps-list recently-used-apps">
+      <% it.recentlyUsedApps.forEach(function(app){ %>
+      <li>
+        <a href="<%= app.link %>">
+          <span class="app-name"><%= app.name %></span>
+        </a>
+      </li>
+      <% }) %>
+    </ul>
+  </div>
+  <div class="community-section">
+    <h2>Most Active Users</h2>
+    <ul class="user-list most-active-users">
+      <% it.mostActiveUsers.forEach(function(user){ %>
+      <li>
+        <a href="/apps/<%= user.username %>">
+          <%= user.username %>
+        </a>
+      </li>
+      <% }) %>
+    </ul>
+  </div>
+  <div class="community-section">
+    <h2>All Users</h2>
+    <ul class="user-list all-users">
+      <% it.allUsers.forEach(function(user){ %>
+      <li><a href="/apps/<%= user %>"><%= user %></a></li>
+      <% }) %>
+    </ul>
+  </div>
+  </div>
+</body>
+
+</html>

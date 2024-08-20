@@ -13,6 +13,7 @@ import {
 } from './routes/api.ts';
 import { handleUserFacingURLs, handleStaticFiles } from './routes/user-facing-and-static.ts';
 import { renderResult, renderUserResults } from "./routes/result-renderer.ts";
+import { renderCommunity } from "./routes/community-renderer.ts"
 import { serveThumbnail } from "./routes/thumbnail.ts";
 import { serveImportedImage } from "./routes/imported-image.ts";
 import { handleListUsedApps } from './routes/api.ts';
@@ -54,6 +55,7 @@ router
   .get('/app/:id', handleUserFacingURLs)
   .get('/apps', handleUserFacingURLs)
   .get('/apps/:user', handleUserFacingURLs)
+  .get('/community', renderCommunity)
   .get("/result/:id", renderResult)
   .get("/results", renderUserResults)
   .get("/thumbnail/:id", serveThumbnail)
@@ -81,6 +83,7 @@ const exactRoutes = [
   '/persist', '/persist-result', '/persist-image', '/clone', '/recover',
   '/load', '/load-version', '/load-versions', '/load-result',
   "/app", "/apps", "/list-apps", "/list-used-apps",
+  "/community",
   "/results", '/list-results',
   "/admin", "/dashboard",
   "/list-users", "/bulk-create-users",
