@@ -371,7 +371,16 @@
         </a>
         <div class="group-icons">
           <% app.groupstypes.forEach(function(type){ %>
-            <img src="/icons/<%= type %>.svg" class="group-type-icon">
+            <% let iconName;
+            switch(type) {
+              case 'break': iconName = 'break'; break;
+              case 'static': iconName = 'text-static'; break;
+              case 'imported_image': iconName = 'imported-image'; break;
+              case 'image': iconName = 'image-gen'; break;
+              case 'text': iconName = 'text-gen'; break;
+              default: iconName = 'text-gen';
+            } %>
+            <img src="/icons/<%= iconName %>.svg" class="group-type-icon">
           <% }) %>
         </div>
       </li>
@@ -385,10 +394,22 @@
       <li>
         <a href="<%= app.link %>">
           <span class="app-name"><%= app.name %></span>
+          <% if (app.timestamp) { %>
+            <span class="timestamp"><%= new Date(app.timestamp).toLocaleString() %></span>
+          <% } %>
         </a>
         <div class="group-icons">
           <% app.groupstypes.forEach(function(type){ %>
-            <img src="/icons/<%= type %>.svg" class="group-type-icon">
+            <% let iconName;
+            switch(type) {
+              case 'break': iconName = 'break'; break;
+              case 'static': iconName = 'text-static'; break;
+              case 'imported_image': iconName = 'imported-image'; break;
+              case 'image': iconName = 'image-gen'; break;
+              case 'text': iconName = 'text-gen'; break;
+              default: iconName = 'text-gen';
+            } %>
+            <img src="/icons/<%= iconName %>.svg" class="group-type-icon">
           <% }) %>
         </div>
       </li>
