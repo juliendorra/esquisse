@@ -26,6 +26,8 @@
 
   <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.9.0/cdn/shoelace-autoloader.js"></script>
 
+  <script type="module" src="community.js"></script>
+
   <title>Esquisse Community</title>
   <link rel="stylesheet" href="style.css">
   <style>
@@ -367,11 +369,10 @@
       <li>
         <a href="<%= app.link %>">
           <span class="app-name"><%= app.name %></span>
-          <span class="count-badge"><%= app.count %></span>
         </a>
         <div class="group-icons">
           <% app.groupstypes.forEach(function(type){ %>
-            <% let iconName;
+          <% let iconName;
             switch(type) {
               case 'break': iconName = 'break'; break;
               case 'static': iconName = 'text-static'; break;
@@ -380,7 +381,7 @@
               case 'text': iconName = 'text-gen'; break;
               default: iconName = 'text-gen';
             } %>
-            <img src="/icons/<%= iconName %>.svg" class="group-type-icon">
+          <img src="/icons/<%= iconName %>.svg" class="group-type-icon">
           <% }) %>
         </div>
       </li>
@@ -394,13 +395,10 @@
       <li>
         <a href="<%= app.link %>">
           <span class="app-name"><%= app.name %></span>
-          <% if (app.timestamp) { %>
-            <span class="timestamp"><%= new Date(app.timestamp).toLocaleString() %></span>
-          <% } %>
         </a>
         <div class="group-icons">
           <% app.groupstypes.forEach(function(type){ %>
-            <% let iconName;
+          <% let iconName;
             switch(type) {
               case 'break': iconName = 'break'; break;
               case 'static': iconName = 'text-static'; break;
@@ -409,7 +407,7 @@
               case 'text': iconName = 'text-gen'; break;
               default: iconName = 'text-gen';
             } %>
-            <img src="/icons/<%= iconName %>.svg" class="group-type-icon">
+          <img src="/icons/<%= iconName %>.svg" class="group-type-icon">
           <% }) %>
         </div>
       </li>
@@ -423,7 +421,6 @@
       <li>
         <a href="/apps/<%= user.username %>">
           <%= user.username %>
-          <span class="count-badge"><%= user.count %></span>
         </a>
       </li>
       <% }) %>
@@ -438,7 +435,6 @@
     </ul>
   </div>
   </div>
-  <script src="community.js"></script>
 </body>
 
 </html>
