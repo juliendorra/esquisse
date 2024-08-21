@@ -362,17 +362,23 @@
 
 <body>
   <div class="fetching-indicator"></div>
-  <div class="community-section">
-    <h2>Most Used Apps</h2>
-    <ul class="apps-list most-used-apps">
-      <% it.mostUsedApps.forEach(function(app){ %>
-      <li>
-        <a href="<%= app.link %>">
-          <span class="app-name"><%= app.name %></span>
-        </a>
-        <div class="group-icons">
-          <% app.groupstypes.forEach(function(type){ %>
-          <% let iconName;
+
+  <div class="apps-list-container">
+
+    <div class="community-section">
+      <div class="apps-page-header">
+        <span class="used-apps-page-title">Most Used Apps</span>
+      </div>
+      <ul class="apps-list most-used-apps">
+        <% it.mostUsedApps.forEach(function(app){ %>
+        <li>
+          <a href="<%= app.link %>" target="_blank">
+
+            <div class="app-name"><%= app.name %></div>
+
+            <div class="group-icons">
+              <% app.groupstypes.forEach(function(type){ %>
+              <% let iconName;
             switch(type) {
               case 'break': iconName = 'break'; break;
               case 'static': iconName = 'text-static'; break;
@@ -381,24 +387,30 @@
               case 'text': iconName = 'text-gen'; break;
               default: iconName = 'text-gen';
             } %>
-          <img src="/icons/<%= iconName %>.svg" class="group-type-icon">
-          <% }) %>
-        </div>
-      </li>
-      <% }) %>
-    </ul>
-  </div>
-  <div class="community-section">
-    <h2>Recently Used Apps</h2>
-    <ul class="apps-list recently-used-apps">
-      <% it.recentlyUsedApps.forEach(function(app){ %>
-      <li>
-        <a href="<%= app.link %>">
-          <span class="app-name"><%= app.name %></span>
-        </a>
-        <div class="group-icons">
-          <% app.groupstypes.forEach(function(type){ %>
-          <% let iconName;
+              <img src="/icons/<%= iconName %>.svg" class="group-type-icon">
+              <% }) %>
+            </div>
+
+          </a>
+        </li>
+        <% }) %>
+      </ul>
+    </div>
+
+    <div class="community-section">
+      <div class="apps-page-header">
+        <span class="used-apps-page-title">Recently Used Apps</span>
+      </div>
+      <ul class="apps-list recently-used-apps">
+        <% it.recentlyUsedApps.forEach(function(app){ %>
+        <li>
+          <a href="<%= app.link %>" target="_blank">
+
+            <div class="app-name"><%= app.name %></div>
+
+            <div class="group-icons">
+              <% app.groupstypes.forEach(function(type){ %>
+              <% let iconName;
             switch(type) {
               case 'break': iconName = 'break'; break;
               case 'static': iconName = 'text-static'; break;
@@ -407,34 +419,43 @@
               case 'text': iconName = 'text-gen'; break;
               default: iconName = 'text-gen';
             } %>
-          <img src="/icons/<%= iconName %>.svg" class="group-type-icon">
-          <% }) %>
-        </div>
-      </li>
-      <% }) %>
-    </ul>
+              <img src="/icons/<%= iconName %>.svg" class="group-type-icon">
+              <% }) %>
+            </div>
+
+          </a>
+        </li>
+        <% }) %>
+      </ul>
+    </div>
+
+    <div class="community-section">
+      <div class="apps-page-header">
+        <span class="used-apps-page-title">Most Active Users</span>
+      </div>
+      <ul class="user-list most-active-users">
+        <% it.mostActiveUsers.forEach(function(user){ %>
+        <li>
+          <a href="/apps/<%= user.username %>">
+            <%= user.username %>
+          </a>
+        </li>
+        <% }) %>
+      </ul>
+    </div>
+
+    <div class="community-section">
+      <div class="apps-page-header">
+        <span class="used-apps-page-title">All Users</span>
+      </div>
+      <ul class="user-list all-users">
+        <% it.allUsers.forEach(function(user){ %>
+        <li><a href="/apps/<%= user %>"><%= user %></a></li>
+        <% }) %>
+      </ul>
+    </div>
   </div>
-  <div class="community-section">
-    <h2>Most Active Users</h2>
-    <ul class="user-list most-active-users">
-      <% it.mostActiveUsers.forEach(function(user){ %>
-      <li>
-        <a href="/apps/<%= user.username %>">
-          <%= user.username %>
-        </a>
-      </li>
-      <% }) %>
-    </ul>
-  </div>
-  <div class="community-section">
-    <h2>All Users</h2>
-    <ul class="user-list all-users">
-      <% it.allUsers.forEach(function(user){ %>
-      <li><a href="/apps/<%= user %>"><%= user %></a></li>
-      <% }) %>
-    </ul>
-  </div>
-  </div>
+
 </body>
 
 </html>
