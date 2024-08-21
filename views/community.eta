@@ -357,6 +357,49 @@
       font-size: 0.8em;
       font-weight: bold;
     }
+
+    .panel-container {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .dashboard-section {
+      border-radius: 1em;
+      padding: 1.5em;
+
+      margin-bottom: 2rem;
+      margin-right: 2rem;
+      background-color: white;
+
+      /* box-shadow: var(--card-shadow);*/
+    }
+
+    .dashboard-section h2 {
+      margin-top: 0;
+      width: max-content;
+      color: var(--apps-app-title-link-color);
+      border-bottom: 1px solid var(--light-border);
+      padding-bottom: 0.5rem;
+    }
+
+    .dashboard-section ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .dashboard-section li {
+      padding: 0.5rem 0;
+    }
+
+    .dashboard-section li a {
+      text-decoration: none;
+    }
+
+    .dashboard-section li:last-child {
+      border-bottom: none;
+      margin-left: 0;
+    }
   </style>
 </head>
 
@@ -429,30 +472,28 @@
       </ul>
     </div>
 
-    <div class="community-section">
-      <div class="apps-page-header">
-        <span class="used-apps-page-title">Most Active Users</span>
+    <div class="panel-container">
+      <div class="dashboard-section">
+        <h2>Most Active Users</h2>
+        <ul class="user-list most-active-users">
+          <% it.mostActiveUsers.forEach(function(user){ %>
+          <li>
+            <a href="/apps/<%= user.username %>">
+              <%= user.username %>
+            </a>
+          </li>
+          <% }) %>
+        </ul>
       </div>
-      <ul class="user-list most-active-users">
-        <% it.mostActiveUsers.forEach(function(user){ %>
-        <li>
-          <a href="/apps/<%= user.username %>">
-            <%= user.username %>
-          </a>
-        </li>
-        <% }) %>
-      </ul>
-    </div>
 
-    <div class="community-section">
-      <div class="apps-page-header">
-        <span class="used-apps-page-title">All Users</span>
+      <div class="dashboard-section">
+        <h2>All Users</h2>
+        <ul class="user-list all-users">
+          <% it.allUsers.forEach(function(user){ %>
+          <li><a href="/apps/<%= user %>"><%= user %></a></li>
+          <% }) %>
+        </ul>
       </div>
-      <ul class="user-list all-users">
-        <% it.allUsers.forEach(function(user){ %>
-        <li><a href="/apps/<%= user %>"><%= user %></a></li>
-        <% }) %>
-      </ul>
     </div>
   </div>
 
