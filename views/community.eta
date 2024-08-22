@@ -420,7 +420,7 @@
             <div class="app-name"><%= app.name %></div>
 
             <div class="group-icons">
-              <% app.groupstypes.forEach(function(type){ %>
+              <% app.groupstypes.forEach(function(type, index){ %>
               <% let iconName;
             switch(type) {
               case 'break': iconName = 'break'; break;
@@ -430,7 +430,18 @@
               case 'text': iconName = 'text-gen'; break;
               default: iconName = 'text-gen';
             } %>
-              <img src="/icons/<%= iconName %>.svg" class="group-type-icon">
+              <% let iconElementHTML = `<img src="/icons/${iconName}.svg" class="group-type-icon">`; %>
+
+              <% if (index === 0 && type === 'break') { %>
+              <span><%~ iconElementHTML %></span><br />
+
+              <% } else if (index !== 0 && type === 'break') { %>
+              <br /><span><%~ iconElementHTML %></span><br />
+
+              <% } else { %>
+              <span><%~ iconElementHTML %></span>
+
+              <% } %>
               <% }) %>
             </div>
 
