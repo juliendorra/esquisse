@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std/http/server.ts";
 import { existsSync } from "https://deno.land/std/fs/mod.ts";
 import { ensureDirSync } from "https://deno.land/std/fs/ensure_dir.ts";
 import { join } from "https://deno.land/std/path/mod.ts";
@@ -34,7 +33,7 @@ async function handleRequest(req: Request): Promise<Response> {
                 const data = await getObject(fullPath);
                 return new Response(data, { status: 200 });
             } catch (error) {
-                console.error("[MOCK S3]", error)
+                console.error("[MOCK S3]", error);
                 return new Response("Object not found", { status: 404 });
             }
 
@@ -68,4 +67,5 @@ async function objectExists(key: string): Promise<boolean> {
 }
 
 console.log("Mock S3 server running on http://localhost:443");
-serve(handleRequest, { port: 443 });
+
+Deno.serve({ port: 443 }, handleRequest);
