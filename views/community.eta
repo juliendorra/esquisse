@@ -372,6 +372,8 @@
       margin-right: 2rem;
       background-color: white;
 
+      max-height: fit-content;
+
       /* box-shadow: var(--card-shadow);*/
     }
 
