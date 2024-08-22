@@ -952,8 +952,8 @@ sl-drawer h3 {
 }
 
 sl-drawer .settings-menu-top {
-    margin-top: 0.25;
-    margin-bottom: 0.5em;
+    margin-top: 0.25rem;
+    margin-bottom: 1rem;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -962,6 +962,14 @@ sl-drawer .settings-menu-top {
 
 sl-drawer .settings-menu-top div {
     margin-bottom: 0;
+}
+
+sl-drawer .settings-menu-top .settings-link {
+    font-size: 1.2rem;
+}
+
+.settings-link+.settings-link {
+    margin-left: 1rem;
 }
 
 sl-drawer sl-icon {
@@ -980,6 +988,11 @@ sl-drawer div:has(sl-switch) {
 
 sl-drawer sl-button {
     width: 12rem;
+}
+
+sl-drawer sl-button#create-new-app-btn {
+    margin-top: 0.7rem;
+    margin-bottom: 0;
 }
 
 sl-switch {
