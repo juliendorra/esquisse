@@ -5,9 +5,13 @@
       "deno.unstable" // we are using deno.kv, which is unstable at the time of writing this comment
     ]
   },
-  "tasks": {
-    "dev": "deno run --unstable --allow-net --allow-read --allow-env --watch main.ts "
-  },
+
+"tasks": {
+  // Parallel Execution Using a Shell Background Process (&)
+    "dev": "deno run --unstable-kv --allow-net --allow-read --allow-env --watch main.ts & deno run --allow-net --allow-read --allow-write dev/mock-s3-server.ts",
+    "test": "deno test --unstable-kv --allow-net --allow-read --allow-env ./tests/"
+},
+
   "imports": {
     "https://deno.land/x/oak/mod.ts": "https://deno.land/x/oak@v13.1.0/mod.ts",
     "https://deno.land/x/kvdex/mod.ts": "https://deno.land/x/kvdex@v0.31.2/mod.ts",

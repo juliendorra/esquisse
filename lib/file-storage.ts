@@ -6,11 +6,17 @@ const S3_REGION = Deno.env.get("S3_REGION") || "";
 const S3_BUCKET = Deno.env.get("S3_BUCKET");
 const S3_ACCESS_KEY_ID = Deno.env.get("S3_ACCESS_KEY_ID");
 const SECRET_ACCESS_KEY = Deno.env.get("SECRET_ACCESS_KEY");
+const S3_IS_LOCAL = Deno.env.get("S3_IS_LOCAL") === "true";
+
+let useSSL = true;
+if (S3_IS_LOCAL) {
+  useSSL = false
+}
 
 const s3client = new S3Client({
   endPoint: S3_ENDPOINT,
   port: 443,
-  useSSL: true,
+  useSSL: useSSL,
   region: S3_REGION,
   accessKey: S3_ACCESS_KEY_ID,
   secretKey: SECRET_ACCESS_KEY,
