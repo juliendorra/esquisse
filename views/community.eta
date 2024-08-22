@@ -410,7 +410,7 @@
 
     <div class="community-section">
       <div class="apps-page-header">
-        <span class="used-apps-page-title">Most Used Apps</span>
+        <span class="used-apps-page-title">Most used apps in the community</span>
       </div>
       <ul class="apps-list most-used-apps">
         <% it.mostUsedApps.forEach(function(app){ %>
@@ -453,7 +453,7 @@
 
     <div class="community-section">
       <div class="apps-page-header">
-        <span class="used-apps-page-title">Recently Used Apps</span>
+        <span class="used-apps-page-title">Recently used apps in the community</span>
       </div>
       <ul class="apps-list recently-used-apps">
         <% it.recentlyUsedApps.forEach(function(app){ %>
@@ -485,7 +485,7 @@
 
     <div class="panel-container">
       <div class="dashboard-section">
-        <h2>Most Active Users</h2>
+        <h2>Most active users in the community</h2>
         <ul class="user-list most-active-users">
           <% it.mostActiveUsers.forEach(function(user){ %>
           <li>
@@ -498,7 +498,7 @@
       </div>
 
       <div class="dashboard-section">
-        <h2>All Users</h2>
+        <h2>All users in the community</h2>
         <ul class="user-list all-users">
           <% it.allUsers.forEach(function(user){ %>
           <li><a href="/apps/<%= user %>"><%= user %></a></li>
