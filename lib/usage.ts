@@ -119,3 +119,37 @@ export async function listRecentlyUsedApps(limit = 10): Promise<{ appid: string,
         return [];
     }
 }
+
+export async function listRecentlyActiveUsers(days = 30): Promise<string[]> {
+    try {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - days);
+        const usages = await db.usage.getMany({
+            filter: (doc) => new Date(doc.value.timestamp) >= thirtyDaysAgo,
+        });
+        return [...new Set(usages.result.map(doc => doc.value.username))];
+    } catch (error) {
+        console.error("Error retrieving recently active users: ", error);
+        return [];
+    }
+}
+
+export async function listExpertUsers(limit = 10): Promise<{ username: string, appCount: number }[]> {
+    try {
+        const usages = await db.usage.getMany();
+        const userAppCounts = usages.result.reduce((acc, doc) => {
+            const { username, appid } = doc.value;
+            if (!acc[username]) acc[username] = new Set();
+            acc[username].add(appid);
+            return acc;
+        }, {} as { [key: string]: Set<string> });
+
+        return Object.entries(userAppCounts)
+            .map(([username, appSet]) => ({ username, appCount: appSet.size }))
+            .sort((a, b) => b.appCount - a.appCount)
+            .slice(0, limit);
+    } catch (error) {
+        console.error("Error retrieving expert users: ", error);
+        return [];
+    }
+}

@@ -348,7 +348,7 @@
       padding-bottom: 0.5rem;
     }
 
-    .count-badge {
+    .badge {
       margin-left: 0.5rem;
       background-color: var(--group-static-color-code);
       color: white;
@@ -356,6 +356,14 @@
       padding: 0.2em 0.6em;
       font-size: 0.8em;
       font-weight: bold;
+    }
+
+    .active-badge {
+      background-color: var(--group-image-color-code);
+    }
+
+    .expert-badge {
+      background-color: var(--group-static-color-code);
     }
 
     .panel-container {
@@ -493,6 +501,12 @@
           <li>
             <a href="/apps/<%= user.username %>">
               <%= user.username %>
+              <% if (it.recentlyActiveUsers.includes(user.username)) { %>
+              <span class="badge active-badge">Active</span>
+              <% } %>
+              <% if (it.expertUsers.some(u => u.username === user.username)) { %>
+              <span class="badge expert-badge">Expert</span>
+              <% } %>
             </a>
           </li>
           <% }) %>
@@ -503,7 +517,17 @@
         <h2>All users in the community</h2>
         <ul class="user-list all-users">
           <% it.allUsers.forEach(function(user){ %>
-          <li><a href="/apps/<%= user %>"><%= user %></a></li>
+          <li>
+            <a href="/apps/<%= user %>">
+              <%= user %>
+              <% if (it.recentlyActiveUsers.includes(user)) { %>
+              <span class="badge active-badge">Active</span>
+              <% } %>
+              <% if (it.expertUsers.some(u => u.username === user)) { %>
+              <span class="badge expert-badge">Expert</span>
+              <% } %>
+            </a>
+          </li>
           <% }) %>
         </ul>
       </div>

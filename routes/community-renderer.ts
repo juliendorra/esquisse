@@ -1,6 +1,7 @@
 import "https://deno.land/x/dotenv/load.ts";
 import { Eta } from "https://deno.land/x/eta/src/index.ts";
 import { listMostUsedApps, listMostActiveUsers, listRecentlyUsedApps } from "../lib/usage.ts";
+import { listRecentlyActiveUsers, listExpertUsers } from "../lib/usage.ts";
 import { packageAppList } from "../lib/package-app-list.ts";
 import { retrieveLatestAppVersion } from "../lib/apps.ts";
 import { listUsers } from "../lib/users.ts";
@@ -30,6 +31,8 @@ export async function renderCommunity(ctx) {
         const recentlyUsedAppIDs = await listRecentlyUsedApps(10);
 
         const mostActiveUsers = await listMostActiveUsers(10);
+        const recentlyActiveUsers = await listRecentlyActiveUsers(30);
+        const expertUsers = await listExpertUsers(10);
         const listOfAllUsers = await listUsers();
         const allUsers = listOfAllUsers.map(doc => doc.value.username);
 
@@ -72,6 +75,8 @@ export async function renderCommunity(ctx) {
             mostUsedApps: packagedMostUsedApps,
             recentlyUsedApps: packagedRecentlyUsedApps,
             mostActiveUsers,
+            recentlyActiveUsers,
+            expertUsers,
             allUsers
         });
     } catch (error) {
