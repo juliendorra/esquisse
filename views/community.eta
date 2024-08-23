@@ -533,7 +533,7 @@
               <% if (it.expertUsers.some(u => u.username === user)) { %>
               <span class="badge expert-badge">Expert</span>
               <% } %>
-              <% if (it.mostCreativeUsers.some(u => u.username === user.username)) { %>
+              <% if (it.mostCreativeUsers.some(u => u.username === user)) { %>
               <span class="badge creative-badge">Creative</span>
               <% } %>
             </a>
