@@ -3,7 +3,7 @@ import { Eta } from "https://deno.land/x/eta/src/index.ts";
 import { listMostUsedApps, listMostActiveUsers, listRecentlyUsedApps } from "../lib/usage.ts";
 import { listRecentlyActiveUsers, listExpertUsers } from "../lib/usage.ts";
 import { packageAppList } from "../lib/package-app-list.ts";
-import { retrieveLatestAppVersion } from "../lib/apps.ts";
+import { retrieveLatestAppVersion, listMostCreativeUsers } from "../lib/apps.ts";
 import { listUsers } from "../lib/users.ts";
 
 import type { Apps } from "../lib/apps.ts";
@@ -34,6 +34,7 @@ export async function renderCommunity(ctx) {
         const recentlyActiveUsers = await listRecentlyActiveUsers(30);
         const expertUsers = await listExpertUsers(10);
         const listOfAllUsers = await listUsers();
+        const mostCreativeUsers = await listMostCreativeUsers(10);
         const allUsers = listOfAllUsers.map(doc => doc.value.username);
 
 
@@ -77,6 +78,7 @@ export async function renderCommunity(ctx) {
             mostActiveUsers,
             recentlyActiveUsers,
             expertUsers,
+            mostCreativeUsers,
             allUsers
         });
     } catch (error) {

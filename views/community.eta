@@ -366,6 +366,10 @@
       background-color: var(--group-static-color-code);
     }
 
+    .creative-badge {
+      background-color: var(--group-text-color-code);
+    }
+
     .panel-container {
       width: 100%;
       display: flex;
@@ -507,6 +511,9 @@
               <% if (it.expertUsers.some(u => u.username === user.username)) { %>
               <span class="badge expert-badge">Expert</span>
               <% } %>
+              <% if (it.mostCreativeUsers.some(u => u.username === user.username)) { %>
+              <span class="badge creative-badge">Creative</span>
+              <% } %>
             </a>
           </li>
           <% }) %>
@@ -525,6 +532,9 @@
               <% } %>
               <% if (it.expertUsers.some(u => u.username === user)) { %>
               <span class="badge expert-badge">Expert</span>
+              <% } %>
+              <% if (it.mostCreativeUsers.some(u => u.username === user.username)) { %>
+              <span class="badge creative-badge">Creative</span>
               <% } %>
             </a>
           </li>

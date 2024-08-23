@@ -383,3 +383,23 @@ async function retrieveAppFromSource(app: Apps) {
         return;
     }
 }
+
+export async function listMostCreativeUsers(limit = 10): Promise<{ username: string, appCount: number }[]> {
+
+    try {
+        const apps = await db.apps.getMany();
+        const userAppCounts = apps.result.reduce((acc, doc) => {
+            const username = doc.value.username;
+            acc[username] = (acc[username] || 0) + 1;
+            return acc;
+        }, {} as { [key: string]: number });
+
+        return Object.entries(userAppCounts)
+            .map(([username, appCount]) => ({ username, appCount }))
+            .sort((a, b) => b.appCount - a.appCount)
+            .slice(0, limit);
+    } catch (error) {
+        console.error("Error retrieving most creative users: ", error);
+        return [];
+    }
+}
