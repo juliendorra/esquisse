@@ -15,6 +15,8 @@ const eta = new Eta({ views: viewpath, cache: false, debug: true })
 export async function renderCommunity(ctx) {
     try {
 
+        // Apps
+
         // Most Used App IDs: 
         // [
         //     { appid: "sk82prk3dsyy6x", count: 468 },
@@ -29,14 +31,6 @@ export async function renderCommunity(ctx) {
         //   { appid: "2swcr2gg5qqt4c", timestamp: "2024-08-17T17:45:40.107Z" }
         // ]
         const recentlyUsedAppIDs = await listRecentlyUsedApps(10);
-
-        const mostActiveUsers = await listMostActiveUsers(10);
-        const recentlyActiveUsers = await listRecentlyActiveUsers(30);
-        const expertUsers = await listExpertUsers(10);
-        const listOfAllUsers = await listUsers();
-        const mostCreativeUsers = await listMostCreativeUsers(10);
-        const allUsers = listOfAllUsers.map(doc => doc.value.username);
-
 
         // Fetch additional app information for each app
         // [{
@@ -71,6 +65,20 @@ export async function renderCommunity(ctx) {
         )
         const filteredRecentlyUsedApps: Apps[] = recentlyUsedApps.filter(isDefined);
         const packagedRecentlyUsedApps = await packageAppList(filteredRecentlyUsedApps, ctx.state.user.usrname, "");
+
+        // Users
+
+        const recentlyActiveUsers = await listRecentlyActiveUsers(30);
+        const listOfAllUsers = await listUsers();
+        const allUsers = listOfAllUsers.map(doc => doc.value.username);
+
+        // Badge list
+        // based on usage volume
+        const mostActiveUsers = await listMostActiveUsers(10);
+        // based on the number of different apps used (usage diversity)
+        const expertUsers = await listExpertUsers(10);
+        // based on the number of apps created or cloned (app ownership)
+        const mostCreativeUsers = await listMostCreativeUsers(10);
 
         ctx.response.body = eta.render('community', {
             mostUsedApps: packagedMostUsedApps,
