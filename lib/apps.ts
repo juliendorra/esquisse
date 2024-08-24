@@ -128,23 +128,20 @@ async function retrieveMultipleLastAppVersions(appid: string, limit = 5): Promis
         // legacy full groups: [ { type, timestamp, value: { version, appid, timestamp, username, groups:[...] } }, ... ]
         // metadata only: [ { type, timestamp, value: { version, appid, timestamp, username, versionhash } }, ... ]
 
-        const multipleLastAppVersions: HistoryEntry<Apps>[] = [];
-
-        for (const doc of history.result) {
-
-            if (doc.type === "write" && doc.value) {
-
+        const versionPromises = history.result
+            .filter(doc => doc.type === "write" && doc.value)
+            .map(async doc => {
                 const version = await retrieveAppVersionFromSource(doc);
+                console.log("Retrieved version of app ", appid, "Version is: ", version);
+                return version;
+            });
 
-                console.log("Retrievied version of app ", appid, "Version is: ", version);
+        const settledResults = await Promise.allSettled(versionPromises);
+        const multipleLastAppVersions = settledResults
+            .filter(result => result.status === "fulfilled" && result.value)
+            .map(result => (result as PromiseFulfilledResult<HistoryEntry<Apps>>).value);
 
-                if (version) {
-                    multipleLastAppVersions.push(version);
-                }
-            }
-        }
-
-        return multipleLastAppVersions
+        return multipleLastAppVersions;
 
     } catch (error) {
         console.error("Error retrieving all versions for URL ID: ", appid, "Error: ", error);
