@@ -12,19 +12,24 @@ const CacheModel = model<CacheEntry>();
 
 const kv = await Deno.openKv();
 
+// canot set path as primary index because of collision tests when overwriting
+// see: https://github.com/oliver-oloughlin/kvdex/issues/143#issuecomment-1839577965
 const db = kvdex(kv, {
     cache: collection(CacheModel, {
         indices: {
-            path: "primary",
+            path: "secondary",
         }
     })
 });
 
 export async function setCache(path: string, cachekey: string, expiryInSeconds: number): Promise<void> {
     const expiry = Date.now() + expiryInSeconds * 1000;
-    await db.cache.set(path, { path, expiry, cachekey });
 
-    console.log("[CACHE] cache set for ", path, " to expire on ", expiry);
+    const result = await db.cache.set(path, { path, expiry, cachekey }, { overwrite: true });
+
+    console.log("[CACHE] cache set for ", path, " to expire on ", new Date(expiry).toLocaleString());
+
+    console.log("[CACHE] cache set for ", path, " Result ", result);
 }
 
 export async function checkCache(path: string): Promise<string | null> {
@@ -46,5 +51,7 @@ export async function readCache(path: string): Promise<string | null> {
         console.log("[CACHE] cache found for ", path);
         return await downloadCachedHTML(cacheEntry.value.cachekey);
     }
+
+    console.log("[CACHE] no cache found for ", path);
     return null;
 }
