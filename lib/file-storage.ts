@@ -152,3 +152,36 @@ export async function downloadAppVersion(appid: string, versionhash: string) {
     return;
   }
 }
+
+export async function uploadRenderedHTML(data: string, cachekey: string) {
+
+  const key = cachekey;
+
+  try {
+    await s3client.putObject(
+      key, new TextEncoder().encode(data),
+      {
+        metadata: {
+          "Content-Type": "text/html; charset=utf-8",
+        }
+      });
+
+    return {
+      success: true,
+      url: `https://${S3_ENDPOINT}/${S3_BUCKET}/${key}`,
+    };
+  } catch (error) {
+    console.log("[RENDERED HTML FILE] Upload failed: ", error.message);
+    return { success: false, reason: "Upload failed: " + error.message };
+  }
+}
+
+export async function downloadCachedHTML(cachekey: string): Promise<string | null> {
+  try {
+    const response = await s3client.getObject(cachekey);
+    return response ? new TextDecoder().decode(await response.arrayBuffer()) : null;
+  } catch (error) {
+    console.log("[CACHED FILE] Download failed: ", error.message);
+    return null;
+  }
+}

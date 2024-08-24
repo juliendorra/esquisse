@@ -8,12 +8,29 @@ import { listUsers } from "../lib/users.ts";
 
 import type { Apps } from "../lib/apps.ts";
 import { isDefined } from "../lib/utility.ts";
+import { setCache, readCache } from "../lib/cache.ts";
+import { uploadRenderedHTML } from "../lib/file-storage.ts";
 
 const viewpath = Deno.cwd() + '/views/'
 const eta = new Eta({ views: viewpath, cache: false, debug: true })
 
 export async function renderCommunity(ctx) {
     try {
+
+        // set the community page to a 24h expiry client-side
+        ctx.response.headers.set("Cache-Control", "public, max-age=86400");
+
+        // try to read cache for community page
+        // readCache check if the cache is expired before fetching
+        const cachedContent = await readCache(ctx.request.url.pathname);
+
+        if (cachedContent) {
+
+            if (cachedContent) {
+                ctx.response.body = cachedContent;
+                return;
+            }
+        }
 
         // Apps
 
@@ -89,6 +106,19 @@ export async function renderCommunity(ctx) {
             mostCreativeUsers,
             allUsers
         });
+
+        // Save the rendered HTML to S3
+        const freshCacheKey = "community.cache.html";
+        const uploadResult = await uploadRenderedHTML(ctx.response.body, freshCacheKey);
+
+        // Set the cache entry
+        if (uploadResult.success) {
+            setCache(ctx.request.url.pathname, freshCacheKey, 3600); // 1 hour expiry
+        }
+        else {
+            setCache(ctx.request.url.pathname, freshCacheKey, 0); // expired
+        }
+
     } catch (error) {
         console.error('Error in renderCommunity:', error);
         ctx.response.status = 500;
