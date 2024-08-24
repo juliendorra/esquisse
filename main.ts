@@ -1,4 +1,5 @@
 import { Application, Router } from "https://deno.land/x/oak/mod.ts";
+import { factory } from "https://deno.land/x/oak/middleware/etag.ts";
 import { basicAuth } from "./lib/auth.ts";
 import {
   handleStability, handleChatGPT,
@@ -117,7 +118,7 @@ app.use(async (ctx, next) => {
   await next();
 });
 
-
+app.use(factory());
 app.use(router.routes());
 app.use(router.allowedMethods());
 
