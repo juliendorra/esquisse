@@ -107,6 +107,10 @@ async function handleStaticFiles(ctx) {
     console.log("STATIC FILE", `${Deno.cwd()}/static${ctx.request.url.pathname}`)
 
     try {
+
+        // set static files to 30 minutes cache expiry client-side
+        ctx.response.headers.set("Cache-Control", "public, max-age=1800");
+
         const filePath = `${ctx.request.url.pathname}`;
         await ctx.send({
             root: `${Deno.cwd()}/static`,
