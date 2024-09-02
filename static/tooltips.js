@@ -11,6 +11,10 @@ const TOOLTIPS =
     fr:
         [
             {
+                selector: ".drag-handle",
+                text: "Poignée de déplacement: Cliquez et glissez pour déplacer ce bloc. Cliquez et relacher pour sélectionner ce bloc et déplacer un goupe de bloc d'un seul mouvement."
+            },
+            {
                 selector: ".inline-reference-text.not-ready",
                 text: "Référence pas encore disponible. Le bloc mentionné n'a pas de résultat à afficher."
             },
@@ -85,6 +89,10 @@ const TOOLTIPS =
 
     en:
         [
+            {
+                selector: ".drag-handle",
+                text: "Drag Handle: Click and drag to move this block. Click and release to select this block and move a group of blocks in one gesture."
+            },
             {
                 selector: ".inline-reference-text.not-ready",
                 text: "Reference not yet available. The mentioned block has no results to display."
