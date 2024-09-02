@@ -11,6 +11,14 @@ const TOOLTIPS =
     fr:
         [
             {
+                selector: ".inline-reference-text.not-ready",
+                text: "Référence pas encore disponible. Le bloc mentionné n'a pas de résultat à afficher."
+            },
+            {
+                selector: ".inline-reference-text.not-valid",
+                text: "Référence invalide. Le bloc mentionné n'existe pas !"
+            },
+            {
                 selector: ".open-btn",
                 text: "Ouvert : mode par défaut. Le texte dans le champ de données est sauvegardé pour une utilisation ultérieure par les utilisateurs de l'app, et est modifiable. Le champ transformation est aussi sauvegardée pour les utilisations ultérieures de l'app, et est modifiable."
             },
@@ -71,6 +79,14 @@ const TOOLTIPS =
 
     en:
         [
+            {
+                "selector": ".inline-reference-text.not-ready",
+                "text": "Reference not yet available. The mentioned block has no results to display."
+            },
+            {
+                "selector": ".inline-reference-text.not-valid",
+                "text": "Invalid reference. The mentioned block does not exist!"
+            },
             {
                 selector: ".open-btn",
                 text: "Open: default mode. The data text in the data field is saved for later use by the app's users, and is writable. The transformation field is always saved for future app uses, and is writable."
