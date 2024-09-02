@@ -203,5 +203,27 @@ function deleteTooltips() {
     }
 }
 
+// Utils
+// This function checks if all languages in the TOOLTIPS object have the same keys.
+function checkTooltipConsistency() {
+    const languages = Object.keys(TOOLTIPS);
+    const referenceLanguage = languages[0];
+    const referenceKeys = TOOLTIPS[referenceLanguage].map(item => item.selector);
 
+    const missingKeys = {};
 
+    for (const lang of languages) {
+        const langKeys = TOOLTIPS[lang].map(item => item.selector);
+
+        for (const key of referenceKeys) {
+            if (!langKeys.includes(key)) {
+                if (!missingKeys[lang]) {
+                    missingKeys[lang] = [];
+                }
+                missingKeys[lang].push(key);
+            }
+        }
+    }
+
+    return missingKeys;
+}
