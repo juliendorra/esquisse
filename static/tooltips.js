@@ -19,20 +19,27 @@ const TOOLTIPS =
                 text: "Référence invalide. Le bloc mentionné n'existe pas !"
             },
             {
-                selector: ".open-btn",
-                text: "Ouvert : mode par défaut. Le texte dans le champ de données est sauvegardé pour une utilisation ultérieure par les utilisateurs de l'app, et est modifiable. Le champ transformation est aussi sauvegardée pour les utilisations ultérieures de l'app, et est modifiable."
-            },
-            {
                 selector: ".entry-btn",
-                text: "Saisie : le champ de données (champ haut) devient un champ de saisie éphémère. Il sera vide lorsque l'application sera rechargée, prêt pour qu'un utilisateur le remplisse. Le champ transformation devient en lecture seule et est sauvegardée pour les utilisations ultérieures de l'app."
+                text: "Mode bloc de saisie : une fois ce bouton activé, le champ de données devient un champ de saisie éphémère. Il sera vide lorsque l'application sera rechargée, prêt pour qu'un utilisateur le remplisse. Astuce : utilisez un bloc Static Text dédié comme bloc de saisie pour vos utilisateurs."
             },
             {
-                selector: ".lock-btn",
-                text: "Verrouillé : fixe les champs de données et de transformation en lecture seule. Les deux sont sauvegardés pour une utilisation ultérieure."
+                selector: ".html-mode-btn",
+                text: "Mode HTML : C'est le mode par défaut. Affiche le résultat en tant que text HTML riche avec titres, listes, formats de texte, semblable à une page web, si ces éléments existent dans le résultat."
+            },
+            {
+                selector: ".text-mode-btn",
+                text: "Mode texte : affiche le résultat au format texte brut. Cela permet par exemple de visualiser et copier le code brut renvoyé par un bloc Text Generator"
             },
             {
                 selector: ".list-mode-btn",
-                text: "Mode liste : affiche un résultat texte semblable à une liste comme un menu déroulant, afin que vous puissiez choisir l'une des réponses."
+                text: `Mode liste : affiche un résultat texte semblable à une liste comme un menu déroulant, afin que vous puissiez choisir l'une des réponses. Fonctionne avec les listes à puces et tirets, listes numérotés, listes à virgules… Demandez le bon format lorsque vous générez du texte avec un bloc Text Generator. Vous pouvez aussi crées des listes de références manuellement dans un bloc Static Text<br /><br />
+                Formats reconnus:<br /><br />
+                - item<br /><br />
+                * item<br /><br />
+                1. item<br /><br />
+                1/ item<br /><br />
+                "item1", "item2", and "item3"<br /><br /
+                >item1, item2, item3`
             },
             {
                 selector: ".refresh-btn",
@@ -51,6 +58,10 @@ const TOOLTIPS =
                 text: "Supprime : supprime l'image importée du bloc."
             },
             {
+                selector: ".group.image > .download-btn",
+                text: "Télécharge : Télécharge l'image générée par ce bloc."
+            },
+            {
                 selector: ".group:first-child > .group-name",
                 text: "Nom du premier bloc : Le nom du premier bloc (en haut à gauche) est automatiquement utilisé comme nom de votre application.<br /><br />Renommer vos blocs facilitera également leur référencement et l'utilisation de leurs résultats dans d'autres blocs."
             },
@@ -59,20 +70,16 @@ const TOOLTIPS =
                 text: "Nom : Renommer vos blocs facilitera également leur référencement et l'utilisation de leurs résultats dans d'autres blocs."
             },
             {
-                selector: ".group.text > .data-text",
-                text: "Exemple, 'Avec le personnage #personnage et le lieu [lieu de départ]'<br /><br />Vous pouvez référencer des blocs textes mais aussi une image pour par exemple la faire décrire par le génerateur de texte"
+                selector: ".group.text > .data-text-container",
+                text: "Exemple, 'Avec le personnage #personnage et le lieu [lieu de départ]écris un poème de 8 lignes.'<br /><br />Vous pouvez référencer des blocs textes mais aussi une image pour par exemple la faire décrire par le génerateur de texte"
             },
             {
-                selector: ".group.text > .transform-text",
-                text: "Exemple, 'écris un poème de 8 lignes.'"
+                selector: ".group.static > .data-text-container",
+                text: "Exemple, 'Avec le personnage #personnage et le lieu [lieu de départ]écris un poème de 8 lignes.'<br /><br />Vous pouvez écrire du texte et référencer d'autres bloc textes pour combiner leurs résultats.<br /><br />Vous pouvez aussi référencer des images, qui seront alors ajoutées comme code HTML, pour leur affichage uniquement. Cela vous permet d'utiliser un bloc Static Text pour créer une mise en page des résultats images."
             },
             {
-                selector: ".group.image > .data-text",
-                text: "Description de l'image sous forme de mots-clés visuels, vous pouvez utiliser un nom ou un autre nom pour obtenir des résultats à partir d'un autre bloc.<br /><br />Vous pouvez faire référence à des blocs de texte mais aussi à un bloc d'image : il sera utilisé comme image de départ (mode image à image) ou comme structure (mode controlnet).<br /><br />Exemple : '#personnage #paysage nuit clair de lune'"
-            },
-            {
-                selector: ".group.image > .transform-text",
-                text: "Partie statique de la description à utiliser pour générer l'image, par exemple un style visuel. Soyez aussi descriptif et précis que possible pour de meilleurs résultats. Exemple, 'peinture à l'huile 18e siècle', 'logo vectoriel couleurs plates', etc."
+                selector: ".group.image > .data-text-container",
+                text: "Description de l'image sous forme de mots-clés visuels, vous pouvez utiliser #nom ou [nom de bloc] pour obtenir des résultats à partir d'un autre bloc. Pour les styles, soyez aussi descriptif et précis que possible pour de meilleurs résultats. Exemple, 'peinture à l'huile 18e siècle', 'logo vectoriel couleurs plates', etc.<br /><br />Vous pouvez faire référence à des blocs de texte mais aussi à un bloc d'image : il sera utilisé comme image de départ (mode image à image) ou comme structure (mode controlnet).<br /><br />Exemple : '#personnage #paysage nuit clair de lune peinture à l'huile 18e siècle'"
             },
         ]
     ,
