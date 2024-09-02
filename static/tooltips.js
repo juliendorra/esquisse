@@ -2,7 +2,7 @@
 import tippy, { roundArrow } from "https://cdn.jsdelivr.net/npm/tippy.js@6/+esm";
 // import 'https://cdn.jsdelivr.net/npm/tippy.js@6/dist/tippy.min.css';
 
-export { setTooltips, setAccessibleDescriptions };
+export { setTooltips, setAccessibleDescriptions, checkTooltipConsistency };
 
 const LANGUAGE_CODE = navigator.language.split('-')[0];
 
@@ -28,22 +28,22 @@ const TOOLTIPS =
             },
             {
                 selector: ".text-mode-btn",
-                text: "Mode texte : affiche le résultat au format texte brut. Cela permet par exemple de visualiser et copier le code brut renvoyé par un bloc Text Generator"
+                text: "Mode texte : affiche le résultat au format texte brut. Cela permet par exemple de visualiser et copier le code brut renvoyé par un bloc Text Generator."
             },
             {
                 selector: ".list-mode-btn",
-                text: `Mode liste : affiche un résultat texte semblable à une liste comme un menu déroulant, afin que vous puissiez choisir l'une des réponses. Fonctionne avec les listes à puces et tirets, listes numérotés, listes à virgules… Demandez le bon format lorsque vous générez du texte avec un bloc Text Generator. Vous pouvez aussi crées des listes de références manuellement dans un bloc Static Text<br /><br />
+                text: `Mode liste : affiche un résultat texte semblable à une liste comme un menu déroulant, afin que vous puissiez choisir l'une des réponses. Fonctionne avec les listes à puces et tirets, listes numérotées, listes à virgules… Demandez le bon format lorsque vous générez du texte avec un bloc Text Generator. Vous pouvez aussi créer des listes de références manuellement dans un bloc Static Text.<br /><br />
                 Formats reconnus:<br /><br />
                 - item<br /><br />
                 * item<br /><br />
                 1. item<br /><br />
                 1/ item<br /><br />
-                "item1", "item2", and "item3"<br /><br /
-                >item1, item2, item3`
+                "item1", "item2", and "item3"<br /><br />
+                item1, item2, item3`
             },
             {
                 selector: ".refresh-btn",
-                text: "Actualiser : demande la généreration d'un nouveau résultat."
+                text: "Actualiser : demande la génération d'un nouveau résultat."
             },
             {
                 selector: ".image-to-image-btn",
@@ -71,44 +71,43 @@ const TOOLTIPS =
             },
             {
                 selector: ".group.text > .data-text-container",
-                text: "Exemple, 'Avec le personnage #personnage et le lieu [lieu de départ]écris un poème de 8 lignes.'<br /><br />Vous pouvez référencer des blocs textes mais aussi une image pour par exemple la faire décrire par le génerateur de texte"
+                text: "Exemple, 'Avec le personnage #personnage et le lieu [lieu de départ] écris un poème de 8 lignes.'<br /><br />Vous pouvez référencer des blocs textes mais aussi une image pour par exemple la faire décrire par le générateur de texte. Notez que seule la première image référencée est utilisée."
             },
             {
                 selector: ".group.static > .data-text-container",
-                text: "Exemple, 'Avec le personnage #personnage et le lieu [lieu de départ]écris un poème de 8 lignes.'<br /><br />Vous pouvez écrire du texte et référencer d'autres bloc textes pour combiner leurs résultats.<br /><br />Vous pouvez aussi référencer des images, qui seront alors ajoutées comme code HTML, pour leur affichage uniquement. Cela vous permet d'utiliser un bloc Static Text pour créer une mise en page des résultats images."
+                text: "Exemple, 'Avec le personnage #personnage et le lieu [lieu de départ] écris un poème de 8 lignes.'<br /><br />Vous pouvez écrire du texte et référencer d'autres blocs textes pour combiner leurs résultats.<br /><br />Vous pouvez aussi référencer des images, qui seront alors ajoutées comme code HTML, pour leur affichage uniquement. Cela vous permet d'utiliser un bloc Static Text pour créer une mise en page des résultats images."
             },
             {
                 selector: ".group.image > .data-text-container",
                 text: "Description de l'image sous forme de mots-clés visuels, vous pouvez utiliser #nom ou [nom de bloc] pour obtenir des résultats à partir d'un autre bloc. Pour les styles, soyez aussi descriptif et précis que possible pour de meilleurs résultats. Exemple, 'peinture à l'huile 18e siècle', 'logo vectoriel couleurs plates', etc.<br /><br />Vous pouvez faire référence à des blocs de texte mais aussi à un bloc d'image : il sera utilisé comme image de départ (mode image à image) ou comme structure (mode controlnet).<br /><br />Exemple : '#personnage #paysage nuit clair de lune peinture à l'huile 18e siècle'"
             },
-        ]
-    ,
+        ],
 
     en:
         [
             {
-                "selector": ".inline-reference-text.not-ready",
-                "text": "Reference not yet available. The mentioned block has no results to display."
+                selector: ".inline-reference-text.not-ready",
+                text: "Reference not yet available. The mentioned block has no results to display."
             },
             {
-                "selector": ".inline-reference-text.not-valid",
-                "text": "Invalid reference. The mentioned block does not exist!"
-            },
-            {
-                selector: ".open-btn",
-                text: "Open: default mode. The data text in the data field is saved for later use by the app's users, and is writable. The transformation field is always saved for future app uses, and is writable."
+                selector: ".inline-reference-text.not-valid",
+                text: "Invalid reference. The mentioned block does not exist!"
             },
             {
                 selector: ".entry-btn",
-                text: "Entry: makes the data field (upper field) an ephemeral input. It'll be blank when the app is reloaded, ready for an user to fill it in. The transform is made read-only and saved for later use."
+                text: "Input Block Mode: Once this button is activated, the data field becomes a temporary input field. It will be empty when the application is reloaded, ready for a user to fill in. Tip: Use a dedicated Static Text block as an input block for your users."
             },
             {
-                selector: ".lock-btn",
-                text: "Lock: makes the data and transform fields read-only. Both are saved for later use."
+                selector: ".html-mode-btn",
+                text: "HTML Mode: This is the default mode. Displays the result as rich HTML text with headings, lists, text formatting, similar to a web page, if these elements exist in the result."
+            },
+            {
+                selector: ".text-mode-btn",
+                text: "Text Mode: Displays the result in plain text format. This allows, for example, to view and copy the raw code returned by a Text Generator block."
             },
             {
                 selector: ".list-mode-btn",
-                text: "List mode: turns a list-like text result into a list dropdown, so you can choose one of the answer."
+                text: "List mode: turns a list-like text result into a list dropdown, so you can choose one of the answers."
             },
             {
                 selector: ".refresh-btn",
@@ -120,38 +119,42 @@ const TOOLTIPS =
             },
             {
                 selector: ".controlnet-btn",
-                text: "Controlnet mode: the structure of the image referenced in the data field will be used to constrain the image. Note that only the first image referenced is used."
+                text: "Controlnet mode: the structure of the image referenced in the data field will be used to constrain the image. Note that only the first referenced image is used."
             },
             {
                 selector: ".clear-btn",
                 text: "Clear: remove the imported image from the block."
             },
             {
+                selector: ".group.image > .download-btn",
+                text: "Download: Downloads the image generated by this block."
+            },
+            {
                 selector: ".group:first-child > .group-name",
-                text: "Name of the first block: The name of the first (top-left) block is automatically used as the name of your app.<br /><br />Renaming your blocks will also make it easier to reference them and to use their results in other blocks. "
+                text: "Name of the first block: The name of the first (top-left) block is automatically used as the name of your app.<br /><br />Renaming your blocks will also make it easier to reference them and to use their results in other blocks."
             },
             {
                 selector: ".group:not(:first-child) > .group-name",
-                text: "Name: renaming your blocks will make it easier to reference them and to use their results in other blocks. "
+                text: "Name: renaming your blocks will make it easier to reference them and to use their results in other blocks."
             },
             {
                 selector: ".group.text > .data-text",
                 text: "Example, 'With the character #character and the place [place of departure]'<br /><br />You can reference text blocks but also an image too, for example to ask the text generator to describe it."
             },
             {
-                selector: ".group.text > .transform-text",
-                text: "Example, 'write an 8 line poem.'"
+                "selector": ".group.text > .data-text-container",
+                "text": "Example: 'With character #character and location [starting location], write an 8-line poem.'<br /><br />You can reference text blocks but also an image, for instance, to have it described by the text generator. Note that only the first referenced image is used."
             },
             {
-                selector: ".group.image > .data-text",
-                text: "Description of the image as visual keywords, You can use #name or [another name] to get results from another block.<br /><br />You can reference text blocks but also an image block too: it will used as a start image (image to image mode) or as a structure (controlnet mode).<br /><br />Example: '#character #landscape night moonlight'"
+                "selector": ".group.static > .data-text-container",
+                "text": "Example: 'With the character #character and the location [starting location], write an 8-line poem.'<br /><br />You can write text and reference other text blocks to combine their results.<br /><br />You can also reference images, which will then be added as HTML code, for display purposes only. This allows you to use a Static Text block to create a layout for the image results."
             },
             {
-                selector: ".group.image > .transform-text",
-                text: "Static part of the description to use for generating the image, for example a visual style. Be as descriptive and precise as possible for best results. Example, 'oil painting 18th century', 'vector logo flat colors', etc."
+                "selector": ".group.image > .data-text-container",
+                "text": "Description of the image by visual keywords. You can use #name or [block name] to get results from another block. For styles, be as descriptive and precise as possible for better results. Example: '18th-century oil painting', 'flat color vector logo', etc.<br /><br />You can reference text blocks but also an image block: it will be used as a starting image (image-to-image mode) or as a structure (ControlNet mode).<br /><br />Example: '#character #landscape moonlit night 18th-century oil painting'"
             },
         ]
-}
+};
 
 let tooltipInstances = [];
 
