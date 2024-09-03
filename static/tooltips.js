@@ -2,7 +2,7 @@
 import tippy, { roundArrow } from "https://cdn.jsdelivr.net/npm/tippy.js@6/+esm";
 // import 'https://cdn.jsdelivr.net/npm/tippy.js@6/dist/tippy.min.css';
 
-export { setTooltips, setAccessibleDescriptions, checkTooltipConsistency };
+export { setTooltips, setAccessibleDescriptions, TOOLTIPS };
 
 const LANGUAGE_CODE = navigator.language.split('-')[0];
 
@@ -212,29 +212,4 @@ function deleteTooltips() {
         tooltip.destroy();
 
     }
-}
-
-// Utils
-// This function checks if all languages in the TOOLTIPS object have the same keys.
-function checkTooltipConsistency() {
-    const languages = Object.keys(TOOLTIPS);
-    const referenceLanguage = languages[0];
-    const referenceKeys = TOOLTIPS[referenceLanguage].map(item => item.selector);
-
-    const missingKeys = {};
-
-    for (const lang of languages) {
-        const langKeys = TOOLTIPS[lang].map(item => item.selector);
-
-        for (const key of referenceKeys) {
-            if (!langKeys.includes(key)) {
-                if (!missingKeys[lang]) {
-                    missingKeys[lang] = [];
-                }
-                missingKeys[lang].push(key);
-            }
-        }
-    }
-
-    return missingKeys;
 }

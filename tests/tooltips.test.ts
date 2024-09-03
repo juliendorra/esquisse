@@ -1,18 +1,29 @@
-import { assertEquals } from "https://deno.land/std/assert/mod.ts";
-import { checkTooltipConsistency } from "../static/tooltips.js"; // Adjust the path if necessary
+import { assertArrayIncludes } from "https://deno.land/std/assert/mod.ts";
+import { TOOLTIPS } from "../static/tooltips.js"; // Adjust the path if necessary
 
-Deno.test("Tooltips: Check consistency of keys across languages", () => {
-    // Use type assertion to ensure TypeScript knows the correct type
-    const missingKeys = checkTooltipConsistency() as Record<string, string[]>;
+Deno.test("Tooltips: Check consistency of selectots across languages", () => {
+    type LanguageClasses = {
+        [key: string]: { selector: string; text: string; }[];
+    };
 
-    let missingKeysFound = false;
+    const tips = TOOLTIPS as LanguageClasses;
 
-    for (const lang in missingKeys) {
-        if (missingKeys[lang].length > 0) {
-            console.error(`Language '${lang}' is missing keys: ${missingKeys[lang].join(", ")}`);
-            missingKeysFound = true;
-        }
+    const allSelectors =
+        Array.from(
+            new Set(
+                Object.values(tips)
+                    .flatMap(tooltips => tooltips.map(
+                        tooltip => tooltip.selector
+                    ))
+            ));
+
+    const langkeys: string[] = Object.keys(TOOLTIPS)
+
+    for (const langkey of langkeys) {
+
+        const langSelectors = tips[langkey].map(item => item.selector);
+
+        assertArrayIncludes(langSelectors, allSelectors, `${langkey} is missing keys`);
+
     }
-
-    assertEquals(missingKeysFound, false, "Some languages are missing keys. Check the error output above for details.");
 });
