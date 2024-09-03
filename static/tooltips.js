@@ -146,10 +146,6 @@ const TOOLTIPS =
                 text: "Name: renaming your blocks will make it easier to reference them and to use their results in other blocks."
             },
             {
-                selector: ".group.text > .data-text",
-                text: "Example, 'With the character #character and the place [place of departure]'<br /><br />You can reference text blocks but also an image too, for example to ask the text generator to describe it."
-            },
-            {
                 "selector": ".group.text > .data-text-container",
                 "text": "Example: 'With character #character and location [starting location], write an 8-line poem.'<br /><br />You can reference text blocks but also an image, for instance, to have it described by the text generator. Note that only the first referenced image is used."
             },
