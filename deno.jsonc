@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "lib":[
+      "ES2022",
       "DOM", 
       "deno.unstable" // we are using deno.kv, which is unstable at the time of writing this comment
     ]
