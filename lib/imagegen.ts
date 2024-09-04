@@ -102,10 +102,10 @@ const MODELS = {
 
 type Model = {
     endpoint: string,
-    width: number,
-    height: number,
-    widthWide: number,
-    heightWide: number,
+    width?: number,
+    height?: number,
+    widthWide?: number,
+    heightWide?: number,
     steps: number,
     // optionals, depends on APIs
     id?: string,
@@ -114,8 +114,8 @@ type Model = {
     scheduler?: string,
     guidanceScaleCFG?: number,
     imageStrength?: number,
-    controlNetModel: string,
-    controlnetScale: number,
+    controlNetModel?: string,
+    controlnetScale?: number,
     // the API-specific calling function
     caller: (params: ImageGenParameters, model: Model) => ImageGenGenerated,
 }
