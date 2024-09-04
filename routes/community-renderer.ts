@@ -17,8 +17,8 @@ const eta = new Eta({ views: viewpath, cache: false, debug: true })
 export async function renderCommunity(ctx) {
     try {
 
-        // set the community page to a 24h expiry client-side
-        ctx.response.headers.set("Cache-Control", "public, max-age=86400");
+        // set the community page to a 12h cache expiry client-side
+        ctx.response.headers.set("Cache-Control", "public, max-age=43200");
 
         // try to read cache for community page
         // readCache check if the cache is expired before fetching
