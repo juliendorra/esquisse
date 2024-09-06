@@ -1,11 +1,13 @@
 import "https://deno.land/x/dotenv/load.ts";
 import { base64ToUint8Array } from "./utility.ts";
 
+export { tryGenerate };
+
 const STABILITY_API_KEY = Deno.env.get("STABILITY_API_KEY");
 const SEGMIND_API_KEY = Deno.env.get("SEGMIND_API_KEY");
 const FAL_API_KEY = Deno.env.get("FAL_API_KEY");
 
-const MODELS = {
+const MODELS: { [key: string]: Model } = {
     TEXT_TO_IMAGE_FAST_CHEAP: {
         endpoint: "https://fal.run/fal-ai/flux/schnell",
         width: 1024,
@@ -56,6 +58,7 @@ const MODELS = {
         guidanceScaleCFG: 6,
         controlnetScale: 0.9,
         caller: getSegmindControlnet(),
+        fallback: "CONTROLNET_FAL_FAST_CHEAP",
     },
     CONTROLNET_SEGMIND_QUALITY_EXPENSIVE: {
         endpoint: "https://api.segmind.com/v1/sdxl-controlnet", //https://www.segmind.com/models/sdxl-controlnet
@@ -65,6 +68,7 @@ const MODELS = {
         guidanceScaleCFG: 6,
         controlnetScale: 0.9,
         caller: getSegmindControlnet(),
+        fallback: "CONTROLNET_FAL_QUALITY_EXPENSIVE",
     },
     CONTROLNET_FAL_FAST_CHEAP: {
         endpoint: "https://fal.run/fal-ai/fast-sdxl-controlnet-canny",
@@ -90,15 +94,8 @@ const MODELS = {
     },
     REALTIME_IMAGE_TO_IMAGE: {
         endpoint: "https://fal.run/fal-ai/fast-lightning-sdxl/image-to-image",
-        width: 1024,
-        height: 1024,
-        widthWide: 1024,
-        heightWide: 576,
-        steps: 2,
-        caller: getFal(),
-    },
-};
-
+    }
+}
 
 type Model = {
     endpoint: string,
@@ -117,7 +114,8 @@ type Model = {
     controlNetModel?: string,
     controlnetScale?: number,
     // the API-specific calling function
-    caller: (params: ImageGenParameters, model: Model) => ImageGenGenerated,
+    caller: (params: ImageGenParameters, model: Model) => Promise<ImageGenGenerated>,
+    fallback?: string,
 }
 
 type ImageGenParameters = {
@@ -131,9 +129,11 @@ type ImageGenParameters = {
 }
 
 type ImageGenGenerated = {
+    isValid?: boolean,
     image?: ArrayBuffer,
     error?: string,
     bannedword?: string,
+    isBlurred?: boolean,
 }
 
 type imageAPIHeaders = {
@@ -143,7 +143,7 @@ type imageAPIHeaders = {
     Authorization?: string,
 }
 
-export async function tryGenerate({
+async function tryGenerate({
     prompt,
     image,
     negativeprompt,
@@ -155,40 +155,75 @@ export async function tryGenerate({
 
     validateAPIKeys();
 
+    let currentModel;
+    if (!qualityEnabled && !image) {
+        currentModel = MODELS.TEXT_TO_IMAGE_FAST_CHEAP;
+    } else if (qualityEnabled && !image) {
+        currentModel = MODELS.TEXT_TO_IMAGE_QUALITY_EXPENSIVE;
+    } else if (!qualityEnabled && image && controlnetEnabled) {
+        currentModel = MODELS.CONTROLNET_SEGMIND_FAST_CHEAP;
+    } else if (qualityEnabled && image && controlnetEnabled) {
+        currentModel = MODELS.CONTROLNET_SEGMIND_QUALITY_EXPENSIVE;
+    } else if (!qualityEnabled && image && !controlnetEnabled) {
+        currentModel = MODELS.IMAGE_TO_IMAGE_FAST_CHEAP;
+    } else if (qualityEnabled && image && !controlnetEnabled) {
+        currentModel = MODELS.IMAGE_TO_IMAGE_QUALITY_EXPENSIVE;
+    } else {
+        currentModel = MODELS.TEXT_TO_IMAGE_FAST_CHEAP;
+    }
+
     let generated;
-    for (let i = 0; i < maxAttempts; i++) {
-        generated = await generate({
-            prompt,
-            image,
-            negativeprompt,
-            format,
-            qualityEnabled,
-            controlnetEnabled,
-        });
-
-        if (generated.isValid) {
-            return { image: generated.data };
-        }
-
-        if (generated.isInvalidPrompt) {
-            console.log("Prompt invalid, trying with words removed");
-            return handleInvalidPrompt({
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        try {
+            generated = await currentModel.caller({
                 prompt,
                 image,
                 negativeprompt,
                 format,
                 qualityEnabled,
                 controlnetEnabled,
-            });
-        }
+            }, currentModel);
 
-        if (generated.isBlurred) {
-            return { image: generated.data };
+            if (generated.isValid) {
+                return { image: generated.image };
+            }
+
+            else if (!generated.isValid && !generated.error) {
+                console.log("Prompt invalid, trying with words removed");
+                return handleInvalidPrompt({
+                    prompt,
+                    image,
+                    negativeprompt,
+                    format,
+                    qualityEnabled,
+                    controlnetEnabled,
+                });
+            }
+
+            if (generated.isBlurred && !generated.error) {
+                return { image: generated.image, isBlurred: generated.isBlurred, };
+            }
+
+            if (generated.error) {
+                throw new Error(generated.error);
+            }
+
+        } catch (error) {
+            console.error(`Attempt ${attempt + 1} failed for model ${currentModel.endpoint}:`, error);
+
+            // Check if there's a fallback model
+            if (currentModel.fallback) {
+                console.log(`Falling back to ${MODELS[currentModel.fallback].endpoint}`);
+                currentModel = MODELS[currentModel.fallback]; // Switch to fallback model
+            } else {
+                console.error("No fallback available, stopping attempts.");
+                break; // No fallback available, stop attempts
+            }
         }
     }
 
     console.error("Image generation failed after maximum attempts");
-    return { error: generated.error };
+    return { error: generated?.error || "Unknown error" };
 }
 
 function validateAPIKeys() {
@@ -207,7 +242,7 @@ async function handleInvalidPrompt(params: ImageGenParameters): Promise<ImageGen
     const words: Set<string> = new Set(params.prompt.split(" "));
     let resolvedCount = 0;
     let hasValidResult = false;
-    let validResult: any = null;
+    let validResult: ImageGenGenerated | null = null;
 
     return new Promise((resolve) => {
         for (const word of words) {
@@ -218,18 +253,18 @@ async function handleInvalidPrompt(params: ImageGenParameters): Promise<ImageGen
                 if (generated.isValid && !hasValidResult) {
                     hasValidResult = true;
                     console.log("Banned word was:", word);
-                    validResult = { image: generated.data, bannedword: word };
+                    validResult = { image: generated.image, bannedword: word };
                     resolve(validResult);
                 } else if (resolvedCount === words.size && !hasValidResult) {
-                    console.log("No valid prompt found after removing one word, generation failed");
-                    resolve({ error: "Invalid prompt" });
+                    console.log("No valid prompt found after removing one word, each at a time, generation failed");
+                    resolve({ error: "Invalid prompt", isValid: false });
                 }
             });
         }
     });
 }
 
-async function generate(params: ImageGenParameters): Promise<any> {
+async function generate(params: ImageGenParameters): Promise<ImageGenGenerated> {
 
     // text to image models
 
@@ -266,10 +301,12 @@ async function generate(params: ImageGenParameters): Promise<any> {
 
         return MODELS.IMAGE_TO_IMAGE_QUALITY_EXPENSIVE.caller(params, MODELS.IMAGE_TO_IMAGE_QUALITY_EXPENSIVE);
     }
+
+    return { isValid: false, error: "No image model applicable" }
 }
 
 function getFal() {
-    return async function callFalAPI({ prompt, image, format }: ImageGenParameters, model: Model) {
+    return async function callFalAPI({ prompt, image, format }: ImageGenParameters, model: Model): Promise<ImageGenGenerated> {
         const headers = {
             Accept: "image/png",
             Authorization: `Key ${FAL_API_KEY}`,
@@ -306,7 +343,7 @@ function getFal() {
 }
 
 function getSegmindControlnet() {
-    return async function callSegmindControlnetAPI({ prompt, image, format }: ImageGenParameters, model: Model): Promise<any> {
+    return async function callSegmindControlnetAPI({ prompt, image, format }: ImageGenParameters, model: Model): Promise<ImageGenGenerated> {
 
         const headers: imageAPIHeaders = {
             "x-api-key": SEGMIND_API_KEY,
@@ -331,7 +368,7 @@ function getSegmindControlnet() {
 }
 
 function getFalControlnet() {
-    return async function callFalControlnetdAPI({ prompt, image, format }: ImageGenParameters, model: Model): Promise<any> {
+    return async function callFalControlnetdAPI({ prompt, image, format }: ImageGenParameters, model: Model): Promise<ImageGenGenerated> {
 
         const headers: imageAPIHeaders = {
             Accept: "image/png",
@@ -361,7 +398,7 @@ function getFalControlnet() {
 }
 
 function getStability() {
-    return async function callStabilityAPI({ prompt, image, format }: ImageGenParameters, model: Model): Promise<any> {
+    return async function callStabilityAPI({ prompt, image, format }: ImageGenParameters, model: Model): Promise<ImageGenGenerated> {
 
         const width = format === 'wide' ? model.widthWide : model.width;
         const height = format === 'wide' ? model.heightWide : model.height;
@@ -415,7 +452,11 @@ function getStability() {
     }
 }
 
-async function fetchAPI(endpoint: string, headers: imageAPIHeaders, body): Promise<any> {
+type FetchAPIResult =
+    | { image: Uint8Array | ArrayBuffer; isValid: boolean; isBlurred?: boolean }  // For valid image responses
+    | { error: string };  // For errors
+
+async function fetchAPI(endpoint: string, headers: imageAPIHeaders, body: string | FormData): Promise<FetchAPIResult> {
 
     console.log("[IMAGEGEN] ENDPOINT: ", endpoint);
     console.log("[IMAGEGEN] headers: ", headers);
@@ -442,9 +483,9 @@ async function fetchAPI(endpoint: string, headers: imageAPIHeaders, body): Promi
             if (imageUrl.startsWith("data:image/jpeg;base64,")) {
                 const base64Image = imageUrl.split(",")[1];
                 const imageBuffer = base64ToUint8Array(base64Image);
-                return { data: imageBuffer, isValid: true };
+                return { image: imageBuffer, isValid: true };
             } else {
-                throw new Error("[IMAGEGEN] Unexpected image URL format, expected base64 encoded data url");
+                throw new Error("Unexpected image URL format, expected base64 encoded data url");
             }
         } else if (contentType && contentType.includes("image")) {
             // Handle Stability and Segmind API response that returns the image
@@ -460,13 +501,13 @@ async function fetchAPI(endpoint: string, headers: imageAPIHeaders, body): Promi
                 isBlurred = true;
             }
 
-            return { data: responseBuffer, isValid, isBlurred };
+            return { image: responseBuffer, isValid, isBlurred };
 
         } else {
             throw new Error("[IMAGEGEN] Unknown response content type");
         }
     } catch (error) {
         console.error("[IMAGEGEN] Error in API call:", error);
-        return { error: error.statusText || "Unknown error" };
+        return { error: error };
     }
 }
