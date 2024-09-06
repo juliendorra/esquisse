@@ -94,6 +94,12 @@ const MODELS: { [key: string]: Model } = {
     },
     REALTIME_IMAGE_TO_IMAGE: {
         endpoint: "https://fal.run/fal-ai/fast-lightning-sdxl/image-to-image",
+        width: 1024,
+        height: 1024,
+        widthWide: 1024,
+        heightWide: 576,
+        steps: 2,
+        caller: getFal(),
     }
 }
 
@@ -107,7 +113,7 @@ type Model = {
     // optionals, depends on APIs
     id?: string,
     model?: string,
-    deepcache?: true,
+    deepcache?: boolean,
     scheduler?: string,
     guidanceScaleCFG?: number,
     imageStrength?: number,
