@@ -145,8 +145,6 @@ function replaceSrcAttributes(group, groups) {
 async function renderUserResults(ctx) {
     const user = ctx.state.user;
 
-    // console.log(ctx.state)
-
     if (!user.username) {
         ctx.response.status = 400;
         ctx.response.body = "No user";
@@ -155,15 +153,64 @@ async function renderUserResults(ctx) {
 
     const resultsMetadata = await retrieveResultsByUser(user.username);
 
-    // console.log("[User results]", resultsMetadata);
-
     if (!resultsMetadata) {
         ctx.response.status = 404;
         ctx.response.body = ("No results metadata found for this user");
         return;
     }
 
-    ctx.response.headers.set("content-type", "text/html; charset=utf-8");
+    const categorizedResults = {
+        today: [],
+        yesterday: [],
+        currentMonth: [],
+        previousMonths: {},
+        lastYear: []
+    };
 
-    ctx.response.body = eta.render('results', { results: resultsMetadata });
+    const now = new Date();
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split('T')[0];
+    const currentMonth = new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' });
+    const currentYear = new Date().getFullYear();
+
+    resultsMetadata.forEach((result) => {
+        const resultDate = new Date(result.timestamp).toISOString().split('T')[0];
+        const resultMonth = new Date(result.timestamp).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+        const resultYear = new Date(result.timestamp).getFullYear();
+
+        result.formattedDate = formatDateForDisplay(new Date(result.timestamp));
+
+        if (resultDate === today) {
+            categorizedResults.today.push(result);
+        } else if (resultDate === yesterday) {
+            categorizedResults.yesterday.push(result);
+        } else if (resultMonth === currentMonth) {
+            categorizedResults.currentMonth.push(result);
+        } else if (resultYear === currentYear) {
+            if (!categorizedResults.previousMonths[resultMonth]) {
+                categorizedResults.previousMonths[resultMonth] = [];
+            }
+            categorizedResults.previousMonths[resultMonth].push(result);
+        } else {
+            categorizedResults.lastYear.push(result);
+        }
+    });
+
+    ctx.response.headers.set("content-type", "text/html; charset=utf-8");
+    ctx.response.body = eta.render('results', { categorizedResults });
+}
+
+// Utils
+function formatDateForDisplay(date) {
+    const currentDate = new Date();
+    const today = currentDate.toISOString().split('T')[0];
+    const yesterday = new Date(currentDate.setDate(currentDate.getDate() - 1)).toISOString().split('T')[0];
+
+    const resultDate = new Date(date).toISOString().split('T')[0];
+
+    if (resultDate === today) return "Today";
+    if (resultDate === yesterday) return "Yesterday";
+
+    // Use toLocaleString to format the month and year
+    return new Date(date).toLocaleString('en-US', { month: 'long', year: 'numeric' });
 }

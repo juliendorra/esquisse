@@ -130,9 +130,11 @@
 
     <h2 class="results-page-title">Your generated results</h2>
 
+    <!-- Render Today results -->
+    <% if (it.categorizedResults.today.length) { %>
+    <h3 class="results-page-title">Today</h3>
     <ul class="results-list">
-
-      <% it.results.forEach(function(result){ %>
+      <% it.categorizedResults.today.forEach(function(result){ %>
       <li>
         <a href="/result/<%= result.resultid %>">
           <% if (result.name) { %>
@@ -143,11 +145,85 @@
           <img src="/thumbnail/<%= result.resultid %>" class="result-preview">
         </a>
       </li>
-
       <% }) %>
-
     </ul>
+    <% } %>
 
+    <!-- Render Yesterday results -->
+    <% if (it.categorizedResults.yesterday.length) { %>
+    <h3 class="results-page-title">Yesterday</h3>
+    <ul class="results-list">
+      <% it.categorizedResults.yesterday.forEach(function(result){ %>
+      <li>
+        <a href="/result/<%= result.resultid %>">
+          <% if (result.name) { %>
+          <div class="result-name"><%= result.name %></div>
+          <% } else { %>
+          <div class="result-name"></div>
+          <% } %>
+          <img src="/thumbnail/<%= result.resultid %>" class="result-preview">
+        </a>
+      </li>
+      <% }) %>
+    </ul>
+    <% } %>
+
+    <!-- Render results from this month -->
+    <% if (it.categorizedResults.currentMonth.length) { %>
+    <h3 class="results-page-title"><%= it.categorizedResults.currentMonth[0].formattedDate %></h3>
+    <ul class="results-list">
+      <% it.categorizedResults.currentMonth.forEach(function(result){ %>
+      <li>
+        <a href="/result/<%= result.resultid %>">
+          <% if (result.name) { %>
+          <div class="result-name"><%= result.name %></div>
+          <% } else { %>
+          <div class="result-name"></div>
+          <% } %>
+          <img src="/thumbnail/<%= result.resultid %>" class="result-preview">
+        </a>
+      </li>
+      <% }) %>
+    </ul>
+    <% } %>
+
+    <!-- Render previous months' results -->
+    <% Object.keys(it.categorizedResults.previousMonths).forEach(function(month) { %>
+    <h3 class="results-page-title"><%= month %></h3>
+    <ul class="results-list">
+      <% it.categorizedResults.previousMonths[month].forEach(function(result){ %>
+      <li>
+        <a href="/result/<%= result.resultid %>">
+          <% if (result.name) { %>
+          <div class="result-name"><%= result.name %></div>
+          <% } else { %>
+          <div class="result-name"></div>
+          <% } %>
+          <img src="/thumbnail/<%= result.resultid %>" class="result-preview">
+        </a>
+      </li>
+      <% }) %>
+    </ul>
+    <% }) %>
+
+    <!-- Render results from last year -->
+    <% if (it.categorizedResults.lastYear.length) { %>
+    <h3 class="results-page-title">2023</h3>
+    <ul class="results-list">
+      <% it.categorizedResults.lastYear.forEach(function(result){ %>
+      <li>
+        <a href="/result/<%= result.resultid %>">
+          <% if (result.name) { %>
+          <div class="result-name"><%= result.name %></div>
+          <% } else { %>
+          <div class="result-name"></div>
+          <% } %>
+          <img src="/thumbnail/<%= result.resultid %>" class="result-preview">
+        </a>
+      </li>
+      <% }) %>
+    </ul>
+    <% } %>
   </div>
 
 </body>
