@@ -47,6 +47,8 @@ type Result = {
     timestamp: string;
     appid: string;
     appversiontimestamp: string;
+    name?: string;
+    snippet?: string;
 }
 
 const ResultModel = model<Result>();

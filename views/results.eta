@@ -109,6 +109,39 @@
       color: var(--apps-app-title-link-color);
     }
 
+    .result-item {
+      position: relative;
+      display: inline-block;
+      margin: 1em;
+    }
+
+    .result-info {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 15em;
+      padding: 0.5em;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 2em 2em 0 0;
+    }
+
+    .result-name {
+      font-weight: bold;
+      font-size: 1em;
+      color: var(--apps-app-title-link-color);
+      margin-bottom: 0.2em;
+      margin-left: 0.5em;
+      margin-right: 0.5em;
+      text-align: center;
+    }
+
+    .result-snippet {
+      font-size: 0.9em;
+      color: var(--title-text-color);
+      margin-left: 0.5em;
+      margin-right: 0.5em;
+    }
+
     .result-preview {
       background-image: url('/icons/placeholder-gradient.jpg');
       background-size: cover;
@@ -135,12 +168,17 @@
     <h3 class="results-page-title">Today</h3>
     <ul class="results-list">
       <% it.categorizedResults.today.forEach(function(result){ %>
-      <li>
+      <li class="result-item">
         <a href="/result/<%= result.resultid %>">
-          <% if (result.name) { %>
-          <div class="result-name"><%= result.name %></div>
-          <% } else { %>
-          <div class="result-name"></div>
+          <% if (result.name || result.snippet) { %>
+          <div class="result-info">
+            <% if (result.name) { %>
+            <div class="result-name"><%= result.name %></div>
+            <% } %>
+            <% if (result.snippet) { %>
+            <div class="result-snippet"><%= result.snippet %></div>
+            <% } %>
+          </div>
           <% } %>
           <img src="/thumbnail/<%= result.resultid %>" class="result-preview">
         </a>
@@ -154,12 +192,17 @@
     <h3 class="results-page-title">Yesterday</h3>
     <ul class="results-list">
       <% it.categorizedResults.yesterday.forEach(function(result){ %>
-      <li>
+      <li class="result-item">
         <a href="/result/<%= result.resultid %>">
-          <% if (result.name) { %>
-          <div class="result-name"><%= result.name %></div>
-          <% } else { %>
-          <div class="result-name"></div>
+          <% if (result.name || result.snippet) { %>
+          <div class="result-info">
+            <% if (result.name) { %>
+            <div class="result-name"><%= result.name %></div>
+            <% } %>
+            <% if (result.snippet) { %>
+            <div class="result-snippet"><%= result.snippet %></div>
+            <% } %>
+          </div>
           <% } %>
           <img src="/thumbnail/<%= result.resultid %>" class="result-preview">
         </a>
@@ -173,12 +216,17 @@
     <h3 class="results-page-title"><%= it.categorizedResults.currentMonth[0].formattedDate %></h3>
     <ul class="results-list">
       <% it.categorizedResults.currentMonth.forEach(function(result){ %>
-      <li>
+      <li class="result-item">
         <a href="/result/<%= result.resultid %>">
-          <% if (result.name) { %>
-          <div class="result-name"><%= result.name %></div>
-          <% } else { %>
-          <div class="result-name"></div>
+          <% if (result.name || result.snippet) { %>
+          <div class="result-info">
+            <% if (result.name) { %>
+            <div class="result-name"><%= result.name %></div>
+            <% } %>
+            <% if (result.snippet) { %>
+            <div class="result-snippet"><%= result.snippet %></div>
+            <% } %>
+          </div>
           <% } %>
           <img src="/thumbnail/<%= result.resultid %>" class="result-preview">
         </a>
@@ -192,12 +240,17 @@
     <h3 class="results-page-title"><%= month %></h3>
     <ul class="results-list">
       <% it.categorizedResults.previousMonths[month].forEach(function(result){ %>
-      <li>
+      <li class="result-item">
         <a href="/result/<%= result.resultid %>">
-          <% if (result.name) { %>
-          <div class="result-name"><%= result.name %></div>
-          <% } else { %>
-          <div class="result-name"></div>
+          <% if (result.name || result.snippet) { %>
+          <div class="result-info">
+            <% if (result.name) { %>
+            <div class="result-name"><%= result.name %></div>
+            <% } %>
+            <% if (result.snippet) { %>
+            <div class="result-snippet"><%= result.snippet %></div>
+            <% } %>
+          </div>
           <% } %>
           <img src="/thumbnail/<%= result.resultid %>" class="result-preview">
         </a>
@@ -211,12 +264,17 @@
     <h3 class="results-page-title">2023</h3>
     <ul class="results-list">
       <% it.categorizedResults.lastYear.forEach(function(result){ %>
-      <li>
+      <li class="result-item">
         <a href="/result/<%= result.resultid %>">
-          <% if (result.name) { %>
-          <div class="result-name"><%= result.name %></div>
-          <% } else { %>
-          <div class="result-name"></div>
+          <% if (result.name || result.snippet) { %>
+          <div class="result-info">
+            <% if (result.name) { %>
+            <div class="result-name"><%= result.name %></div>
+            <% } %>
+            <% if (result.snippet) { %>
+            <div class="result-snippet"><%= result.snippet %></div>
+            <% } %>
+          </div>
           <% } %>
           <img src="/thumbnail/<%= result.resultid %>" class="result-preview">
         </a>

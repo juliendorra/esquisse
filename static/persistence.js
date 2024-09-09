@@ -630,9 +630,18 @@ async function packageResult(groups, thumbnail) {
     // Convert the Map's values to an array and sort them based on their index property
     const sortedGroups = Array.from(groups.values()).sort((a, b) => a.index - b.index);
 
+    packagedGroupsResults.name = sortedGroups[0].name
+
+    // Find the first static text or text gen group's result
+    const foundGroup = sortedGroups.find(group => group.type === GROUP_TYPE.STATIC || group.type === GROUP_TYPE.TEXT);
+
+    // Extract text from HTML content and truncate it to 140 characters
+    packagedGroupsResults.snippet = foundGroup ? (extractTextFromHTML(foundGroup.result).substring(0, 140) || "") : "";
+
     // Replacing blobURIs with a custom esquisse result reference locator
 
     // First build up a replacement map for in-result blob URIs
+    // Map each result that is an image blob URI to its group name, ie. the reference
     let replacementMap = new Map();
 
     sortedGroups.forEach(group => {
@@ -693,6 +702,8 @@ async function persistResultOnServer(packagedResult) {
                     appid: packagedResult.appid,
                     appversiontimestamp: packagedResult.appversiontimestamp,
                     thumbnail: packagedResult.thumbnail,
+                    name: packagedResult.name,
+                    snippet: packagedResult.snippet,
                 }
             ),
         });
@@ -772,4 +783,16 @@ function throttle(func, timeFrame, overrideThreshold, setGlobal) {
             setGlobal(callSkippedCounter);
         }
     };
+}
+
+function extractTextFromHTML(htmlString) {
+    let tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlString;
+
+    let extractedText = tempDiv.innerText;
+
+    // Replace any line breaks or multiple spaces with a single space
+    extractedText = extractedText.replace(/\s+/g, ' ').trim();
+
+    return extractedText;
 }
