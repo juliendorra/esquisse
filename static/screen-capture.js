@@ -1,4 +1,4 @@
-import html2canvas from "./html2canvas.esm.js";
+import domtoimage from "https://cdn.jsdelivr.net/npm/dom-to-image-more@3.4.3/+esm";
 import { renderAndReturnUrlOfCopy } from "./mesh-background.js"
 
 export { captureThumbnail };
@@ -23,38 +23,62 @@ async function captureThumbnail() {
     meshBackgroundClone.classList.add("mesh-background-clone")
     meshBackgroundClone.id = 'mesh-background-clone';
 
-    // We set up a function for the clone callback
-    // The function alter in place the document clone used for rendering 
-    const alterDom = (document, element) => {
+    const meshBackgroundCanvas = document.querySelector('#mesh-background');
 
-        // Replacing the 3D canvas background with the static image
-        // this is the cloned container, not the original container
-        const container = document.querySelector(".zoomable");
-        const meshBackgroundCanvas = document.querySelector('#mesh-background');
-        container.insertBefore(meshBackgroundClone, meshBackgroundCanvas);
+    container.insertBefore(meshBackgroundClone, meshBackgroundCanvas);
+
+    // A function for the adjustClonedNode callback
+    // It gets the original node, the cloned node, and a boolean that says if we've cloned the children already (so you can handle either before or after)
+    const adjustClone = (node, clone, after) => {
+        if (!after && node.id === 'mesh-background') {
+            clone.id = "mesh-background";
+        }
+        return clone;
+    }
+
+    // We set up a function for the onClone callback
+    // The function alter in place the clone pepared for rendering 
+    // The clone has the meshbackground canvas already replaced with img tags, loosing its id
+    // so we need to also use the adjustClonedNode callback to catch it
+    const alterDom = (cloneElement) => {
+
+        // console.log("[CAPTURE THUMBNAIL] full document", cloneElement)
+
+        // const containerClone = cloneDocument.querySelector(".zoomable");
+        // console.log("[CAPTURE THUMBNAIL] container clone ", containerClone)
+
+        // const meshBackgroundCanvas = cloneElement.querySelector('#mesh-background');
+        // console.log("[CAPTURE THUMBNAIL] mesh background found ", meshBackgroundCanvas)
+
+        // containerClone.insertBefore(meshBackgroundClone, meshBackgroundCanvas);
+
+        const meshBackgroundClone = cloneElement.querySelector('#mesh-background-clone');
+        meshBackgroundClone.style.height = "auto";
+        meshBackgroundClone.style.width = "auto";
+
+        const meshBackgroundCanvas = cloneElement.querySelector('#mesh-background');
+        meshBackgroundCanvas.style.display = "none";
         meshBackgroundCanvas.remove();
 
         // customize groups appearance, closer to result page
-        const buttons = document.querySelectorAll('.tool-btn');
-        const dragHandles = document.querySelectorAll('.drag-handle');
-        const groupIcons = document.querySelectorAll('.group-header img');
-        const dataTexts = document.querySelectorAll('.data-text');
-        const referencedResultTexts = document.querySelectorAll('.referenced-result-text');
-        const transformTexts = document.querySelectorAll('.transform-text');
-        const dropZones = document.querySelectorAll('.drop-zone');
+        const buttons = cloneElement.querySelectorAll('.tool-btn');
+        const dragHandles = cloneElement.querySelectorAll('.drag-handle');
+        const groupIcons = cloneElement.querySelectorAll('.group-header img');
+        const dataTextContainers = cloneElement.querySelectorAll('.data-text-container');
+        const dropZones = cloneElement.querySelectorAll('.drop-zone');
 
-        for (const button of [...buttons, ...dragHandles, ...groupIcons, ...dataTexts, ...referencedResultTexts, ...transformTexts, ...dropZones]) {
+        for (const button of [...buttons, ...dragHandles, ...groupIcons, ...dataTextContainers, ...dropZones]) {
             button.style.display = "none";
         }
+
+        console.log("[CAPTURE THUMBNAIL] altered elememt", cloneElement)
+
     }
 
-    const renderedHTML = await html2canvas(container, {
-        logging: false,
+    const renderedHTML = await domtoimage.toCanvas(container, {
+        adjustClonedNode: adjustClone,
         onclone: alterDom,
-        x: 0,
-        y: 0,
-        windowWidth: visibleWidth,
-        windowHeight: visibleHeight,
+        bgcolor: "#ffffff99",
         scale: window.devicePixelRatio,
         width: visibleSmallerSide,
         height: visibleSmallerSide,
@@ -80,6 +104,8 @@ async function captureThumbnail() {
         a.click();
         URL.revokeObjectURL(url);
     }
+
+    meshBackgroundClone.remove();
 
     return blob;
 };
