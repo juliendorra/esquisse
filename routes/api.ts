@@ -503,9 +503,11 @@ async function handlePersistResult(ctx) {
 
         username: resultData.username,
         timestamp: resultData.timestamp,
-
         appid: resultData.appid,
         appversiontimestamp: resultData.appversiontimestamp,
+
+        name: resultData.name,
+        snippet: resultData.snippet,
     }
 
     const storingStatus = await storeResultMetadata(metadata);
