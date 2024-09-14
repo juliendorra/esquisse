@@ -14,7 +14,7 @@ async function captureThumbnail() {
     const visibleWidth = window.innerWidth;
     const visibleHeight = window.innerHeight - footerToolsRect.height;
 
-    const visibleSmallerSide = Math.min(visibleWidth, visibleHeight);
+    const visibleSmallerSide = Math.min(visibleWidth, visibleHeight) * window.devicePixelRatio;
 
     const meshBackgroundCloneUrl = await renderAndReturnUrlOfCopy();
 
@@ -27,61 +27,73 @@ async function captureThumbnail() {
 
     container.insertBefore(meshBackgroundClone, meshBackgroundCanvas);
 
-    // A function for the adjustClonedNode callback
-    // It gets the original node, the cloned node, and a boolean that says if we've cloned the children already (so you can handle either before or after)
-    const adjustClone = (node, clone, after) => {
-        if (!after && node.id === 'mesh-background') {
-            clone.id = "mesh-background";
+    // Wait for the image of the meshbackgroundclone to load or it won't be included in the render
+    try {
+        await waitForImageToLoad(meshBackgroundClone);
+    } catch (error) {
+        console.error("Failed to load the mesh background image");
+    }
+
+    // The filter function to exclude nodes
+    function filterNodes(node) {
+        // Check if the node has a classList before trying to use contains
+        if (node.classList) {
+            if (
+                node.classList.contains('tool-btn') ||
+                node.classList.contains('drag-handle') ||
+                node.classList.contains('data-text-container') ||
+                node.classList.contains('image-import-container') ||
+                node.classList.contains('function-buttons-container') ||
+                node.classList.contains('result-placeholder')
+            ) {
+                return false; // Exclude this node
+            }
         }
+
+        if (node.id === 'mesh-background') {
+            return false;
+        }
+
+        return true; // Include everything else
+    };
+
+    // The adjustClone callback to handle adjustments on specific cloned nodes
+    function adjustClone(node, clone, after) {
+        if (!after) {
+            if (node.id === 'mesh-background-clone') {
+                clone.style.height = "auto";
+                clone.style.width = "auto";
+            }
+
+            if (node.classList) {
+                if (node.classList.contains('group-name')) {
+                    clone.style.fontSize = "2rem";
+                }
+
+                if (node.classList.contains('group')) {
+                    // clone.style.height = "calc(var(--group-width) + 4.5rem)";
+                    clone.style.height = "22rem";
+                }
+
+                if (node.classList.contains('group-name')) {
+                    clone.style.fontSize = "2rem";
+                }
+            }
+        }
+
         return clone;
-    }
-
-    // We set up a function for the onClone callback
-    // The function alter in place the clone pepared for rendering 
-    // The clone has the meshbackground canvas already replaced with img tags, loosing its id
-    // so we need to also use the adjustClonedNode callback to catch it
-    const alterDom = (cloneElement) => {
-
-        // console.log("[CAPTURE THUMBNAIL] full document", cloneElement)
-
-        // const containerClone = cloneDocument.querySelector(".zoomable");
-        // console.log("[CAPTURE THUMBNAIL] container clone ", containerClone)
-
-        // const meshBackgroundCanvas = cloneElement.querySelector('#mesh-background');
-        // console.log("[CAPTURE THUMBNAIL] mesh background found ", meshBackgroundCanvas)
-
-        // containerClone.insertBefore(meshBackgroundClone, meshBackgroundCanvas);
-
-        const meshBackgroundClone = cloneElement.querySelector('#mesh-background-clone');
-        meshBackgroundClone.style.height = "auto";
-        meshBackgroundClone.style.width = "auto";
-
-        const meshBackgroundCanvas = cloneElement.querySelector('#mesh-background');
-        meshBackgroundCanvas.style.display = "none";
-        meshBackgroundCanvas.remove();
-
-        // customize groups appearance, closer to result page
-        const buttons = cloneElement.querySelectorAll('.tool-btn');
-        const dragHandles = cloneElement.querySelectorAll('.drag-handle');
-        const groupIcons = cloneElement.querySelectorAll('.group-header img');
-        const dataTextContainers = cloneElement.querySelectorAll('.data-text-container');
-        const dropZones = cloneElement.querySelectorAll('.drop-zone');
-
-        for (const button of [...buttons, ...dragHandles, ...groupIcons, ...dataTextContainers, ...dropZones]) {
-            button.style.display = "none";
-        }
-
-        console.log("[CAPTURE THUMBNAIL] altered elememt", cloneElement)
-
-    }
+    };
 
     const renderedHTML = await domtoimage.toCanvas(container, {
-        adjustClonedNode: adjustClone,
-        onclone: alterDom,
+        filter: filterNodes, // Apply the filter function
+        adjustClonedNode: adjustClone, // Adjust the cloned node where necessary
         bgcolor: "#ffffff99",
-        scale: window.devicePixelRatio,
-        width: visibleSmallerSide,
-        height: visibleSmallerSide,
+        scale: 1,
+        style: {
+            // width: visibleSmallerSide + "px",
+            // height: visibleSmallerSide + "px",
+
+        },
     });
 
     const thumbnailCanvas = document.createElement("canvas");
@@ -91,7 +103,15 @@ async function captureThumbnail() {
     // Draw and crop the rendered image to the square canvas
     const ctx = thumbnailCanvas.getContext("2d");
 
-    ctx.drawImage(renderedHTML, 0, 0, thumbnailSideLength, thumbnailSideLength);
+    const widthToHeightMultiple = renderedHTML.height / renderedHTML.width;
+    const heightToWidthMultiple = renderedHTML.width / renderedHTML.height;
+
+    const portrait = renderedHTML.height > renderedHTML.width;
+
+
+    ctx.drawImage(renderedHTML, 0, 0,
+        portrait ? thumbnailSideLength : thumbnailSideLength * heightToWidthMultiple,
+        portrait ? thumbnailSideLength * widthToHeightMultiple : thumbnailSideLength);
 
     const blob = await canvasToBlob(thumbnailCanvas);
 
@@ -110,7 +130,6 @@ async function captureThumbnail() {
     return blob;
 };
 
-
 // utils 
 function canvasToBlob(canvas) {
     return new Promise(function (resolve) {
@@ -121,3 +140,10 @@ function canvasToBlob(canvas) {
         );
     });
 };
+
+function waitForImageToLoad(image) {
+    return new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = reject;
+    });
+}
