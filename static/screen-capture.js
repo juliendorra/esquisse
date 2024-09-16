@@ -1,4 +1,5 @@
-import domtoimage from "https://cdn.jsdelivr.net/npm/dom-to-image-more@3.4.3/+esm";
+import { domToCanvas } from 'https://cdn.jsdelivr.net/npm/modern-screenshot@4.4.39/+esm'
+
 import { renderAndReturnUrlOfCopy } from "./mesh-background.js"
 
 export { captureThumbnail };
@@ -79,21 +80,15 @@ async function captureThumbnail() {
                     clone.style.fontSize = "2rem";
                 }
             }
-        }
 
-        return clone;
-    };
+            return clone;
+        };
+    }
 
-    const renderedHTML = await domtoimage.toCanvas(container, {
+    const renderedHTML = await domToCanvas(container, {
         filter: filterNodes, // Apply the filter function
-        adjustClonedNode: adjustClone, // Adjust the cloned node where necessary
-        bgcolor: "#ffffff99",
+        onCloneNode: adjustClone, // Adjust the cloned node where necessary
         scale: 1,
-        style: {
-            // width: visibleSmallerSide + "px",
-            // height: visibleSmallerSide + "px",
-
-        },
     });
 
     const thumbnailCanvas = document.createElement("canvas");
