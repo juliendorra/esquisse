@@ -1,4 +1,5 @@
-import html2canvas from "./html2canvas.esm.js";
+import { domToCanvas } from 'https://cdn.jsdelivr.net/npm/modern-screenshot@4.4.39/+esm'
+
 import { renderAndReturnUrlOfCopy } from "./mesh-background.js"
 
 export { captureThumbnail };
@@ -14,7 +15,7 @@ async function captureThumbnail() {
     const visibleWidth = window.innerWidth;
     const visibleHeight = window.innerHeight - footerToolsRect.height;
 
-    const visibleSmallerSide = Math.min(visibleWidth, visibleHeight);
+    const visibleSmallerSide = Math.min(visibleWidth, visibleHeight) * window.devicePixelRatio;
 
     const meshBackgroundCloneUrl = await renderAndReturnUrlOfCopy();
 
@@ -23,41 +24,71 @@ async function captureThumbnail() {
     meshBackgroundClone.classList.add("mesh-background-clone")
     meshBackgroundClone.id = 'mesh-background-clone';
 
-    // We set up a function for the clone callback
-    // The function alter in place the document clone used for rendering 
-    const alterDom = (document, element) => {
+    const meshBackgroundCanvas = document.querySelector('#mesh-background');
 
-        // Replacing the 3D canvas background with the static image
-        // this is the cloned container, not the original container
-        const container = document.querySelector(".zoomable");
-        const meshBackgroundCanvas = document.querySelector('#mesh-background');
-        container.insertBefore(meshBackgroundClone, meshBackgroundCanvas);
-        meshBackgroundCanvas.remove();
+    container.insertBefore(meshBackgroundClone, meshBackgroundCanvas);
 
-        // customize groups appearance, closer to result page
-        const buttons = document.querySelectorAll('.tool-btn');
-        const dragHandles = document.querySelectorAll('.drag-handle');
-        const groupIcons = document.querySelectorAll('.group-header img');
-        const dataTexts = document.querySelectorAll('.data-text');
-        const referencedResultTexts = document.querySelectorAll('.referenced-result-text');
-        const transformTexts = document.querySelectorAll('.transform-text');
-        const dropZones = document.querySelectorAll('.drop-zone');
-
-        for (const button of [...buttons, ...dragHandles, ...groupIcons, ...dataTexts, ...referencedResultTexts, ...transformTexts, ...dropZones]) {
-            button.style.display = "none";
-        }
+    // Wait for the image of the meshbackgroundclone to load or it won't be included in the render
+    try {
+        await waitForImageToLoad(meshBackgroundClone);
+    } catch (error) {
+        console.error("Failed to load the mesh background image");
     }
 
-    const renderedHTML = await html2canvas(container, {
-        logging: false,
-        onclone: alterDom,
-        x: 0,
-        y: 0,
-        windowWidth: visibleWidth,
-        windowHeight: visibleHeight,
-        scale: window.devicePixelRatio,
-        width: visibleSmallerSide,
-        height: visibleSmallerSide,
+    // The filter function to exclude nodes
+    function filterNodes(node) {
+        // Check if the node has a classList before trying to use contains
+        if (node.classList) {
+            if (
+                node.classList.contains('tool-btn') ||
+                node.classList.contains('drag-handle') ||
+                node.classList.contains('data-text-container') ||
+                node.classList.contains('image-import-container') ||
+                node.classList.contains('function-buttons-container') ||
+                node.classList.contains('result-placeholder')
+            ) {
+                return false; // Exclude this node
+            }
+        }
+
+        if (node.id === 'mesh-background') {
+            return false;
+        }
+
+        return true; // Include everything else
+    };
+
+    // The adjustClone callback to handle adjustments on specific cloned nodes
+    function adjustClone(node, clone, after) {
+        if (!after) {
+            if (node.id === 'mesh-background-clone') {
+                clone.style.height = "auto";
+                clone.style.width = "auto";
+            }
+
+            if (node.classList) {
+                if (node.classList.contains('group-name')) {
+                    clone.style.fontSize = "2rem";
+                }
+
+                if (node.classList.contains('group')) {
+                    // clone.style.height = "calc(var(--group-width) + 4.5rem)";
+                    clone.style.height = "22rem";
+                }
+
+                if (node.classList.contains('group-name')) {
+                    clone.style.fontSize = "2rem";
+                }
+            }
+
+            return clone;
+        };
+    }
+
+    const renderedHTML = await domToCanvas(container, {
+        filter: filterNodes, // Apply the filter function
+        onCloneNode: adjustClone, // Adjust the cloned node where necessary
+        scale: 1,
     });
 
     const thumbnailCanvas = document.createElement("canvas");
@@ -67,7 +98,15 @@ async function captureThumbnail() {
     // Draw and crop the rendered image to the square canvas
     const ctx = thumbnailCanvas.getContext("2d");
 
-    ctx.drawImage(renderedHTML, 0, 0, thumbnailSideLength, thumbnailSideLength);
+    const widthToHeightMultiple = renderedHTML.height / renderedHTML.width;
+    const heightToWidthMultiple = renderedHTML.width / renderedHTML.height;
+
+    const portrait = renderedHTML.height > renderedHTML.width;
+
+
+    ctx.drawImage(renderedHTML, 0, 0,
+        portrait ? thumbnailSideLength : thumbnailSideLength * heightToWidthMultiple,
+        portrait ? thumbnailSideLength * widthToHeightMultiple : thumbnailSideLength);
 
     const blob = await canvasToBlob(thumbnailCanvas);
 
@@ -81,9 +120,10 @@ async function captureThumbnail() {
         URL.revokeObjectURL(url);
     }
 
+    meshBackgroundClone.remove();
+
     return blob;
 };
-
 
 // utils 
 function canvasToBlob(canvas) {
@@ -95,3 +135,10 @@ function canvasToBlob(canvas) {
         );
     });
 };
+
+function waitForImageToLoad(image) {
+    return new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = reject;
+    });
+}
