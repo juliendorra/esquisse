@@ -7,7 +7,7 @@ export { captureThumbnail };
 async function captureThumbnail() {
     const thumbnailSideLength = 1024;
 
-    const container = document.querySelector(".zoomable");
+    const container = document.querySelector(".window-drop-zone");
 
     const footerTools = document.querySelector(".footer-tools");
     const footerToolsRect = footerTools.getBoundingClientRect();
@@ -26,7 +26,7 @@ async function captureThumbnail() {
 
     const meshBackgroundCanvas = document.querySelector('#mesh-background');
 
-    container.insertBefore(meshBackgroundClone, meshBackgroundCanvas);
+    document.querySelector(".zoomable").insertBefore(meshBackgroundClone, meshBackgroundCanvas);
 
     // Wait for the image of the meshbackgroundclone to load or it won't be included in the render
     try {
@@ -59,35 +59,64 @@ async function captureThumbnail() {
     };
 
     // The adjustClone callback to handle adjustments on specific cloned nodes
-    function adjustClone(node, clone, after) {
-        if (!after) {
-            if (node.id === 'mesh-background-clone') {
-                clone.style.height = "auto";
-                clone.style.width = "auto";
-            }
+    function adjustClone(clonedDocument) {
 
-            if (node.classList) {
-                if (node.classList.contains('group-name')) {
-                    clone.style.fontSize = "2rem";
-                }
-
-                if (node.classList.contains('group')) {
-                    // clone.style.height = "calc(var(--group-width) + 4.5rem)";
-                    clone.style.height = "22rem";
-                }
-
-                if (node.classList.contains('group-name')) {
-                    clone.style.fontSize = "2rem";
-                }
-            }
-
-            return clone;
+        const zoomableElements = clonedDocument.querySelectorAll('.zoomable');
+        for (const element of zoomableElements) {
+            element.classList.remove("miniview");
+            element.style.transform = "none";
+            element.style.height = "auto";
+            element.style.setProperty('--scale', '1');
+            element.style.setProperty('--invert-scale', '1');
         };
+
+        const containerElement = clonedDocument.querySelector('.container');
+        containerElement.style.padding = "0";
+        // needed to place the groups properly, without space, once they are reduced in height
+        // without this property, they stay positioned as if of the previous height
+        containerElement.style.alignContent = "flex-start";
+
+        // const groupElements = clonedDocument.querySelectorAll('.group:not(.break)');
+        const groupElements = clonedDocument.querySelectorAll('.group');
+        for (const element of groupElements) {
+
+            if (element.classList?.contains("break")) {
+                element.style.height = "fit-content";
+                continue;
+            };
+
+            // image result may have the .empty-result class or just be hidden
+            const result = element.querySelector(".result");
+            const emptyResult = element.querySelector(".result.empty-result");
+            const isEmptyImageResult = emptyResult || result?.style.display === "none";
+
+            // modern-screenshot drop the paragraphs in the result iframe directly in the group
+            // so no element of class result is left in text gen and static text groups 
+            const paragraphResult = element.querySelector("p");
+            const isEmptyTextResult = !result && !paragraphResult;
+
+            if (isEmptyImageResult || isEmptyTextResult) {
+                element.style.height = "6rem";
+            }
+            else {
+                element.style.height = "calc(var(--group-width) + 6rem)";
+            }
+        };
+
+        const groupNameElements = clonedDocument.querySelectorAll('.group-name');
+        for (const element of groupNameElements) {
+            element.style.fontSize = "2rem";
+            element.style.height = "fit-content";
+        };
+
+        if (window.DEBUG) {
+            saveElementAsFile(clonedDocument);
+        }
     }
 
     const renderedHTML = await domToCanvas(container, {
         filter: filterNodes, // Apply the filter function
-        onCloneNode: adjustClone, // Adjust the cloned node where necessary
+        onCloneNode: adjustClone, // Adjust the cloned document
         scale: 1,
     });
 
@@ -142,3 +171,19 @@ function waitForImageToLoad(image) {
         image.onerror = reject;
     });
 }
+
+
+function saveElementAsFile(element, fileName = 'debug.html', fileType = 'text/html') {
+    let content = element.outerHTML;
+
+    const blob = new Blob([content], { type: fileType });
+
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+
+    document.body.appendChild(link); // Append link to the body
+    link.click(); // Programmatically click the link to trigger the download
+    document.body.removeChild(link); // Remove the link after downloading
+}
+
