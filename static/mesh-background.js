@@ -26,9 +26,12 @@ let SHADER_MATERIAL;
 function initMeshBackground() {
 
     const container = document.querySelector('.container');
+    const windowDropZone = document.querySelector('.window-drop-zone');
 
     CANVASWIDTH = container.scrollWidth;
-    CANVASHEIGHT = container.scrollHeight;
+    CANVASHEIGHT = Math.max(container.scrollHeight, windowDropZone.scrollHeight);
+
+    console.log("[Mesh Background] container.scrollHeight, windowDropZone.scrollHeight ", container.scrollHeight, windowDropZone.scrollHeight)
 
     const divs = document.querySelectorAll(".group");
 
@@ -209,9 +212,15 @@ function initMeshBackground() {
 function renderBackground() {
 
     const container = document.querySelector('.container');
+    const windowDropZone = document.querySelector('.window-drop-zone');
+    const meshBackgroundCanvas = document.querySelector('canvas#mesh-background');
+
+    meshBackgroundCanvas.style.height = "0";
 
     CANVASWIDTH = container.scrollWidth;
-    CANVASHEIGHT = container.scrollHeight;
+    CANVASHEIGHT = Math.max(container.scrollHeight, windowDropZone.scrollHeight);
+
+    console.log("[Mesh Background] container.scrollHeight, windowDropZone.scrollHeight ", container.scrollHeight, windowDropZone.scrollHeight)
 
     RENDERER.setSize(CANVASWIDTH, CANVASHEIGHT);
     CAMERA.aspect = CANVASWIDTH / CANVASHEIGHT;
@@ -226,6 +235,8 @@ function renderBackground() {
     const containerLeft = container.offsetLeft;
     const containerTop = container.offsetTop;
 
+    console.log("[Mesh Background] containerLeft, containerTop: ", containerLeft, containerTop)
+
     ACTIVE_DIVS = divs.length;
 
     divs.forEach((div, index) => {
@@ -235,12 +246,14 @@ function renderBackground() {
         const relativeTop = div.offsetTop - containerTop + div.offsetHeight / 2;
 
         SHADER_MATERIAL.uniforms.divPositions.value[index].set(
-            relativeLeft / container.offsetWidth,
-            1 - (relativeTop / container.offsetHeight)
+            relativeLeft / CANVASWIDTH,
+            1 - (relativeTop / CANVASHEIGHT)
         );
 
-        const width = div.scrollWidth;
-        const height = div.scrollHeight;
+        const width = div.offsetWidth;
+        const height = div.offsetHeight;
+
+        console.log("[Mesh Background] this div width, height: ", width, height)
 
         SHADER_MATERIAL.uniforms.divWidth.value[index] = width;
         SHADER_MATERIAL.uniforms.divHeight.value[index] = height;
