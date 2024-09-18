@@ -11,48 +11,86 @@ let CANVASHEIGHT;
 const SCENE = new THREE.Scene();
 const CAMERA = new THREE.PerspectiveCamera(75, CANVASWIDTH / CANVASHEIGHT, 0.1, 1000);
 
-const RENDERER = new THREE.WebGLRenderer(
-    {
-        canvas: document.querySelector('canvas#mesh-background')
-    });
-
-RENDERER.setSize(CANVASWIDTH, CANVASHEIGHT);
-
-CAMERA.position.z = 5;
-
+let RENDERER;
 let SHADER_MATERIAL;
 
 
-function initMeshBackground() {
+function initRenderer(rootDoc = document) {
+    const canvas = rootDoc.querySelector('canvas#mesh-background') || document.createElement('canvas');
 
-    const container = document.querySelector('.container');
-    const windowDropZone = document.querySelector('.window-drop-zone');
+    RENDERER = new THREE.WebGLRenderer({
+        canvas: canvas
+    });
+
+    if (!rootDoc.querySelector('canvas#mesh-background')) {
+        // If the canvas is offscreen, ensure proper sizing
+        CANVASWIDTH = rootDoc.documentElement.clientWidth || 800; // Fallback size if no container is present
+        CANVASHEIGHT = rootDoc.documentElement.clientHeight || 800; // Fallback size if no container is present
+        RENDERER.setSize(CANVASWIDTH, CANVASHEIGHT);
+    } else {
+        RENDERER.setSize(CANVASWIDTH, CANVASHEIGHT);
+    }
+
+    CAMERA.position.z = 5;
+
+    return RENDERER.domElement;
+}
+
+function extractValuesFromDOM(rootDoc = document) {
+    const container = rootDoc.querySelector('.container');
+    const windowDropZone = rootDoc.querySelector('.window-drop-zone');
+
+    const divs = rootDoc.querySelectorAll(".group");
+
+    const containerLeft = container.offsetLeft;
+    const containerTop = container.offsetTop;
 
     CANVASWIDTH = container.scrollWidth;
     CANVASHEIGHT = Math.max(container.scrollHeight, windowDropZone.scrollHeight);
 
-    console.log("[Mesh Background] container.scrollHeight, windowDropZone.scrollHeight ", container.scrollHeight, windowDropZone.scrollHeight)
+    const divData = [...divs].map((div) => {
+        const relativeLeft = div.offsetLeft - containerLeft + div.offsetWidth / 2;
+        const relativeTop = div.offsetTop - containerTop + div.offsetHeight / 2;
+        const width = div.offsetWidth;
+        const height = div.offsetHeight;
 
-    const divs = document.querySelectorAll(".group");
+        const colorStyle = getComputedStyle(div, null).borderColor;
+        const colorNumberPattern = /([\.\d]+)/g;
+        let color = colorStyle.match(colorNumberPattern).slice(0, 3).map(parseFloat);
 
-    ACTIVE_DIVS = divs.length;
+        // Normalize color channels
+        color = color.map(channel => channel / 255.0);
+
+        return {
+            position: new THREE.Vector2(relativeLeft / CANVASWIDTH, 1 - (relativeTop / CANVASHEIGHT)),
+            width: width,
+            height: height,
+            color: new THREE.Vector3(color[0], color[1], color[2])
+        };
+    });
+
+    return {
+        divData,
+        containerSize: { width: CANVASWIDTH, height: CANVASHEIGHT },
+        activeDivCount: divs.length
+    };
+}
+
+function initMeshBackground(rootDoc = document) {
+    const canvas = initRenderer(rootDoc);  // Initialize renderer and get the canvas
+
+    const { divData, containerSize, activeDivCount } = extractValuesFromDOM(rootDoc);
+
+    CANVASWIDTH = containerSize.width;
+    CANVASHEIGHT = containerSize.height;
+    ACTIVE_DIVS = activeDivCount;
 
     let uniforms = {
-        divPositions: {
-            value: new Array(MAX_DIVS).fill().map(() => new THREE.Vector2(0.0, 0.0))
-        },
 
-        divWidth: {
-            value: new Array(MAX_DIVS).fill().map(() => 0.5),
-        },
-
-        divHeight: {
-            value: new Array(MAX_DIVS).fill().map(() => 0.5),
-        },
-
-        divColors: {
-            value: new Array(MAX_DIVS).fill().map(() => new THREE.Vector3(1.0, 0.0, 0.0))
-        },
+        divPositions: { value: new Array(MAX_DIVS).fill().map(() => new THREE.Vector2(0.0, 0.0)) },
+        divWidth: { value: new Array(MAX_DIVS).fill().map(() => 0.5) },
+        divHeight: { value: new Array(MAX_DIVS).fill().map(() => 0.5) },
+        divColors: { value: new Array(MAX_DIVS).fill().map(() => new THREE.Vector3(1.0, 0.0, 0.0)) },
 
         // multiply the normalized [0, 1] size of the ellipse
         shapeExpansion: { value: 1.7 },
@@ -64,6 +102,14 @@ function initMeshBackground() {
         backgroundColor: { value: new THREE.Vector3(.97, .95, .90) },
 
     };
+
+    // Update uniforms with extracted div data
+    divData.forEach((div, index) => {
+        uniforms.divPositions.value[index].copy(div.position);
+        uniforms.divWidth.value[index] = div.width;
+        uniforms.divHeight.value[index] = div.height;
+        uniforms.divColors.value[index].copy(div.color);
+    });
 
     SHADER_MATERIAL = new THREE.ShaderMaterial({
         uniforms: uniforms,
@@ -196,31 +242,23 @@ function initMeshBackground() {
 
     const planeGeometry = new THREE.PlaneGeometry(2, 2);
     const mesh = new THREE.Mesh(planeGeometry, SHADER_MATERIAL);
-
     SCENE.add(mesh);
 
-    renderBackground();
+    renderBackground(rootDoc);
 
     window.addEventListener('resize', () => {
-
-        renderBackground();
-
+        renderBackground(rootDoc);
     });
 
+    return canvas;
 }
 
-function renderBackground() {
+function renderBackground(rootDoc = document) {
+    const { divData, containerSize, activeDivCount } = extractValuesFromDOM(rootDoc);
 
-    const container = document.querySelector('.container');
-    const windowDropZone = document.querySelector('.window-drop-zone');
-    const meshBackgroundCanvas = document.querySelector('canvas#mesh-background');
-
-    meshBackgroundCanvas.style.height = "0";
-
-    CANVASWIDTH = container.scrollWidth;
-    CANVASHEIGHT = Math.max(container.scrollHeight, windowDropZone.scrollHeight);
-
-    console.log("[Mesh Background] container.scrollHeight, windowDropZone.scrollHeight ", container.scrollHeight, windowDropZone.scrollHeight)
+    CANVASWIDTH = containerSize.width;
+    CANVASHEIGHT = containerSize.height;
+    ACTIVE_DIVS = activeDivCount;
 
     RENDERER.setSize(CANVASWIDTH, CANVASHEIGHT);
     CAMERA.aspect = CANVASWIDTH / CANVASHEIGHT;
@@ -228,77 +266,24 @@ function renderBackground() {
 
     SHADER_MATERIAL.uniforms.resolution.value.set(CANVASWIDTH, CANVASHEIGHT);
 
-    // console.log("[Mesh Background] Ratio: ", CANVASWIDTH / CANVASHEIGHT)
-
-    const divs = document.querySelectorAll(".group");
-
-    const containerLeft = container.offsetLeft;
-    const containerTop = container.offsetTop;
-
-    console.log("[Mesh Background] containerLeft, containerTop: ", containerLeft, containerTop)
-
-    ACTIVE_DIVS = divs.length;
-
-    divs.forEach((div, index) => {
-
-        // Calculate relative position of the div to the .container using offsetLeft and offsetTop
-        const relativeLeft = div.offsetLeft - containerLeft + div.offsetWidth / 2;
-        const relativeTop = div.offsetTop - containerTop + div.offsetHeight / 2;
-
-        SHADER_MATERIAL.uniforms.divPositions.value[index].set(
-            relativeLeft / CANVASWIDTH,
-            1 - (relativeTop / CANVASHEIGHT)
-        );
-
-        const width = div.offsetWidth;
-        const height = div.offsetHeight;
-
-        console.log("[Mesh Background] this div width, height: ", width, height)
-
-        SHADER_MATERIAL.uniforms.divWidth.value[index] = width;
-        SHADER_MATERIAL.uniforms.divHeight.value[index] = height;
-
-        const colorStyle = getComputedStyle(div, null).borderColor
-
-        const colorNumberPattern = /([\.\d]+)/g;
-
-        const color = colorStyle.match(colorNumberPattern).slice(0, 3);
-
-        for (const channel of color) {
-
-            const channelInt = parseInt(channel);
-
-            const isValidChannelValue =
-                Number.isInteger(channelInt)
-                && channelInt >= 0
-                && channelInt <= 255
-
-            if (!isValidChannelValue) {
-                channel = 255
-            }
-        }
-
-        SHADER_MATERIAL.uniforms.divColors.value[index].set(
-            parseFloat(color[0]) / 255.0,
-            parseFloat(color[1]) / 255.0,
-            parseFloat(color[2]) / 255.0
-        );
-
+    divData.forEach((div, index) => {
+        SHADER_MATERIAL.uniforms.divPositions.value[index].copy(div.position);
+        SHADER_MATERIAL.uniforms.divWidth.value[index] = div.width;
+        SHADER_MATERIAL.uniforms.divHeight.value[index] = div.height;
+        SHADER_MATERIAL.uniforms.divColors.value[index].copy(div.color);
     });
 
-    SHADER_MATERIAL.uniforms.activeDivCount.value = divs.length;
+    SHADER_MATERIAL.uniforms.activeDivCount.value = ACTIVE_DIVS;
 
     RENDERER.render(SCENE, CAMERA);
 }
 
-
-async function renderAndReturnUrlOfCopy() {
-
-    renderBackground();
+async function renderAndReturnUrlOfCopy(rootDoc = document) {
+    const canvas = initMeshBackground(rootDoc);
 
     // Convert 3vw to pixels
-    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-    const blurRadius = 0.03 * vw; // 3% of the viewport width
+    const vw = Math.max(rootDoc.documentElement.clientWidth || 0, window.innerWidth || 0);
+    const blurRadius = 0.03 * vw;
 
     // Create a temporary canvas to apply the blur effect
     const tempCanvas = document.createElement('canvas');
@@ -319,7 +304,7 @@ async function renderAndReturnUrlOfCopy() {
     return blobUrl;
 }
 
-// utils 
+// utils
 function canvasToBlob(canvas) {
     return new Promise(function (resolve) {
         canvas.toBlob(
