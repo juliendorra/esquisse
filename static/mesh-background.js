@@ -11,30 +11,9 @@ let CANVASHEIGHT;
 const SCENE = new THREE.Scene();
 const CAMERA = new THREE.PerspectiveCamera(75, CANVASWIDTH / CANVASHEIGHT, 0.1, 1000);
 
-let RENDERER;
+let globalRenderer; // Default global renderer
 let SHADER_MATERIAL;
 
-
-function initRenderer(rootDoc = document) {
-    const canvas = rootDoc.querySelector('canvas#mesh-background') || document.createElement('canvas');
-
-    RENDERER = new THREE.WebGLRenderer({
-        canvas: canvas
-    });
-
-    if (!rootDoc.querySelector('canvas#mesh-background')) {
-        // If the canvas is offscreen, ensure proper sizing
-        CANVASWIDTH = rootDoc.documentElement.clientWidth || 800; // Fallback size if no container is present
-        CANVASHEIGHT = rootDoc.documentElement.clientHeight || 800; // Fallback size if no container is present
-        RENDERER.setSize(CANVASWIDTH, CANVASHEIGHT);
-    } else {
-        RENDERER.setSize(CANVASWIDTH, CANVASHEIGHT);
-    }
-
-    CAMERA.position.z = 5;
-
-    return RENDERER.domElement;
-}
 
 function extractValuesFromDOM(rootDoc = document) {
     const container = rootDoc.querySelector('.container');
@@ -76,14 +55,7 @@ function extractValuesFromDOM(rootDoc = document) {
     };
 }
 
-function initMeshBackground(rootDoc = document) {
-    const canvas = initRenderer(rootDoc);  // Initialize renderer and get the canvas
-
-    const { divData, containerSize, activeDivCount } = extractValuesFromDOM(rootDoc);
-
-    CANVASWIDTH = containerSize.width;
-    CANVASHEIGHT = containerSize.height;
-    ACTIVE_DIVS = activeDivCount;
+function initMeshBackground(rootDoc = document, renderer = globalRenderer) {
 
     let uniforms = {
 
@@ -102,14 +74,6 @@ function initMeshBackground(rootDoc = document) {
         backgroundColor: { value: new THREE.Vector3(.97, .95, .90) },
 
     };
-
-    // Update uniforms with extracted div data
-    divData.forEach((div, index) => {
-        uniforms.divPositions.value[index].copy(div.position);
-        uniforms.divWidth.value[index] = div.width;
-        uniforms.divHeight.value[index] = div.height;
-        uniforms.divColors.value[index].copy(div.color);
-    });
 
     SHADER_MATERIAL = new THREE.ShaderMaterial({
         uniforms: uniforms,
@@ -244,28 +208,39 @@ function initMeshBackground(rootDoc = document) {
     const mesh = new THREE.Mesh(planeGeometry, SHADER_MATERIAL);
     SCENE.add(mesh);
 
-    renderBackground(rootDoc);
+    // Ensure global renderer is used for the visible page
+    if (renderer === globalRenderer && !globalRenderer) {
+        globalRenderer = new THREE.WebGLRenderer({
+            canvas: rootDoc.querySelector('canvas#mesh-background'),
+        });
+
+        renderer = globalRenderer;
+    }
+
+    renderBackground(rootDoc, renderer);
 
     window.addEventListener('resize', () => {
-        renderBackground(rootDoc);
+        renderBackground(rootDoc, renderer);
     });
 
-    return canvas;
+
 }
 
-function renderBackground(rootDoc = document) {
+function renderBackground(rootDoc = document, renderer = globalRenderer) {
     const { divData, containerSize, activeDivCount } = extractValuesFromDOM(rootDoc);
 
     CANVASWIDTH = containerSize.width;
     CANVASHEIGHT = containerSize.height;
     ACTIVE_DIVS = activeDivCount;
 
-    RENDERER.setSize(CANVASWIDTH, CANVASHEIGHT);
+    renderer.setSize(CANVASWIDTH, CANVASHEIGHT);
+    CAMERA.position.z = 5;
     CAMERA.aspect = CANVASWIDTH / CANVASHEIGHT;
     CAMERA.updateProjectionMatrix();
 
     SHADER_MATERIAL.uniforms.resolution.value.set(CANVASWIDTH, CANVASHEIGHT);
 
+    // Update uniforms with extracted div data
     divData.forEach((div, index) => {
         SHADER_MATERIAL.uniforms.divPositions.value[index].copy(div.position);
         SHADER_MATERIAL.uniforms.divWidth.value[index] = div.width;
@@ -275,42 +250,49 @@ function renderBackground(rootDoc = document) {
 
     SHADER_MATERIAL.uniforms.activeDivCount.value = ACTIVE_DIVS;
 
-    RENDERER.render(SCENE, CAMERA);
+    renderer.render(SCENE, CAMERA);
 }
 
 async function renderAndReturnUrlOfCopy(rootDoc = document) {
-    const canvas = initMeshBackground(rootDoc);
+    // Initialize a new renderer for offscreen rendering
+    const renderer = new THREE.WebGLRenderer({
+        canvas: rootDoc.createElement('canvas'),
+    });
+    const canvas = renderer.domElement;
 
-    // Convert 3vw to pixels
-    const vw = Math.max(rootDoc.documentElement.clientWidth || 0, window.innerWidth || 0);
-    const blurRadius = 0.03 * vw;
+    // Set up the offscreen rendering environment
+    initMeshBackground(rootDoc, renderer);
+
+    // Render the scene offscreen
+    renderer.render(SCENE, CAMERA);
 
     // Create a temporary canvas to apply the blur effect
     const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = RENDERER.domElement.width;
-    tempCanvas.height = RENDERER.domElement.height;
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
     const tempCtx = tempCanvas.getContext('2d');
 
-    // Draw the original canvas content onto the temporary canvas
-    tempCtx.drawImage(RENDERER.domElement, 0, 0);
+    // Draw the original content onto the temporary canvas
+    tempCtx.drawImage(canvas, 0, 0);
 
     // Apply the blur effect. Safari just ignore it.
+    const vw = Math.max(rootDoc.documentElement.clientWidth || 0, window.innerWidth || 0);
+    const blurRadius = 0.03 * vw;
     tempCtx.filter = `blur(${blurRadius}px)`;
     tempCtx.drawImage(tempCanvas, 0, 0);
 
-    // Save the blurred canvas as a Blob URL
     const blob = await canvasToBlob(tempCanvas);
-    const blobUrl = URL.createObjectURL(blob);
-    return blobUrl;
+    const blobURL = URL.createObjectURL(blob);
+    const dataURI = tempCanvas.toDataURL('image/png');
+
+    renderer.dispose();
+
+    return { blobURL, blob, dataURI };
 }
 
 // utils
 function canvasToBlob(canvas) {
     return new Promise(function (resolve) {
-        canvas.toBlob(
-            resolve,
-            'image/jpeg',
-            0.9
-        );
+        canvas.toBlob(resolve, 'image/jpeg', 0.9);
     });
-};
+}
