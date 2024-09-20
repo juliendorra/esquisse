@@ -39,7 +39,6 @@ function onGroupChanged(mutationsList) {
 
             if (!arraysEqual(previousOrder, currentOrder)) {
                 applyScale();
-                renderBackground();
                 renderDataFlow();
                 previousOrder = currentOrder;
             }
@@ -60,7 +59,14 @@ function onGroupResized(entries) {
         if (entry.target.classList.contains('group')) {
             applyScale()
 
-            renderBackground();
+            // this event is expected by mesh-background to knwow when re-render the background
+            const groupElementResized = new CustomEvent("group-element-resized", {
+                detail: "",
+                bubbles: true,
+                cancelable: true
+            });
+
+            document.dispatchEvent(groupElementResized);
 
             renderDataFlow();
         }

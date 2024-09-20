@@ -8,10 +8,10 @@ let ACTIVE_DIVS = 3;
 let CANVASWIDTH;
 let CANVASHEIGHT;
 
-const SCENE = new THREE.Scene();
-const CAMERA = new THREE.PerspectiveCamera(75, CANVASWIDTH / CANVASHEIGHT, 0.1, 1000);
+const globalRenderer = new THREE.WebGLRenderer({
+    canvas: document.querySelector('canvas#mesh-background'),
+});
 
-let globalRenderer; // Default global renderer
 let SHADER_MATERIAL;
 
 
@@ -28,6 +28,7 @@ function extractValuesFromDOM(rootDoc = document) {
     CANVASHEIGHT = Math.max(container.scrollHeight, windowDropZone.scrollHeight);
 
     const divData = [...divs].map((div) => {
+
         const relativeLeft = div.offsetLeft - containerLeft + div.offsetWidth / 2;
         const relativeTop = div.offsetTop - containerTop + div.offsetHeight / 2;
         const width = div.offsetWidth;
@@ -35,6 +36,7 @@ function extractValuesFromDOM(rootDoc = document) {
 
         const colorStyle = getComputedStyle(div, null).borderColor;
         const colorNumberPattern = /([\.\d]+)/g;
+
         let color = colorStyle.match(colorNumberPattern).slice(0, 3).map(parseFloat);
 
         // Normalize color channels
@@ -83,7 +85,7 @@ function initMeshBackground(rootDoc = document, renderer = globalRenderer) {
         }`,
 
         fragmentShader: `
-        #define MAX_DIVS 100
+        #define MAX_DIVS ${MAX_DIVS}
         #define TAU 6.28318530718
         #define SRGB_EPSILON 1e-5
 
@@ -204,67 +206,108 @@ function initMeshBackground(rootDoc = document, renderer = globalRenderer) {
         `
     });
 
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, CANVASWIDTH / CANVASHEIGHT, 0.1, 1000);
+
     const planeGeometry = new THREE.PlaneGeometry(2, 2);
     const mesh = new THREE.Mesh(planeGeometry, SHADER_MATERIAL);
-    SCENE.add(mesh);
+    scene.add(mesh);
 
-    // Ensure global renderer is used for the visible page
-    if (renderer === globalRenderer && !globalRenderer) {
-        globalRenderer = new THREE.WebGLRenderer({
-            canvas: rootDoc.querySelector('canvas#mesh-background'),
+    if (rootDoc === document) {
+
+
+        window.addEventListener('resize', () => {
+            renderBackground({
+                document: rootDoc,
+                renderer: renderer,
+                scene: scene,
+                camera: camera,
+            });
         });
 
-        renderer = globalRenderer;
+        document.addEventListener("group-element-resized", () => {
+
+            renderBackground({
+                document: rootDoc,
+                renderer: renderer,
+                scene: scene,
+                camera: camera,
+            });
+        });
+
+        document.addEventListener("group-element-added-or-removed", () => {
+
+            renderBackground({
+                document: rootDoc,
+                renderer: renderer,
+                scene: scene,
+                camera: camera,
+            });
+        });
+
     }
 
-    renderBackground(rootDoc, renderer);
-
-    window.addEventListener('resize', () => {
-        renderBackground(rootDoc, renderer);
+    renderBackground({
+        document: rootDoc,
+        renderer: renderer,
+        scene: scene,
+        camera: camera,
     });
-
 
 }
 
-function renderBackground(rootDoc = document, renderer = globalRenderer) {
+function renderBackground({ rootDoc = document, renderer = globalRenderer, scene, camera, }) {
+
     const { divData, containerSize, activeDivCount } = extractValuesFromDOM(rootDoc);
 
     CANVASWIDTH = containerSize.width;
     CANVASHEIGHT = containerSize.height;
     ACTIVE_DIVS = activeDivCount;
 
+    camera.aspect = CANVASWIDTH / CANVASHEIGHT;
+    camera.position.z = 5;
+    camera.updateProjectionMatrix();
+
     renderer.setSize(CANVASWIDTH, CANVASHEIGHT);
-    CAMERA.position.z = 5;
-    CAMERA.aspect = CANVASWIDTH / CANVASHEIGHT;
-    CAMERA.updateProjectionMatrix();
 
     SHADER_MATERIAL.uniforms.resolution.value.set(CANVASWIDTH, CANVASHEIGHT);
 
-    // Update uniforms with extracted div data
-    divData.forEach((div, index) => {
-        SHADER_MATERIAL.uniforms.divPositions.value[index].copy(div.position);
-        SHADER_MATERIAL.uniforms.divWidth.value[index] = div.width;
-        SHADER_MATERIAL.uniforms.divHeight.value[index] = div.height;
-        SHADER_MATERIAL.uniforms.divColors.value[index].copy(div.color);
-    });
+    if (ACTIVE_DIVS > 0) {
+
+        // Update uniforms with extracted div data
+        divData.forEach((div, index) => {
+            SHADER_MATERIAL.uniforms.divPositions.value[index].copy(div.position);
+            SHADER_MATERIAL.uniforms.divWidth.value[index] = div.width;
+            SHADER_MATERIAL.uniforms.divHeight.value[index] = div.height;
+            SHADER_MATERIAL.uniforms.divColors.value[index].copy(div.color);
+        });
+
+    }
+    else {
+        SHADER_MATERIAL.uniforms.divPositions.value[0] = new THREE.Vector2(0.0, 0.0);
+        SHADER_MATERIAL.uniforms.divWidth.value[0] = 0;
+        SHADER_MATERIAL.uniforms.divHeight.value[0] = 0;
+        SHADER_MATERIAL.uniforms.divColors.value[0] = new THREE.Vector3(0.0, 0.0, 0.0);
+    }
 
     SHADER_MATERIAL.uniforms.activeDivCount.value = ACTIVE_DIVS;
 
-    renderer.render(SCENE, CAMERA);
+    renderer.render(scene, camera);
 }
 
 async function renderAndReturnUrlOfCopy(rootDoc = document) {
+
     // Initialize a new renderer for offscreen rendering
-    const renderer = new THREE.WebGLRenderer({
-        canvas: rootDoc.createElement('canvas'),
+
+    const canvas = document.createElement('canvas');
+
+    const temporaryRenderer = new THREE.WebGLRenderer({
+        canvas: canvas,
     });
-    const canvas = renderer.domElement;
 
     // Set up the offscreen rendering environment
-    initMeshBackground(rootDoc, renderer);
-
-    // Render the scene offscreen
-    renderer.render(SCENE, CAMERA);
+    // and Render the scene offscreen
+    initMeshBackground(rootDoc, temporaryRenderer);
 
     // Create a temporary canvas to apply the blur effect
     const tempCanvas = document.createElement('canvas');
@@ -283,9 +326,9 @@ async function renderAndReturnUrlOfCopy(rootDoc = document) {
 
     const blob = await canvasToBlob(tempCanvas);
     const blobURL = URL.createObjectURL(blob);
-    const dataURI = tempCanvas.toDataURL('image/png');
+    const dataURI = tempCanvas.toDataURL('image/jpeg', 0.9);
 
-    renderer.dispose();
+    temporaryRenderer.dispose();
 
     return { blobURL, blob, dataURI };
 }
