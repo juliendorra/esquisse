@@ -9,9 +9,6 @@ const globalRenderer = new THREE.WebGLRenderer({
     canvas: document.querySelector('canvas#mesh-background'),
 });
 
-let SHADER_MATERIAL;
-
-
 function extractValuesFromDOM(rootDoc = document) {
 
     const container = rootDoc.querySelector(".zoomable");
@@ -78,7 +75,7 @@ function initMeshBackground(rootDoc = document, renderer = globalRenderer) {
 
     };
 
-    SHADER_MATERIAL = new THREE.ShaderMaterial({
+    const SHADER_MATERIAL = new THREE.ShaderMaterial({
         uniforms: uniforms,
         vertexShader: `
         void main() {
@@ -223,6 +220,7 @@ function initMeshBackground(rootDoc = document, renderer = globalRenderer) {
                 renderer: renderer,
                 scene: scene,
                 camera: camera,
+                shaderMaterial: SHADER_MATERIAL,
             });
         });
 
@@ -233,6 +231,7 @@ function initMeshBackground(rootDoc = document, renderer = globalRenderer) {
                 renderer: renderer,
                 scene: scene,
                 camera: camera,
+                shaderMaterial: SHADER_MATERIAL,
             });
         });
 
@@ -243,6 +242,7 @@ function initMeshBackground(rootDoc = document, renderer = globalRenderer) {
                 renderer: renderer,
                 scene: scene,
                 camera: camera,
+                shaderMaterial: SHADER_MATERIAL,
             });
         });
 
@@ -253,11 +253,12 @@ function initMeshBackground(rootDoc = document, renderer = globalRenderer) {
         renderer: renderer,
         scene: scene,
         camera: camera,
+        shaderMaterial: SHADER_MATERIAL,
     });
 
 }
 
-function renderBackground({ rootDoc = document, renderer = globalRenderer, scene, camera, }) {
+function renderBackground({ rootDoc = document, renderer = globalRenderer, scene, camera, shaderMaterial }) {
 
     const { divData, containerSize, activeDivCount } = extractValuesFromDOM(rootDoc);
 
@@ -271,27 +272,27 @@ function renderBackground({ rootDoc = document, renderer = globalRenderer, scene
 
     renderer.setSize(canvasWidth, canvasHeight);
 
-    SHADER_MATERIAL.uniforms.resolution.value.set(canvasWidth, canvasHeight);
+    shaderMaterial.uniforms.resolution.value.set(canvasWidth, canvasHeight);
 
     if (activeDivs > 0) {
 
         // Update uniforms with extracted div data
         divData.forEach((div, index) => {
-            SHADER_MATERIAL.uniforms.divPositions.value[index].copy(div.position);
-            SHADER_MATERIAL.uniforms.divWidth.value[index] = div.width;
-            SHADER_MATERIAL.uniforms.divHeight.value[index] = div.height;
-            SHADER_MATERIAL.uniforms.divColors.value[index].copy(div.color);
+            shaderMaterial.uniforms.divPositions.value[index].copy(div.position);
+            shaderMaterial.uniforms.divWidth.value[index] = div.width;
+            shaderMaterial.uniforms.divHeight.value[index] = div.height;
+            shaderMaterial.uniforms.divColors.value[index].copy(div.color);
         });
 
     }
     else {
-        SHADER_MATERIAL.uniforms.divPositions.value[0] = new THREE.Vector2(0.0, 0.0);
-        SHADER_MATERIAL.uniforms.divWidth.value[0] = 0;
-        SHADER_MATERIAL.uniforms.divHeight.value[0] = 0;
-        SHADER_MATERIAL.uniforms.divColors.value[0] = new THREE.Vector3(0.0, 0.0, 0.0);
+        shaderMaterial.uniforms.divPositions.value[0] = new THREE.Vector2(0.0, 0.0);
+        shaderMaterial.uniforms.divWidth.value[0] = 0;
+        shaderMaterial.uniforms.divHeight.value[0] = 0;
+        shaderMaterial.uniforms.divColors.value[0] = new THREE.Vector3(0.0, 0.0, 0.0);
     }
 
-    SHADER_MATERIAL.uniforms.activeDivCount.value = activeDivs;
+    shaderMaterial.uniforms.activeDivCount.value = activeDivs;
 
     renderer.render(scene, camera);
 }
