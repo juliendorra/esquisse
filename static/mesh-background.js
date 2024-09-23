@@ -5,9 +5,6 @@ export { initMeshBackground, renderBackground, renderAndReturnUrlOfCopy };
 const MAX_DIVS = 100;
 let ACTIVE_DIVS = 3;
 
-let CANVASWIDTH;
-let CANVASHEIGHT;
-
 const globalRenderer = new THREE.WebGLRenderer({
     canvas: document.querySelector('canvas#mesh-background'),
 });
@@ -16,16 +13,17 @@ let SHADER_MATERIAL;
 
 
 function extractValuesFromDOM(rootDoc = document) {
-    const container = rootDoc.querySelector('.container');
-    const windowDropZone = rootDoc.querySelector('.window-drop-zone');
 
+    const container = rootDoc.querySelector(".zoomable");
     const divs = rootDoc.querySelectorAll(".group");
 
     const containerLeft = container.offsetLeft;
     const containerTop = container.offsetTop;
 
-    CANVASWIDTH = container.scrollWidth;
-    CANVASHEIGHT = Math.max(container.scrollHeight, windowDropZone.scrollHeight);
+    const canvasWidth = container.offsetWidth;
+    const canvasHeight = container.offsetHeight;
+
+    console.log("[MESH BACKGROUND] recalculating size ", canvasWidth, canvasHeight);
 
     const divData = [...divs].map((div) => {
 
@@ -43,7 +41,7 @@ function extractValuesFromDOM(rootDoc = document) {
         color = color.map(channel => channel / 255.0);
 
         return {
-            position: new THREE.Vector2(relativeLeft / CANVASWIDTH, 1 - (relativeTop / CANVASHEIGHT)),
+            position: new THREE.Vector2(relativeLeft / canvasWidth, 1 - (relativeTop / canvasHeight)),
             width: width,
             height: height,
             color: new THREE.Vector3(color[0], color[1], color[2])
@@ -52,12 +50,15 @@ function extractValuesFromDOM(rootDoc = document) {
 
     return {
         divData,
-        containerSize: { width: CANVASWIDTH, height: CANVASHEIGHT },
+        containerSize: { width: canvasWidth, height: canvasHeight },
         activeDivCount: divs.length
     };
 }
 
 function initMeshBackground(rootDoc = document, renderer = globalRenderer) {
+
+    const canvasWidth = 1024;
+    const canvasHeight = 1024;
 
     let uniforms = {
 
@@ -71,7 +72,7 @@ function initMeshBackground(rootDoc = document, renderer = globalRenderer) {
 
         activeDivCount: { value: ACTIVE_DIVS },
 
-        resolution: { value: new THREE.Vector2(CANVASWIDTH, CANVASHEIGHT) },
+        resolution: { value: new THREE.Vector2(canvasWidth, canvasHeight) },
 
         backgroundColor: { value: new THREE.Vector3(.97, .95, .90) },
 
@@ -207,7 +208,7 @@ function initMeshBackground(rootDoc = document, renderer = globalRenderer) {
     });
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, CANVASWIDTH / CANVASHEIGHT, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(75, canvasWidth / canvasHeight, 0.1, 1000);
 
     const planeGeometry = new THREE.PlaneGeometry(2, 2);
     const mesh = new THREE.Mesh(planeGeometry, SHADER_MATERIAL);
@@ -260,19 +261,19 @@ function renderBackground({ rootDoc = document, renderer = globalRenderer, scene
 
     const { divData, containerSize, activeDivCount } = extractValuesFromDOM(rootDoc);
 
-    CANVASWIDTH = containerSize.width;
-    CANVASHEIGHT = containerSize.height;
-    ACTIVE_DIVS = activeDivCount;
+    const canvasWidth = containerSize.width;
+    const canvasHeight = containerSize.height;
+    const activeDivs = activeDivCount;
 
-    camera.aspect = CANVASWIDTH / CANVASHEIGHT;
+    camera.aspect = canvasWidth / canvasHeight;
     camera.position.z = 5;
     camera.updateProjectionMatrix();
 
-    renderer.setSize(CANVASWIDTH, CANVASHEIGHT);
+    renderer.setSize(canvasWidth, canvasHeight);
 
-    SHADER_MATERIAL.uniforms.resolution.value.set(CANVASWIDTH, CANVASHEIGHT);
+    SHADER_MATERIAL.uniforms.resolution.value.set(canvasWidth, canvasHeight);
 
-    if (ACTIVE_DIVS > 0) {
+    if (activeDivs > 0) {
 
         // Update uniforms with extracted div data
         divData.forEach((div, index) => {
@@ -290,7 +291,7 @@ function renderBackground({ rootDoc = document, renderer = globalRenderer, scene
         SHADER_MATERIAL.uniforms.divColors.value[0] = new THREE.Vector3(0.0, 0.0, 0.0);
     }
 
-    SHADER_MATERIAL.uniforms.activeDivCount.value = ACTIVE_DIVS;
+    SHADER_MATERIAL.uniforms.activeDivCount.value = activeDivs;
 
     renderer.render(scene, camera);
 }
@@ -310,10 +311,10 @@ async function renderAndReturnUrlOfCopy(rootDoc = document) {
     initMeshBackground(rootDoc, temporaryRenderer);
 
     // Create a temporary canvas to apply the blur effect
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = canvas.width;
-    tempCanvas.height = canvas.height;
-    const tempCtx = tempCanvas.getContext('2d');
+    const blurredCanvas = document.createElement('canvas');
+    blurredCanvas.width = canvas.width;
+    blurredCanvas.height = canvas.height;
+    const tempCtx = blurredCanvas.getContext('2d');
 
     // Draw the original content onto the temporary canvas
     tempCtx.drawImage(canvas, 0, 0);
@@ -322,11 +323,12 @@ async function renderAndReturnUrlOfCopy(rootDoc = document) {
     const vw = Math.max(rootDoc.documentElement.clientWidth || 0, window.innerWidth || 0);
     const blurRadius = 0.03 * vw;
     tempCtx.filter = `blur(${blurRadius}px)`;
-    tempCtx.drawImage(tempCanvas, 0, 0);
 
-    const blob = await canvasToBlob(tempCanvas);
+    tempCtx.drawImage(blurredCanvas, 0, 0);
+
+    const blob = await canvasToBlob(blurredCanvas);
     const blobURL = URL.createObjectURL(blob);
-    const dataURI = tempCanvas.toDataURL('image/jpeg', 0.9);
+    const dataURI = blurredCanvas.toDataURL('image/jpeg', 0.9);
 
     temporaryRenderer.dispose();
 

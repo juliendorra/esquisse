@@ -74,8 +74,8 @@ body {
 
 canvas#mesh-background,
 img#mesh-background-clone {
-    z-index: -99;
     position: absolute;
+    z-index: -10;
     top: 0;
     left: 0;
 }
@@ -581,8 +581,10 @@ input[readonly] {
 }
 
 .window-drop-zone {
-    min-height: 95vh;
+    min-height: 93vh;
     min-width: 100vw;
+    position: relative;
+    z-index: 0;
 }
 
 
@@ -1113,11 +1115,19 @@ sl-drawer::part(footer) {
 }
 
 .zoomable {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -15;
     /* this transitions are used by the miniview styles */
     transition: transform 0.1s ease-in-out;
 }
 
 .zoomable::before {
+
+    position: absolute;
+    top: 0;
+    left: 0;
 
     content: "";
     display: block;
@@ -1143,8 +1153,9 @@ sl-drawer::part(footer) {
 .miniview.zoomable {
     transform: scale(var(--scale));
     transform-origin: top center;
-    /* arbitrary small sizing to avoid white space below the container */
-    height: 20vh;
+
+    /* arbitrary small sizing was used to avoid white space below the container
+    height: 20vh; */
 }
 
 .miniview .tool-btn {
