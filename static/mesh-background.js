@@ -9,7 +9,7 @@ const globalRenderer = new THREE.WebGLRenderer({
     canvas: document.querySelector('canvas#mesh-background'),
 });
 
-function extractValuesFromDOM(rootDoc = document) {
+function extractValuesFromDOM(rootDoc) {
 
     const container = rootDoc.querySelector(".zoomable");
     const divs = rootDoc.querySelectorAll(".group");
@@ -52,7 +52,7 @@ function extractValuesFromDOM(rootDoc = document) {
     };
 }
 
-function initMeshBackground(rootDoc = document, renderer = globalRenderer) {
+function initMeshBackground(rootDoc, renderer = globalRenderer) {
 
     const canvasWidth = 1024;
     const canvasHeight = 1024;
@@ -216,7 +216,7 @@ function initMeshBackground(rootDoc = document, renderer = globalRenderer) {
 
         window.addEventListener('resize', () => {
             renderBackground({
-                document: rootDoc,
+                rootDoc: rootDoc,
                 renderer: renderer,
                 scene: scene,
                 camera: camera,
@@ -227,7 +227,7 @@ function initMeshBackground(rootDoc = document, renderer = globalRenderer) {
         document.addEventListener("group-element-resized", () => {
 
             renderBackground({
-                document: rootDoc,
+                rootDoc: rootDoc,
                 renderer: renderer,
                 scene: scene,
                 camera: camera,
@@ -238,7 +238,7 @@ function initMeshBackground(rootDoc = document, renderer = globalRenderer) {
         document.addEventListener("group-element-added-or-removed", () => {
 
             renderBackground({
-                document: rootDoc,
+                rootDoc: rootDoc,
                 renderer: renderer,
                 scene: scene,
                 camera: camera,
@@ -249,7 +249,7 @@ function initMeshBackground(rootDoc = document, renderer = globalRenderer) {
     }
 
     renderBackground({
-        document: rootDoc,
+        rootDoc: rootDoc,
         renderer: renderer,
         scene: scene,
         camera: camera,
@@ -258,7 +258,7 @@ function initMeshBackground(rootDoc = document, renderer = globalRenderer) {
 
 }
 
-function renderBackground({ rootDoc = document, renderer = globalRenderer, scene, camera, shaderMaterial }) {
+function renderBackground({ rootDoc, renderer = globalRenderer, scene, camera, shaderMaterial }) {
 
     const { divData, containerSize, activeDivCount } = extractValuesFromDOM(rootDoc);
 
@@ -297,7 +297,7 @@ function renderBackground({ rootDoc = document, renderer = globalRenderer, scene
     renderer.render(scene, camera);
 }
 
-async function renderAndReturnUrlOfCopy(rootDoc = document) {
+async function renderAndReturnUrlOfCopy(rootDoc) {
 
     // Initialize a new renderer for offscreen rendering
 
@@ -327,13 +327,11 @@ async function renderAndReturnUrlOfCopy(rootDoc = document) {
 
     tempCtx.drawImage(blurredCanvas, 0, 0);
 
-    const blob = await canvasToBlob(blurredCanvas);
-    const blobURL = URL.createObjectURL(blob);
     const dataURI = blurredCanvas.toDataURL('image/jpeg', 0.9);
 
     temporaryRenderer.dispose();
 
-    return { blobURL, blob, dataURI };
+    return { dataURI };
 }
 
 // utils

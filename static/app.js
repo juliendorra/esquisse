@@ -310,7 +310,7 @@ async function init() {
         }
     );
 
-    initMeshBackground();
+    initMeshBackground(document);
     initGroupObservation();
 
     setAccessibleDescriptions();
