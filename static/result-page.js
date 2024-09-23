@@ -13,7 +13,7 @@ if (document.readyState === "loading") {
 
 async function init() {
 
-    initMeshBackground();
+    initMeshBackground(document);
 
     addMiniviewButtonsListeners();
 
