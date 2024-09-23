@@ -318,25 +318,18 @@ async function renderAndReturnUrlOfCopy(rootDoc) {
     const tempCtx = blurredCanvas.getContext('2d');
 
     // Draw the original content onto the temporary canvas
-    tempCtx.drawImage(canvas, 0, 0);
+    // tempCtx.drawImage(canvas, 0, 0);
 
     // Apply the blur effect. Safari just ignore it.
-    const vw = Math.max(rootDoc.documentElement.clientWidth || 0, window.innerWidth || 0);
-    const blurRadius = 0.03 * vw;
-    tempCtx.filter = `blur(${blurRadius}px)`;
+    // const vw = Math.max(rootDoc.documentElement.clientWidth || 0, window.innerWidth || 0);
+    // const blurRadius = 0.03 * vw;
+    // tempCtx.filter = `blur(${blurRadius}px)`;
 
-    tempCtx.drawImage(blurredCanvas, 0, 0);
+    // tempCtx.drawImage(blurredCanvas, 0, 0);
 
-    const dataURI = blurredCanvas.toDataURL('image/jpeg', 0.9);
+    const dataURI = canvas.toDataURL('image/jpeg', 0.9);
 
     temporaryRenderer.dispose();
 
     return { dataURI };
-}
-
-// utils
-function canvasToBlob(canvas) {
-    return new Promise(function (resolve) {
-        canvas.toBlob(resolve, 'image/jpeg', 0.9);
-    });
 }

@@ -4,10 +4,20 @@ import { renderAndReturnUrlOfCopy } from "./mesh-background.js"
 
 export { captureThumbnail };
 
+const CSS_SIZE_CHOICES = new Map([
+    [4, 760],
+    [6, 1120],
+    [12, 1500]
+]);
+
 async function captureThumbnail() {
     const thumbnailSideLength = 1024;
 
     const container = document.querySelector(".window-drop-zone");
+
+    const groupElements = document.querySelectorAll('.group');
+
+    const cssSize = getCssSize(groupElements.length);
 
     // The filter function to exclude nodes
     function filterNodes(node) {
@@ -32,92 +42,185 @@ async function captureThumbnail() {
     async function adjustClone(clonedDocument) {
 
         const zoomableElements = clonedDocument.querySelectorAll('.zoomable');
-        for (const element of zoomableElements) {
-            element.classList.remove("miniview");
-            element.style.transform = "none";
-            element.style.height = "auto";
-            element.style.setProperty('--scale', '1');
-            element.style.setProperty('--invert-scale', '1');
+        for (const zoomableElement of zoomableElements) {
+            zoomableElement.classList.remove("miniview");
+            zoomableElement.style.transform = "none";
+            zoomableElement.style.height = "auto";
+            zoomableElement.style.setProperty('--scale', '1');
+            zoomableElement.style.setProperty('--invert-scale', '1');
+            zoomableElement.style.backgroundColor = "rgb(252,249,244)";
+
+            zoomableElement.style.width = cssSize + "px";
+            zoomableElement.style.height = cssSize + "px";
+        };
+
+        const waitingElements = clonedDocument.querySelectorAll('.waiting');
+
+        for (const element of waitingElements) {
+            console.log("WAITING ELEMENT FOUND");
+            element.classList.remove("waiting");
         };
 
         const containerElement = clonedDocument.querySelector('.container');
         containerElement.style.padding = "0";
+        containerElement.style.width = cssSize + "px";
+        containerElement.style.height = cssSize + "px";
+
         // needed to place the groups properly, without space, once they are reduced in height
         // without this property, they stay positioned as if of the previous height
         containerElement.style.alignContent = "flex-start";
 
         const groupElements = clonedDocument.querySelectorAll('.group');
+        for (const groupElement of groupElements) {
 
-        for (const element of groupElements) {
+            const groupNameElement = groupElement.querySelector('.group-name');
 
-            const groupNameElement = element.querySelector('.group-name');
-
-            if (element.classList?.contains("break")) {
+            if (groupElement.classList?.contains("break")) {
 
                 groupNameElement.style.fontSize = "2rem";
+                groupNameElement.style.width = "90%";
                 groupNameElement.style.height = "fit-content";
 
-                element.style.height = "fit-content";
+                groupElement.style.height = "fit-content";
                 continue;
             };
 
             // image result may have the .empty-result class or just be hidden
-            const result = element.querySelector(".result");
-            const emptyResult = element.querySelector(".result.empty-result");
+            const result = groupElement.querySelector(".result");
+            const emptyResult = groupElement.querySelector(".result.empty-result");
             const isEmptyImageResult = emptyResult || result?.style.display === "none";
 
             // modern-screenshot drop the paragraphs in the result iframe directly in the group
             // so no element of class result is left in text gen and static text groups 
-            const paragraphResult = element.querySelector("p");
+            const paragraphResult = groupElement.querySelector("p");
             const isEmptyTextResult = !result && !paragraphResult;
 
-            if (isEmptyImageResult || isEmptyTextResult) {
-                element.style.width = "calc(var(--group-width) / 2)";
-                element.style.height = "6rem";
+            // if (isEmptyImageResult || isEmptyTextResult) {
+            //     groupElement.style.width = "calc(var(--group-width) / 2)";
+            //     groupElement.style.height = "6rem";
 
-                groupNameElement.style.fontSize = "2rem";
-                groupNameElement.style.height = "fit-content";
-                groupNameElement.style.width = "100%";
+            //     groupNameElement.style.fontSize = "2rem";
+            //     groupNameElement.style.height = "fit-content";
+            //     groupNameElement.style.width = "100%";
 
-            }
-            else {
-                element.style.height = "calc(var(--group-width) + 6rem)";
+            // }
+            // else {
+            groupElement.style.height = "calc(var(--group-width) + 6rem)";
+            groupElement.style.overflow = "hidden";
 
-                groupNameElement.style.fontSize = "2rem";
-                groupNameElement.style.height = "fit-content";
-                groupNameElement.style.width = "auto";
+            groupNameElement.style.fontSize = "2rem";
+            groupNameElement.style.height = "fit-content";
+            groupNameElement.style.width = "auto";
 
-            }
+            // }
         };
+        const meshBackground = clonedDocument.querySelector('.zoomable > img:first-of-type:not(result)');
 
-        const { dataURI } = await renderOffscreenMeshbackground(clonedDocument);
+        meshBackground.style.width = cssSize + "px";
+        meshBackground.style.height = cssSize + "px";
+
+        const { dataURI } = await renderOffscreenMeshbackground({ container: clonedDocument, cssSize });
 
         if (window.DEBUG) {
-            // Save the final thumbnail
+            // Save the background only
             const a = document.createElement('a');
             a.href = dataURI;
-            a.download = `meshBackgroundClone.png`;
+            a.download = `meshBackgroundClone.jpeg`;
             a.click();
         }
 
-        // const meshBackgroundClone = document.createElement('img');
-        const meshBackgroundCanvas = clonedDocument.querySelector('.zoomable img:first-of-type');
-
-        // clonedDocument.querySelector(".zoomable").insertBefore(meshBackgroundClone, meshBackgroundCanvas);
-
-        meshBackgroundCanvas.src = dataURI;
+        meshBackground.src = dataURI;
+        meshBackground.decoding = "async";
+        meshBackground.loading = "lazy";
 
         if (window.DEBUG) {
-            clonedDocument.querySelector("body").style.display = "block";
-            saveElementAsFile(clonedDocument);
+            saveElementAsFile(clonedDocument, "clonedNode.html");
         }
     }
 
+    const styleObject = {
+        transform: "scale(1)",
+        width: cssSize + "px",
+        height: cssSize + "px",
+        backgroundColor: "rgb(252,249,244)",
+    };
+
+    const stylePropertiesToInclude = [
+        'align-items',
+        'align-self',
+        'background-color',
+        'border-color',
+        'border-color',
+        'border-radius',
+        'border-style',
+        'border',
+        'bottom',
+        'box-shadow',
+        'box-sizing',
+        'display',
+        'filter',
+        'flex-wrap',
+        'flex-basis',
+        'flex-wrap',
+        'flex-direction',
+        'font-family',
+        'font-size',
+        'height',
+        'justify-content',
+        'left',
+        'margin-bottom',
+        'margin-left',
+        'margin-right',
+        'margin-top',
+        'margin',
+        'max-height',
+        'overflow-clip-margin',
+        'overflow-x',
+        'overflow-y',
+        'overflow',
+        'padding-bottom',
+        'padding-left',
+        'padding-right',
+        'padding-top',
+        'padding',
+        'position',
+        'resize',
+        'right',
+        'text-align',
+        'text-indent',
+        'top',
+        'vertical-align',
+        'visibility',
+        'white-space',
+        'width',
+        'z-index',
+
+        // 'transition',
+        'transform',
+        // 'transform-origin',
+
+    ];
+
     const renderedHTML = await domToCanvas(container, {
+        width: cssSize,
+        height: cssSize,
         filter: filterNodes, // Apply the filter function
         onCloneNode: adjustClone, // Adjust the cloned document,
-        scale: 1,
+        style: styleObject,
+        includeStyleProperties: stylePropertiesToInclude,
+        scale: 2,
     });
+
+    if (window.DEBUG) {
+        // Save the full capture 
+        const blob = await canvasToBlob(renderedHTML);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `full-capture.jpeg`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
 
     const thumbnailCanvas = document.createElement("canvas");
     thumbnailCanvas.width = thumbnailSideLength;
@@ -150,14 +253,14 @@ async function captureThumbnail() {
     return blob;
 };
 
-async function renderOffscreenMeshbackground(container) {
+async function renderOffscreenMeshbackground({ container, cssSize }) {
     // Create a hidden iframe
     const iframe = document.createElement('iframe');
     iframe.style.position = 'absolute';
     iframe.style.top = '-9999px';
     iframe.style.left = '-9999px';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
+    iframe.style.width = container.offsetWidth;
+    iframe.style.height = container.offsetHeight;
     document.body.appendChild(iframe);
 
     const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
@@ -167,13 +270,24 @@ async function renderOffscreenMeshbackground(container) {
 
     iframeDoc.body.appendChild(clonedContainer);
 
+    const meshBackground = clonedContainer.querySelector('.zoomable > img:first-of-type:not(result)');
+
+    meshBackground.style.width = cssSize + "px";
+    meshBackground.style.height = cssSize + "px";
+
+    if (window.DEBUG) {
+        console.log("[SCREEN CAPTURE] saving the iframe doc used to compute mesh background")
+        iframeDoc.body.style.display = "block";
+        saveElementAsFile(iframeDoc.body, 'iframe-passed-for-mesh.html');
+    }
+
     // Request the rendered image URI from the offscreen renderer
-    const { blobURL, blob, dataURI } = await renderAndReturnUrlOfCopy(iframeDoc);
+    const { dataURI } = await renderAndReturnUrlOfCopy(iframeDoc);
 
     // Clean up: remove the iframe
     document.body.removeChild(iframe);
 
-    return { blobURL, blob, dataURI };
+    return { dataURI };
 }
 
 // utils 
@@ -194,54 +308,6 @@ function waitForImageToLoad(image) {
     });
 }
 
-function getComputedStylesOfElements(element, selector) {
-    // Create a hidden iframe
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'absolute';
-    iframe.style.top = '-9999px';
-    iframe.style.left = '-9999px';
-    iframe.style.width = '0';  // Optional: Set width and height to 0 to further minimize impact
-    iframe.style.height = '0';
-    document.body.appendChild(iframe);
-
-    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-
-    const clonedElement = element.cloneNode(true);
-    iframeDoc.body.appendChild(clonedElement);
-
-    const elements = iframeDoc.querySelectorAll(selector);
-
-    console.log("GETTING COMPUTED STYLES FOR ", elements);
-
-    const computedStyles = [];
-
-    // Useful to determine the number and position of flex rows 
-    const offsetTopForAllRows = new Set();
-    // Useful to determine if a group is in the the last flex row 
-    let largestOffsetTop = 0;
-
-    // Use the iframe's window object to get computed styles
-    for (const element of elements) {
-
-        computedStyles.push({
-            borderColor: iframe.contentWindow.getComputedStyle(element, null).borderColor,
-            offsetWidth: element.offsetWidth,
-            offsetHeight: element.offsetHeight,
-            offsetTop: element.offsetTop,
-            offsetLeft: element.offsetLeft
-        });
-
-        offsetTopForAllRows.add(element.offsetTop);
-
-        if (element.offsetTop > largestOffsetTop) {
-            largestOffsetTop = element.offsetTop;
-        }
-    }
-
-    document.body.removeChild(iframe);
-
-    return { computedStyles, largestOffsetTop, offsetTopForAllRows };
-}
 
 function saveElementAsFile(element, fileName = 'debug.html', fileType = 'text/html') {
     let content = element.outerHTML;
@@ -256,4 +322,20 @@ function saveElementAsFile(element, fileName = 'debug.html', fileType = 'text/ht
     link.click(); // Programmatically click the link to trigger the download
     document.body.removeChild(link); // Remove the link after downloading
 }
+
+function getCssSize(numberOfGroups) {
+
+    // Convert the map to an array and sort the keys in ascending order to avoid insertion order issues
+    const sortedEntries = [...CSS_SIZE_CHOICES.entries()].sort((a, b) => a[0] - b[0]);
+
+    let size = sortedEntries[0][1]; // Default to smallest value
+
+    for (const [groupThreshold, captureSize] of sortedEntries) {
+        if (numberOfGroups > groupThreshold) {
+            size = captureSize;
+        }
+    }
+    console.log("[SCREEN CAPTURE] Size of the capture window ", size)
+    return size;
+};
 
