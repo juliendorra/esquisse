@@ -65,7 +65,7 @@ function initMeshBackground(rootDoc, renderer = globalRenderer) {
         divColors: { value: new Array(MAX_DIVS).fill().map(() => new THREE.Vector3(1.0, 0.0, 0.0)) },
 
         // multiply the normalized [0, 1] size of the ellipse
-        shapeExpansion: { value: 1.7 },
+        shapeExpansion: { value: 2.0 },
 
         activeDivCount: { value: ACTIVE_DIVS },
 
@@ -159,7 +159,6 @@ function initMeshBackground(rootDoc, renderer = globalRenderer) {
             vec2 uv=gl_FragCoord.xy/resolution;
             
             float aspectRatio=resolution.x/resolution.y;
-            uv.x*=aspectRatio;// Correct for the aspect ratio
             
             // Start with a white background color in OKLAB space
             vec3 accumulatedColorOKLAB=rgb2oklab(backgroundColor);
@@ -172,7 +171,6 @@ function initMeshBackground(rootDoc, renderer = globalRenderer) {
                 if(i>=activeDivCount)break;
                 
                 vec2 correctedPosition=divPositions[i];
-                correctedPosition.x*=aspectRatio;
                 
                 float ellipseWidth=(divWidth[i]/resolution.x)*shapeExpansion;
                 float ellipseHeight=(divHeight[i]/resolution.y)*shapeExpansion;
