@@ -309,22 +309,6 @@ async function renderAndReturnUrlOfCopy(rootDoc) {
     // and Render the scene offscreen
     initMeshBackground(rootDoc, temporaryRenderer);
 
-    // Create a temporary canvas to apply the blur effect
-    const blurredCanvas = document.createElement('canvas');
-    blurredCanvas.width = canvas.width;
-    blurredCanvas.height = canvas.height;
-    const tempCtx = blurredCanvas.getContext('2d');
-
-    // Draw the original content onto the temporary canvas
-    // tempCtx.drawImage(canvas, 0, 0);
-
-    // Apply the blur effect. Safari just ignore it.
-    // const vw = Math.max(rootDoc.documentElement.clientWidth || 0, window.innerWidth || 0);
-    // const blurRadius = 0.03 * vw;
-    // tempCtx.filter = `blur(${blurRadius}px)`;
-
-    // tempCtx.drawImage(blurredCanvas, 0, 0);
-
     const dataURI = canvas.toDataURL('image/jpeg', 0.9);
 
     temporaryRenderer.dispose();
