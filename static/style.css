@@ -1625,7 +1625,6 @@ img.result[src].result:not([src=""])~.result-placeholder {
 @media screen and (max-width: 450px) {
     .data-text-container {
         width: 100%;
-        height: auto;
         margin: 0.75rem 0;
     }
 
