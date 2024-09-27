@@ -169,7 +169,7 @@
     <ul class="results-list">
       <% it.categorizedResults.today.forEach(function(result){ %>
       <li class="result-item">
-        <a href="/result/<%= result.resultid %>">
+        <a target="_blank" href="/result/<%= result.resultid %>">
           <% if (result.name || result.snippet) { %>
           <div class="result-info">
             <% if (result.name) { %>
@@ -193,7 +193,7 @@
     <ul class="results-list">
       <% it.categorizedResults.yesterday.forEach(function(result){ %>
       <li class="result-item">
-        <a href="/result/<%= result.resultid %>">
+        <a target="_blank" href="/result/<%= result.resultid %>">
           <% if (result.name || result.snippet) { %>
           <div class="result-info">
             <% if (result.name) { %>
@@ -217,7 +217,7 @@
     <ul class="results-list">
       <% it.categorizedResults.currentMonth.forEach(function(result){ %>
       <li class="result-item">
-        <a href="/result/<%= result.resultid %>">
+        <a target="_blank" href="/result/<%= result.resultid %>">
           <% if (result.name || result.snippet) { %>
           <div class="result-info">
             <% if (result.name) { %>
