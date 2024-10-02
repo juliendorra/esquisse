@@ -130,8 +130,9 @@ async function captureThumbnail() {
         }
 
         meshBackground.src = dataURI;
-        meshBackground.decoding = "async";
-        meshBackground.loading = "lazy";
+        meshBackground.style.filter = "blur(0.2rem) brightness(1.02)";
+        // meshBackground.decoding = "async";
+        // meshBackground.loading = "lazy";
 
         if (window.DEBUG) {
             saveElementAsFile(clonedDocument, "clonedNode.html");
@@ -300,14 +301,6 @@ function canvasToBlob(canvas) {
         );
     });
 };
-
-function waitForImageToLoad(image) {
-    return new Promise((resolve, reject) => {
-        image.onload = resolve;
-        image.onerror = reject;
-    });
-}
-
 
 function saveElementAsFile(element, fileName = 'debug.html', fileType = 'text/html') {
     let content = element.outerHTML;
