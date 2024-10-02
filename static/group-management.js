@@ -1296,7 +1296,7 @@ function displayFormattedResults(groupElement, options = { silent: false, freshR
         let existingSelectPosition;
 
         // Make sure the saved result contains the latest received or entered result
-        group.savedResult = options.freshResult ? group.result : group.savedResult;
+        group.savedResult = (options.freshResult || !group.savedResult) ? group.result : group.savedResult;
 
         // saving values and destroying the existing select and list
         if (existingSlSelect) {
@@ -1310,7 +1310,8 @@ function displayFormattedResults(groupElement, options = { silent: false, freshR
 
         const listItems = parseResultsAsList(group.savedResult);
 
-        console.log("[DISPLAYING FORMATTED RESULT] ", listItems)
+        console.log("[DISPLAYING FORMATTED RESULT] results ", group.savedResult)
+        console.log("[DISPLAYING FORMATTED RESULT] list ", listItems)
 
         if (listItems.length === 0 && options.silent == false) {
             displayAlert(
