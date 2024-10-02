@@ -59,7 +59,7 @@ function nameChangeHandler(group, groupNameElement, groups) {
     groupNameElement.value = finalName;
 
     // if this is the first group, rename the page using its new name
-    if (group.id === groups.keys().next().value) {
+    if (group.index === 0) {
         document.title = `${group.name} · Esquisse AI`;
     }
 

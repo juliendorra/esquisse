@@ -464,7 +464,11 @@ async function loadGroups(importedGroups) {
 
     console.log("[LOADING] groups loaded: ", groups);
 
-    document.title = groups.values().next().value?.name ? `${groups?.values().next().value.name} · Esquisse AI` : "Esquisse AI. Quick AI Workflow Prototyping"
+    const groupWithIndexZero = [...groups.values()].find(group => group.index === 0);
+
+    document.title = groupWithIndexZero?.name
+        ? `${groupWithIndexZero.name} · Esquisse AI`
+        : "Esquisse AI. Quick AI Workflow Prototyping";
 
     const isUsedByGraph = updateReferenceGraph(groups);
 

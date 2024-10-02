@@ -1526,7 +1526,11 @@ function indexGroupsInNewOrder() {
         groupsMap.GROUPS.get(id).index = index;
     });
 
-    document.title = `${groupsMap.GROUPS.values().next().value.name} · Esquisse AI`;
+    const groupWithIndexZero = [...groupsMap.GROUPS.values()].find(group => group.index === 0);
+
+    if (groupWithIndexZero) {
+        document.title = `${groupWithIndexZero.name} · Esquisse AI`;
+    }
 
     persistGroups(groupsMap.GROUPS);
 }
