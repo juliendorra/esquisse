@@ -6,7 +6,7 @@ import DOMPurify from "https://cdn.jsdelivr.net/npm/dompurify@3.1.6/+esm";
 
 import { displayAlert, resizeTextArea, createZoomedIframe } from "./ui-utils.js";
 
-import { nameChangeHandler, handleInputChange, handleListSelectionChange, handleImportedImage, handleDroppedImage, hashAndPersist, clearImportedImage } from "./input-change.js";
+import { nameChangeHandler, handleInputChange, handleListSelectionChange, handleImportedImage, handleDroppedImage, hashAndPersist, clearImportedImage, handleSwitchBackFromListMode } from "./input-change.js";
 import { onDragStart, onDragEnd } from "./reordering.js";
 import { referencesGraph, updateReferenceGraph } from "./reference-graph.js";
 
@@ -205,10 +205,10 @@ function createGroupInLocalDataStructures(groupType) {
         result: "",
         hashImportedImage: "",
         interactionState: INTERACTION_STATE.OPEN,
+        resultDisplayFormat: (groupType === GROUP_TYPE.TEXT || groupType === GROUP_TYPE.STATIC) ? RESULT_DISPLAY_FORMAT.HTML : "",
 
         // properties below are used client side but not persisted
         index: groups.size,
-        resultDisplayFormat: (groupType === GROUP_TYPE.TEXT || groupType === GROUP_TYPE.STATIC) ? RESULT_DISPLAY_FORMAT.HTML : "",
         webcamEnabled: false,
         resultBlobURI: "",
         resultHash: "",
@@ -368,6 +368,8 @@ function addEventListenersToGroup(groupElement) {
     groupElement.addEventListener("dragstart", onDragStart);
     groupElement.addEventListener("dragend", onDragEnd);
 
+    // Sorted groups display their formatted results anew
+    // needed to fix the result iframe content being dropped on sorting.
     groupElement.addEventListener("sorted", () => {
         displayFormattedResults(groupElement, { silent: true });
     });
@@ -1281,7 +1283,7 @@ function parseResultsAsList(text) {
     return items.length >= 2 ? items : [];
 }
 
-function displayFormattedResults(groupElement, options = { silent: false }) {
+function displayFormattedResults(groupElement, options = { silent: false, freshResult: false }) {
 
     const group = groupsMap.GROUPS.get(getGroupIdFromElement(groupElement));
 
@@ -1293,14 +1295,20 @@ function displayFormattedResults(groupElement, options = { silent: false }) {
 
         let existingSelectPosition;
 
+        // Make sure the saved result contains the latest received or entered result
+        group.savedResult = options.freshResult ? group.result : group.savedResult;
+
+        // saving values and destroying the existing select and list
         if (existingSlSelect) {
             existingSelectPosition = existingSlSelect.value;
-            group.result = group.savedResult;
             group.listItems = [];
             existingSlSelect.remove();
         }
 
-        const listItems = parseResultsAsList(group.result);
+        // Parse and check the list items from the most recent non-list result
+        // if we are already in list mode, the result is already just a single item from the list
+
+        const listItems = parseResultsAsList(group.savedResult);
 
         console.log("[DISPLAYING FORMATTED RESULT] ", listItems)
 
@@ -1317,11 +1325,11 @@ function displayFormattedResults(groupElement, options = { silent: false }) {
             return;
         }
 
-        group.savedResult = group.result;
         group.listItems = listItems;
 
         resultElement.style.display = 'none';
 
+        // Create and update the select dropdown
         const selectElement = document.createElement('sl-select');
         selectElement.setAttribute('placeholder', 'Random choice');
         selectElement.setAttribute('clearable', '');
@@ -1341,7 +1349,7 @@ function displayFormattedResults(groupElement, options = { silent: false }) {
             selectElement.value = existingSelectPosition;
         }
 
-        // We treat a new list as a selection change, so the result is updated accorfing to the new list default selection
+        // We treat a new list as a selection change, so the result is updated according to the new list default selection
         handleListSelectionChange(selectElement, group, group.listItems);
 
         selectElement.addEventListener(
@@ -1361,6 +1369,7 @@ function displayFormattedResults(groupElement, options = { silent: false }) {
             group.result = group.savedResult;
             group.listItems = [];
             existingSlSelect.remove();
+            handleSwitchBackFromListMode(group);
         }
 
         const resultElement = groupElement.querySelector("iframe.result");

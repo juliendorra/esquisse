@@ -9,7 +9,7 @@ import { fetchWithCheck } from "./network.js";
 
 export {
     nameChangeHandler, handleInputChange,
-    handleListSelectionChange,
+    handleListSelectionChange, handleSwitchBackFromListMode,
     handleImportedImage, handleDroppedImage, hashAndPersist, clearImportedImage
 };
 
@@ -169,8 +169,9 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
         console.log(`[CHANGE HANDLING] combining statict group: ${consolidatedData}`);
 
         group.result = consolidatedData;
+        group.resultHash = await generateHash(group.result);
 
-        displayFormattedResults(groupElement);
+        displayFormattedResults(groupElement, { freshResult: true });
     }
 
     group.data = dataText;
@@ -295,6 +296,7 @@ async function sendRequestsForGroup({
 
             const blob = new Blob([resultBuffer], { type: contentType });
             group.result = blob;
+            group.resultHash = await generateHash(group.result);
 
             const blobUrl = URL.createObjectURL(blob);
             console.log("URL for the image ", blobUrl);
@@ -359,8 +361,9 @@ async function sendRequestsForGroup({
             console.log(`Received result: ${result} `);
 
             group.result = result;
+            group.resultHash = await generateHash(group.result);
 
-            displayFormattedResults(groupElement);
+            displayFormattedResults(groupElement, { freshResult: true });
 
             groupElement.querySelector(".refresh-btn").style.display = "block";
 
@@ -390,6 +393,13 @@ async function handleListSelectionChange(selectElement, group, listItems) {
     else {
         group.result = listItems[parseInt(selectElement.value)];
     }
+
+    group.resultHash = await generateHash(group.result);
+
+    updateGroupsReferencingIt(group.id)
+}
+
+async function handleSwitchBackFromListMode(group) {
 
     group.resultHash = await generateHash(group.result);
 
@@ -489,6 +499,7 @@ function clearImportedImage(group, groupElement) {
     resultElement.removeEventListener('click', createZoomedImage);
 
     group.result = undefined;
+    // we don't recompute the hash for the empty result as we'd rather see this as a no op, not 
 
     const previousHashImportedImage = group.hashImportedImage
     group.hashImportedImage = "";
@@ -497,6 +508,7 @@ function clearImportedImage(group, groupElement) {
         const groups = groupsMap.GROUPS;
         persistGroups(groups);
     }
+    // 
     updateGroupsReferencingIt(group.id);
 }
 
