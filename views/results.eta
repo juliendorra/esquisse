@@ -84,7 +84,7 @@
     .results-list li {
       background-color: white;
       border-radius: 2em;
-      padding: 0.5em;
+      padding: 0.3em;
       box-sizing: border-box;
       margin-bottom: 1em;
       margin-left: 1vw;
@@ -107,32 +107,36 @@
     .results-list a {
       text-decoration: none;
       color: var(--apps-app-title-link-color);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
     }
 
     .result-item {
       position: relative;
       display: inline-block;
-      margin: 1em;
+      margin: 1.5em;
+      width: min-content;
     }
 
     .result-info {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 15em;
+      margin: 0;
+      position: relative;
+      width: auto;
+      padding: 1em;
+      border-radius: 0;
       padding: 0.5em;
-      background-color: rgba(255, 255, 255, 0.8);
-      border-radius: 2em 2em 0 0;
+      background-color: transparent;
+      border-radius: ;
     }
 
     .result-name {
       font-weight: bold;
-      font-size: 1em;
+      font-size: 1.1em;
       color: var(--apps-app-title-link-color);
-      margin-bottom: 0.2em;
-      margin-left: 0.5em;
-      margin-right: 0.5em;
-      text-align: center;
+      margin: 0.5em;
+      text-align: left;
     }
 
     .result-snippet {
@@ -140,15 +144,17 @@
       color: var(--title-text-color);
       margin-left: 0.5em;
       margin-right: 0.5em;
+      line-height: 1.4;
     }
 
     .result-preview {
       background-image: url('/icons/placeholder-gradient.jpg');
       background-size: cover;
       background-position: center;
-      border-radius: 1.5em;
+      border-radius: 0 0 1.75em 1.75em;
       padding: 0;
-      margin: 0;
+      margin-left: 0;
+      margin-right: 0;
       width: 15em;
       height: 15em;
     }
@@ -241,7 +247,7 @@
     <ul class="results-list">
       <% it.categorizedResults.previousMonths[month].forEach(function(result){ %>
       <li class="result-item">
-        <a href="/result/<%= result.resultid %>">
+        <a target="_blank" href="/result/<%= result.resultid %>">
           <% if (result.name || result.snippet) { %>
           <div class="result-info">
             <% if (result.name) { %>
@@ -265,7 +271,7 @@
     <ul class="results-list">
       <% it.categorizedResults.lastYear.forEach(function(result){ %>
       <li class="result-item">
-        <a href="/result/<%= result.resultid %>">
+        <a target="_blank" href="/result/<%= result.resultid %>">
           <% if (result.name || result.snippet) { %>
           <div class="result-info">
             <% if (result.name) { %>
