@@ -67,7 +67,7 @@
     }
 
     .results-list-container {
-      padding: 3em 10vw;
+      padding: 3em 7vw;
     }
 
     .results-page-title {
@@ -84,10 +84,12 @@
     .results-list li {
       background-color: white;
       border-radius: 2em;
-      padding: 0.3em;
+      padding: 0;
+      height: min-content;
+      width: min-content;
       box-sizing: border-box;
       margin-bottom: 1em;
-      margin-left: 1vw;
+      margin-left: 1em;
     }
 
     @media (max-width: 600px) {
@@ -110,7 +112,8 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      height: 100%;
+      height: 27em;
+      padding: 0.8em;
     }
 
     .result-item {
@@ -121,14 +124,7 @@
     }
 
     .result-info {
-      margin: 0;
-      position: relative;
-      width: auto;
-      padding: 1em;
-      border-radius: 0;
       padding: 0.5em;
-      background-color: transparent;
-      border-radius: ;
     }
 
     .result-name {
@@ -147,6 +143,29 @@
       line-height: 1.4;
     }
 
+    .result-snippet-placeholder span {
+      display: block;
+      position: relative;
+      height: 0.3em;
+      background-color: #ededed;
+      border-radius: 0.4em;
+      margin-top: 1em;
+      margin-bottom: 0.5em;
+      width: 80%;
+      margin-left: 0.5em;
+      margin-right: 0.5em;
+    }
+
+    .result-snippet-placeholder span:nth-last-child(2n+1) {
+      width: 60%;
+      margin-bottom: 1em;
+    }
+
+    .result-snippet-placeholder span:last-child {
+      width: 30%;
+      margin-bottom: 0;
+    }
+
     .result-preview {
       background-image: url('/icons/placeholder-gradient.jpg');
       background-size: cover;
@@ -155,8 +174,8 @@
       padding: 0;
       margin-left: 0;
       margin-right: 0;
-      width: 15em;
-      height: 15em;
+      width: 16em;
+      height: 16em;
     }
   </style>
 
@@ -183,6 +202,8 @@
             <% } %>
             <% if (result.snippet) { %>
             <div class="result-snippet"><%= result.snippet %></div>
+            <% } else { %>
+            <div class="result-snippet-placeholder"><span></span><span></span><span></span><span></span></div>
             <% } %>
           </div>
           <% } %>
@@ -207,6 +228,8 @@
             <% } %>
             <% if (result.snippet) { %>
             <div class="result-snippet"><%= result.snippet %></div>
+            <% } else { %>
+            <div class="result-snippet-placeholder"><span></span><span></span><span></span><span></span></div>
             <% } %>
           </div>
           <% } %>
@@ -231,6 +254,8 @@
             <% } %>
             <% if (result.snippet) { %>
             <div class="result-snippet"><%= result.snippet %></div>
+            <% } else { %>
+            <div class="result-snippet-placeholder"><span></span><span></span><span></span><span></span></div>
             <% } %>
           </div>
           <% } %>
@@ -255,6 +280,8 @@
             <% } %>
             <% if (result.snippet) { %>
             <div class="result-snippet"><%= result.snippet %></div>
+            <% } else { %>
+            <div class="result-snippet-placeholder"><span></span><span></span><span></span><span></span></div>
             <% } %>
           </div>
           <% } %>
@@ -279,6 +306,8 @@
             <% } %>
             <% if (result.snippet) { %>
             <div class="result-snippet"><%= result.snippet %></div>
+            <% } else { %>
+            <div class="result-snippet-placeholder"><span></span><span></span><span></span><span></span></div>
             <% } %>
           </div>
           <% } %>
