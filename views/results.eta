@@ -112,7 +112,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      height: 27em;
+      height: 28em;
       padding: 0.8em;
     }
 
@@ -133,6 +133,9 @@
       color: var(--apps-app-title-link-color);
       margin: 0.5em;
       text-align: left;
+      line-height: 1.3em;
+      max-height: calc(2*1.3em);
+      overflow: hidden;
     }
 
     .result-snippet {
