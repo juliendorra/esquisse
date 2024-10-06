@@ -198,18 +198,21 @@
       <% it.categorizedResults.today.forEach(function(result){ %>
       <li class="result-item">
         <a target="_blank" href="/result/<%= result.resultid %>">
-          <% if (result.name || result.snippet) { %>
           <div class="result-info">
-            <% if (result.name) { %>
+            <% if (result.generatedtitle) { %>
+            <div class="result-name"><%= result.generatedtitle %></div>
+            <% } else if (result.name) { %>
             <div class="result-name"><%= result.name %></div>
             <% } %>
-            <% if (result.snippet) { %>
+
+            <% if (result.generatedsummary) { %>
+            <div class="result-snippet"><%= result.generatedsummary %></div>
+            <% } else if (result.snippet) { %>
             <div class="result-snippet"><%= result.snippet %></div>
             <% } else { %>
             <div class="result-snippet-placeholder"><span></span><span></span><span></span><span></span></div>
             <% } %>
           </div>
-          <% } %>
           <img src="/thumbnail/<%= result.resultid %>" class="result-preview">
         </a>
       </li>
@@ -226,10 +229,15 @@
         <a target="_blank" href="/result/<%= result.resultid %>">
           <% if (result.name || result.snippet) { %>
           <div class="result-info">
-            <% if (result.name) { %>
+            <% if (result.generatedtitle) { %>
+            <div class="result-name"><%= result.generatedtitle %></div>
+            <% } else if (result.name) { %>
             <div class="result-name"><%= result.name %></div>
             <% } %>
-            <% if (result.snippet) { %>
+
+            <% if (result.generatedsummary) { %>
+            <div class="result-snippet"><%= result.generatedsummary %></div>
+            <% } else if (result.snippet) { %>
             <div class="result-snippet"><%= result.snippet %></div>
             <% } else { %>
             <div class="result-snippet-placeholder"><span></span><span></span><span></span><span></span></div>
@@ -252,10 +260,15 @@
         <a target="_blank" href="/result/<%= result.resultid %>">
           <% if (result.name || result.snippet) { %>
           <div class="result-info">
-            <% if (result.name) { %>
+            <% if (result.generatedtitle) { %>
+            <div class="result-name"><%= result.generatedtitle %></div>
+            <% } else if (result.name) { %>
             <div class="result-name"><%= result.name %></div>
             <% } %>
-            <% if (result.snippet) { %>
+
+            <% if (result.generatedsummary) { %>
+            <div class="result-snippet"><%= result.generatedsummary %></div>
+            <% } else if (result.snippet) { %>
             <div class="result-snippet"><%= result.snippet %></div>
             <% } else { %>
             <div class="result-snippet-placeholder"><span></span><span></span><span></span><span></span></div>
@@ -278,10 +291,15 @@
         <a target="_blank" href="/result/<%= result.resultid %>">
           <% if (result.name || result.snippet) { %>
           <div class="result-info">
-            <% if (result.name) { %>
+            <% if (result.generatedtitle) { %>
+            <div class="result-name"><%= result.generatedtitle %></div>
+            <% } else if (result.name) { %>
             <div class="result-name"><%= result.name %></div>
             <% } %>
-            <% if (result.snippet) { %>
+
+            <% if (result.generatedsummary) { %>
+            <div class="result-snippet"><%= result.generatedsummary %></div>
+            <% } else if (result.snippet) { %>
             <div class="result-snippet"><%= result.snippet %></div>
             <% } else { %>
             <div class="result-snippet-placeholder"><span></span><span></span><span></span><span></span></div>
@@ -304,10 +322,15 @@
         <a target="_blank" href="/result/<%= result.resultid %>">
           <% if (result.name || result.snippet) { %>
           <div class="result-info">
-            <% if (result.name) { %>
+            <% if (result.generatedtitle) { %>
+            <div class="result-name"><%= result.generatedtitle %></div>
+            <% } else if (result.name) { %>
             <div class="result-name"><%= result.name %></div>
             <% } %>
-            <% if (result.snippet) { %>
+
+            <% if (result.generatedsummary) { %>
+            <div class="result-snippet"><%= result.generatedsummary %></div>
+            <% } else if (result.snippet) { %>
             <div class="result-snippet"><%= result.snippet %></div>
             <% } else { %>
             <div class="result-snippet-placeholder"><span></span><span></span><span></span><span></span></div>

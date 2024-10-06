@@ -1,5 +1,6 @@
 import { decode } from "https://deno.land/x/imagescript/mod.ts";
 import { customAlphabet } from 'npm:nanoid';
+import { Validator } from "npm:jsonschema";
 
 import { base64ToUint8Array } from "../lib/utility.ts";
 
@@ -34,6 +35,9 @@ export {
 const alphabet = "123456789bcdfghjkmnpqrstvwxyz";
 const nanoidForApp = customAlphabet(alphabet, 14);
 const nanoidForResult = customAlphabet(alphabet, 17);
+
+// Types
+type ResultSummary = { generatedtitle: string, generatedsummary: string }
 
 // Handler functions
 
@@ -473,7 +477,6 @@ async function handleRecover(ctx) {
     ctx.response.body = JSON.stringify({ id: appid, username: username });
 }
 
-
 // Handler for '/persist-result' endpoint
 async function handlePersistResult(ctx) {
 
@@ -498,6 +501,11 @@ async function handlePersistResult(ctx) {
     resultData.timestamp = new Date().toISOString();
     resultData.username = ctx.state.user.username;
 
+    const { generatedtitle, generatedsummary } = await generateTitleAndSummary(resultData);
+
+    resultData.generatedtitle = generatedtitle;
+    resultData.generatedsummary = generatedsummary;
+
     const metadata = {
         resultid: resultData.resultid,
 
@@ -508,6 +516,9 @@ async function handlePersistResult(ctx) {
 
         name: resultData.name,
         snippet: resultData.snippet,
+
+        generatedtitle: resultData.generatedtitle,
+        generatedsummary: resultData.generatedsummary,
     }
 
     const storingStatus = await storeResultMetadata(metadata);
@@ -686,3 +697,73 @@ async function handleListUsedApps(ctx) {
     });
 }
 
+// Util
+
+async function generateTitleAndSummary(result, maxAttempts = 3): Promise<ResultSummary> {
+
+    const summarySchema = {
+        type: "object",
+        properties: {
+            generatedtitle: { type: "string" },
+            generatedsummary: { type: "string" },
+        },
+        required: ["generatedtitle", "generatedsummary"],
+        additionalProperties: false
+    };
+
+    const prompt = `
+This is a result from a generative AI tool where users build their own workflows, generate results and then can save a result to share it.
+
+You have the result and a screenshot of the result that may show images generated as part of the result.
+
+Create a title and summary of the content of this result. Focus on the specifics in the results, what might be different from other similar results that would use the same app. Don't focus on the overall structure or the generic workflow, but the specific use that have been done of the workflow. Focus on the results generated, not the titles of the groups, because the group's titles don't change from results to results. Use the screenshot to get a better sense of the images generated in the result.
+
+Don't add meta-references or self-references like "this result is about…" or "The result shows". The summary should describe what is the result without mentioning that it is a result.
+
+The title should be 50 characters maximum and reflect what is unique about this result. It should also be aligned with the summary yet still reflect the general content of the result.
+The summary should be 140 characters and give an overview of the content of the result.
+Return just a JSON : {generatedtitle, generatedsummary}
+Don't use a codeblock, answer with just the json content.
+`;
+
+    const imagesStrippedResult = JSON.stringify(result)
+        .replace(/\/9j\/[^"]*/g, '') // remove base64 image data
+        .replace(/\\/g, '\\\\')  // Escape backslashes
+        .replace(/\n/g, '\\n')    // Escape newlines
+        .replace(/\r/g, '\\r')    // Escape carriage returns
+        .replace(/\t/g, '\\t')    // Escape tabs
+        .replace(/"/g, '\\"');    // Escape double quotes
+
+    const gptParameters = {
+        data: prompt + "\n\n" + imagesStrippedResult,
+        image: result.thumbnail,
+        qualityEnabled: false, // fast mode is enough and preferred
+    };
+
+    console.log(gptParameters.data);
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const summaryResponse = await callGPT(gptParameters);
+        const summaryResult = JSON.parse(summaryResponse);
+
+        const validator = new Validator();
+        const validationResult = validator.validate(summaryResult, summarySchema);
+
+        if (validationResult.valid) {
+            return {
+                generatedtitle: summaryResult.generatedtitle,
+                generatedsummary: summaryResult.generatedsummary
+            };
+        }
+
+        console.error(`Validation failed for summary result on attempt ${attempt + 1}:`, validationResult.errors);
+    }
+
+    console.error(`Failed to generate a valid title and summary after ${maxAttempts} attempts`);
+
+    // rather than throwing an error, we return an empty result
+    // the renderer will handle that by picking a non-generated replacement:
+    // generatedtitle => name (of the app)
+    // generatedsummary => snippet (first text content found in result)
+    return { generatedtitle: "", generatedsummary: "" }
+}

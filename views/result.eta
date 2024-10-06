@@ -15,15 +15,30 @@
   <meta name="msapplication-config" content="/public/browserconfig.xml">
   <meta name="theme-color" content="#ffffff">
 
-  <meta property='og:title' content='<%= it.groups[0].name %> · Esquisse AI' />
+  <% if (it.generatedtitle) { %>
+  <meta property='og:title' content='<%= it.generatedtitle %> · Esquisse AI' />
+  <% } else if (it.name) { %>
+  <meta property='og:title' content='<%= it.name %> · Esquisse AI' />
+  <% } %>
+
   <meta property='og:image' content='/thumbnail/<%= it.resultid %>' />
-  <meta property='og:description' content='Esquisse. Quick AI workflow prototyping. Draft and test AI ideas, move up from basic prompts to your own mini AI apps.' />
+
+  <% if (it.generatedsummary) { %>
+  <meta property='og:description' content='<%= it.generatedsummary %>' />
+  <% } else if (it.snippet) { %>
+  <meta property='og:description' content='<%= it.snippet %>' />
+  <% } %>
+
   <meta property='og:url' content='' />
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title><%= it.groups[0].name %> · Esquisse AI</title>
+  <% if (it.generatedtitle) { %>
+  <title><%= it.generatedtitle %> · Esquisse AI</title>
+  <% } else if (it.name) { %>
+  <title><%= it.name %> · Esquisse AI</title>
+  <% } %>
 
   <style>
     :root {
