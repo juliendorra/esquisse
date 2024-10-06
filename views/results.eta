@@ -106,13 +106,13 @@
       margin-bottom: 0.8em;
     }
 
-    .results-list a {
+    .results-list li>a {
       text-decoration: none;
       color: var(--apps-app-title-link-color);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      height: 28em;
+      height: 30em;
       padding: 0.8em;
     }
 
@@ -169,6 +169,18 @@
       margin-bottom: 0;
     }
 
+    .app-name {
+      font-size: 80%;
+      margin-top: 0.5em;
+      font-weight: 500;
+      max-height: calc(2*1.3em);
+      overflow: hidden;
+    }
+
+    .app-name-intro {
+      font-weight: 600;
+    }
+
     .result-preview {
       background-image: url('/icons/placeholder-gradient.jpg');
       background-size: cover;
@@ -187,162 +199,65 @@
 </head>
 
 <body>
+
+  <% function renderResults(title, results) { %>
+  <% if (results.length) { %>
+  <h3 class="results-page-title"><%= title %></h3>
+  <ul class="results-list">
+    <% results.forEach(function(result){ %>
+
+    <li class="result-item">
+      <a target="_blank" href="/result/<%= result.resultid %>">
+        <% if (result.name || result.snippet) { %>
+        <div class="result-info">
+          <% if (result.generatedtitle) { %>
+          <div class="result-name"><%= result.generatedtitle %></div>
+          <% } else if (result.name) { %>
+          <div class="result-name"><%= result.name %></div>
+          <% } %>
+
+          <div class="result-name app-name"><span class="app-name-intro">Generated with:</span> <%= result.name %></div>
+
+          <% if (result.generatedsummary) { %>
+          <div class="result-snippet"><%= result.generatedsummary %></div>
+          <% } else if (result.snippet) { %>
+          <div class="result-snippet"><%= result.snippet %></div>
+          <% } else { %>
+          <div class="result-snippet-placeholder"><span></span><span></span><span></span><span></span></div>
+          <% } %>
+        </div>
+        <% } %>
+        <img src="/thumbnail/<%= result.resultid %>" class="result-preview">
+      </a>
+    </li>
+
+    <% }) %>
+  </ul>
+  <% } %>
+  <% } %>
+
   <div class="results-list-container">
 
     <h2 class="results-page-title">Your generated results</h2>
 
     <!-- Render Today results -->
-    <% if (it.categorizedResults.today.length) { %>
-    <h3 class="results-page-title">Today</h3>
-    <ul class="results-list">
-      <% it.categorizedResults.today.forEach(function(result){ %>
-      <li class="result-item">
-        <a target="_blank" href="/result/<%= result.resultid %>">
-          <div class="result-info">
-            <% if (result.generatedtitle) { %>
-            <div class="result-name"><%= result.generatedtitle %></div>
-            <% } else if (result.name) { %>
-            <div class="result-name"><%= result.name %></div>
-            <% } %>
-
-            <% if (result.generatedsummary) { %>
-            <div class="result-snippet"><%= result.generatedsummary %></div>
-            <% } else if (result.snippet) { %>
-            <div class="result-snippet"><%= result.snippet %></div>
-            <% } else { %>
-            <div class="result-snippet-placeholder"><span></span><span></span><span></span><span></span></div>
-            <% } %>
-          </div>
-          <img src="/thumbnail/<%= result.resultid %>" class="result-preview">
-        </a>
-      </li>
-      <% }) %>
-    </ul>
-    <% } %>
+    <% renderResults("Today", it.categorizedResults.today); %>
 
     <!-- Render Yesterday results -->
-    <% if (it.categorizedResults.yesterday.length) { %>
-    <h3 class="results-page-title">Yesterday</h3>
-    <ul class="results-list">
-      <% it.categorizedResults.yesterday.forEach(function(result){ %>
-      <li class="result-item">
-        <a target="_blank" href="/result/<%= result.resultid %>">
-          <% if (result.name || result.snippet) { %>
-          <div class="result-info">
-            <% if (result.generatedtitle) { %>
-            <div class="result-name"><%= result.generatedtitle %></div>
-            <% } else if (result.name) { %>
-            <div class="result-name"><%= result.name %></div>
-            <% } %>
-
-            <% if (result.generatedsummary) { %>
-            <div class="result-snippet"><%= result.generatedsummary %></div>
-            <% } else if (result.snippet) { %>
-            <div class="result-snippet"><%= result.snippet %></div>
-            <% } else { %>
-            <div class="result-snippet-placeholder"><span></span><span></span><span></span><span></span></div>
-            <% } %>
-          </div>
-          <% } %>
-          <img src="/thumbnail/<%= result.resultid %>" class="result-preview">
-        </a>
-      </li>
-      <% }) %>
-    </ul>
-    <% } %>
+    <% renderResults("Yesterday", it.categorizedResults.yesterday); %>
 
     <!-- Render results from this month -->
     <% if (it.categorizedResults.currentMonth.length) { %>
-    <h3 class="results-page-title"><%= it.categorizedResults.currentMonth[0].formattedDate %></h3>
-    <ul class="results-list">
-      <% it.categorizedResults.currentMonth.forEach(function(result){ %>
-      <li class="result-item">
-        <a target="_blank" href="/result/<%= result.resultid %>">
-          <% if (result.name || result.snippet) { %>
-          <div class="result-info">
-            <% if (result.generatedtitle) { %>
-            <div class="result-name"><%= result.generatedtitle %></div>
-            <% } else if (result.name) { %>
-            <div class="result-name"><%= result.name %></div>
-            <% } %>
-
-            <% if (result.generatedsummary) { %>
-            <div class="result-snippet"><%= result.generatedsummary %></div>
-            <% } else if (result.snippet) { %>
-            <div class="result-snippet"><%= result.snippet %></div>
-            <% } else { %>
-            <div class="result-snippet-placeholder"><span></span><span></span><span></span><span></span></div>
-            <% } %>
-          </div>
-          <% } %>
-          <img src="/thumbnail/<%= result.resultid %>" class="result-preview">
-        </a>
-      </li>
-      <% }) %>
-    </ul>
+    <% renderResults(it.categorizedResults.currentMonth[0].formattedDate, it.categorizedResults.currentMonth); %>
     <% } %>
 
     <!-- Render previous months' results -->
     <% Object.keys(it.categorizedResults.previousMonths).forEach(function(month) { %>
-    <h3 class="results-page-title"><%= month %></h3>
-    <ul class="results-list">
-      <% it.categorizedResults.previousMonths[month].forEach(function(result){ %>
-      <li class="result-item">
-        <a target="_blank" href="/result/<%= result.resultid %>">
-          <% if (result.name || result.snippet) { %>
-          <div class="result-info">
-            <% if (result.generatedtitle) { %>
-            <div class="result-name"><%= result.generatedtitle %></div>
-            <% } else if (result.name) { %>
-            <div class="result-name"><%= result.name %></div>
-            <% } %>
-
-            <% if (result.generatedsummary) { %>
-            <div class="result-snippet"><%= result.generatedsummary %></div>
-            <% } else if (result.snippet) { %>
-            <div class="result-snippet"><%= result.snippet %></div>
-            <% } else { %>
-            <div class="result-snippet-placeholder"><span></span><span></span><span></span><span></span></div>
-            <% } %>
-          </div>
-          <% } %>
-          <img src="/thumbnail/<%= result.resultid %>" class="result-preview">
-        </a>
-      </li>
-      <% }) %>
-    </ul>
+    <% renderResults(month, it.categorizedResults.previousMonths[month]); %>
     <% }) %>
 
     <!-- Render results from last year -->
-    <% if (it.categorizedResults.lastYear.length) { %>
-    <h3 class="results-page-title">2023</h3>
-    <ul class="results-list">
-      <% it.categorizedResults.lastYear.forEach(function(result){ %>
-      <li class="result-item">
-        <a target="_blank" href="/result/<%= result.resultid %>">
-          <% if (result.name || result.snippet) { %>
-          <div class="result-info">
-            <% if (result.generatedtitle) { %>
-            <div class="result-name"><%= result.generatedtitle %></div>
-            <% } else if (result.name) { %>
-            <div class="result-name"><%= result.name %></div>
-            <% } %>
-
-            <% if (result.generatedsummary) { %>
-            <div class="result-snippet"><%= result.generatedsummary %></div>
-            <% } else if (result.snippet) { %>
-            <div class="result-snippet"><%= result.snippet %></div>
-            <% } else { %>
-            <div class="result-snippet-placeholder"><span></span><span></span><span></span><span></span></div>
-            <% } %>
-          </div>
-          <% } %>
-          <img src="/thumbnail/<%= result.resultid %>" class="result-preview">
-        </a>
-      </li>
-      <% }) %>
-    </ul>
-    <% } %>
+    <% renderResults("2023", it.categorizedResults.lastYear); %>
   </div>
 
 </body>
