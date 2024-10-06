@@ -564,7 +564,11 @@ async function handlePersistResult(ctx) {
     console.log(`[RESULT] thumbnail saved result id ${metadata.resultid} available at `, uploadImageStatus.url)
 
     ctx.response.status = 200;
-    ctx.response.body = { resultid: resultData.resultid };
+    ctx.response.body = {
+        resultid: resultData.resultid,
+        generatedtitle: resultData.generatedtitle,
+        generatedsummary: resultData.generatedsummary
+    };
 }
 
 // Handler for '/list-apps' endpoint

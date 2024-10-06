@@ -577,41 +577,39 @@ async function shareResult(groups, ShareButtonElement) {
 
     const result = await packageResult(groups, thumbnailBlob);
 
-    if (window.DEBUG) {
-        const jsonData = JSON.stringify(result);
-        const blob = new Blob([jsonData], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${groups.values().next().value.name} - esquisse-result.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-    }
-
-    const resultid = await persistResultOnServer(result);
+    const { resultid, generatedtitle, generatedsummary } = await persistResultOnServer(result);
 
     if (resultid) {
         const protocol = window.location.protocol;
         const host = window.location.host;
-        const url = protocol + "//" + host + "/result/" + resultid
+        const url = `${protocol}//${host}/result/${resultid}`;
+
+        const htmlDetails = `
+                <div style="display: flex; align-items: center; margin-top: 1em;">
+                  <img src="data:image/jpeg;base64,${result.thumbnail}" style="width: 3em; height: 3em; border-radius: 0.5em; margin-right: 1em;" />
+                  <strong>${generatedtitle || result.name}</strong><br />
+                </div>
+                <div>
+                  <p style="font-size: 90%;">${generatedsummary || result.snippet}</p>
+                  <a href="${url}" target="_blank">View your result</a>
+                </div>
+                `
 
         displayAlert({
             issue: "Result ready to share!",
-            action: `<a href = "${url}" target = "_blank" > Link to your result</a> `,
+            action: htmlDetails,
             variant: "success",
             icon: "file-earmark-arrow-up",
             duration: Infinity
-        })
-    }
-    else {
+        });
+    } else {
         displayAlert({
             issue: "Couldn't save your result",
             action: `Check your connection`,
             variant: "danger",
             icon: "file-earmark-arrow-up",
             duration: 3000
-        })
-
+        });
     }
 
     ShareButtonElement.classList.remove("waiting");
@@ -716,11 +714,11 @@ async function persistResultOnServer(packagedResult) {
             throw new Error(response);
         }
 
-        const { resultid } = await response.json();
+        const { resultid, generatedtitle, generatedsummary } = await response.json();
 
         console.log("[PERSIST] result id sent by server", resultid);
 
-        return resultid;
+        return { resultid, generatedtitle, generatedsummary };
 
     } catch (error) {
         console.error("Error in persisting result", error.body);
