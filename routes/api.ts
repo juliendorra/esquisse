@@ -724,8 +724,12 @@ Create a title and summary of the content of this result. Focus on the specifics
 
 Don't add meta-references or self-references like "this result is about…" or "The result shows". The summary should describe what is the result without mentioning that it is a result.
 
+Write the summary and the title in the main language in which the result texts are written.
+
 The title should be 50 characters maximum and reflect what is unique about this result. It should also be aligned with the summary yet still reflect the general content of the result.
+
 The summary should be 140 characters and give an overview of the content of the result.
+
 Return just a JSON : {generatedtitle, generatedsummary}
 Don't use a codeblock, answer with just the json content.
 `;
