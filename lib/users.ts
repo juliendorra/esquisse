@@ -1,6 +1,7 @@
 import { kvdex, model, collection } from "https://deno.land/x/kvdex/mod.ts";
 import { hash } from "./bcrypt.ts";
 import { Validator } from "npm:jsonschema";
+import { invalidateCache } from "./cache.ts";
 
 export { createUser, getUserPasswordHash, bulkCreateUsers, listUsers }
 
@@ -64,6 +65,7 @@ async function createUser(userInfos: UserInfos): Promise<any> {
 
         if (result.ok) {
             console.log("User added to kv store: ", result.id, result);
+            invalidateCache("/community");
         }
 
         return result;

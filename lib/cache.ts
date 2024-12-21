@@ -32,6 +32,11 @@ export async function setCache(path: string, cachekey: string, expiryInSeconds: 
     console.log("[CACHE] cache set for ", path, " Result ", result);
 }
 
+export async function invalidateCache(path: string): Promise<void> {
+    const result = await db.cache.set(path, { path, expiry: 0, cachekey: "" }, { overwrite: true });
+    console.log("[CACHE] cache invalidated for ", path, " Result ", result);
+}
+
 export async function checkCache(path: string): Promise<string | null> {
     const cacheEntry = await db.cache.find(path);
     if (cacheEntry && cacheEntry.value.expiry > Date.now()) {
