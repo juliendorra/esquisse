@@ -607,7 +607,13 @@ function buildTextPrompt(itemizedDataText) {
 
 function buildImageFilename(group, imageType, promptText) {
 
-    const imageTypeIndicator = imageType === 'image-to-image' ? "[image to image]" : "[controlnet]";
+    const hasImageReference = group.availableReferencedResults?.some(
+        result => result.type === GROUP_TYPE.IMAGE || result.type === GROUP_TYPE.IMPORTED_IMAGE
+    );
+
+    const imageTypeIndicator = hasImageReference
+        ? (imageType === 'image-to-image' ? "[image to image]" : "[controlnet]")
+        : "";
 
     // We need to shorten the name to avoid download bugs on Safari
 
