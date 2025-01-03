@@ -117,6 +117,7 @@ async function handleInputChange(groupElement, immediate = false, isRefresh = fa
 
     group.hasReferences = hasReferences;
     group.availableReferencedResults = availableReferencedResults;
+    group.invalidReferencedResults = invalidReferencedResults;
 
     // if there's references, display them and use the combination of all references as currentData
 

@@ -68,6 +68,8 @@ const GROUP_HTML = {
 
             <div class="function-buttons-container">
 
+                <button class="tool-btn clean-up-refs-btn" style="display:none;" aria-label="Clean up references"><img src="/icons/clean-up-refs.svg"></button>
+
                 <div class="group-btn">
                 <button class="tool-btn html-mode-btn" aria-label="HTML mode"><img src="/icons/html-mode.svg"></button>
                 <button class="tool-btn text-mode-btn" aria-label="text mode"><img src="/icons/text-mode.svg"></button>
@@ -139,6 +141,8 @@ const GROUP_HTML = {
             </div>
 
             <div class="function-buttons-container">
+
+                <button class="tool-btn clean-up-refs-btn" style="display:none;" aria-label="Clean up references"><img src="/icons/clean-up-refs.svg"></button>
 
                 <div class="group-btn">
                 <button class="tool-btn html-mode-btn" aria-label="HTML mode"><img src="/icons/html-mode.svg"></button>
@@ -215,7 +219,8 @@ function createGroupInLocalDataStructures(groupType) {
         referenceHashes: new Map(),
         hasReferences: false,
         availableReferencedResults: [], //[{ name, result, type, resultHash },..} 
-        combinedReferencedResults: [],
+        combinedReferencedResults: [], // consolidated data text with all the results inserted
+        invalidReferencedResults: [],
         // used by displayFormattedResults for list mode management 
         savedResult: "",
         listItems: [],
@@ -757,6 +762,24 @@ function addEventListenersToGroup(groupElement) {
         createZoomedIframe(resultElement);
     });
 
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    groupElement.querySelector(".clean-up-refs-btn")?.addEventListener("click", () => {
+        let cleanedText = dataElement.value;
+
+        console.log(group, groupsMap.GROUPS.get(getGroupIdFromElement(groupElement)));
+
+        group.invalidReferencedResults.forEach(refName => {
+            const escapedRefName = escapeRegExp(refName);
+            cleanedText = cleanedText.replace(new RegExp(`\\[${escapedRefName}\\]|#${escapedRefName}(?!\\w)`, 'g'), refName);
+        });
+
+        dataElement.value = cleanedText;
+        dataElement.dispatchEvent(new Event('change'));
+    });
+
 }
 
 function deleteGroup(groupElement) {
@@ -1206,6 +1229,11 @@ function displayDataTextReferenceStatus({
     invalidReferencedResults,
     notreadyReferencedResults,
     availableReferencedResults }) {
+
+    const cleanUpRefsButton = groupElement.querySelector(".clean-up-refs-btn");
+    if (cleanUpRefsButton) {
+        cleanUpRefsButton.style.display = invalidReferencedResults.length > 0 ? 'inline-block' : 'none';
+    }
 
     const dataTextElement = groupElement.querySelector(".data-text");
     const refResultTextarea = groupElement.querySelector(".referenced-result-text");

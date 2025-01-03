@@ -23,6 +23,10 @@ const TOOLTIPS =
                 text: "Référence invalide. Le bloc mentionné n'existe pas !"
             },
             {
+                selector: ".clean-up-refs-btn",
+                text: "Nettoie les références : Supprime les références invalides dans le texte en supprimant leur # ou [] tout en gardant le texte. Ce bouton n'apparaît que lorsque des références invalides sont détectées."
+            },
+            {
                 selector: ".entry-btn",
                 text: "Mode bloc de saisie : une fois ce bouton activé, le champ de données devient un champ de saisie éphémère. Il sera vide lorsque l'application sera rechargée, prêt pour qu'un utilisateur le remplisse. Astuce : utilisez un bloc Static Text dédié comme bloc de saisie pour vos utilisateurs."
             },
@@ -100,6 +104,10 @@ const TOOLTIPS =
             {
                 selector: ".inline-reference-text.not-valid",
                 text: "Invalid reference. The mentioned block does not exist!"
+            },
+            {
+                selector: ".clean-up-refs-btn",
+                text: "Clean up references: Removes invalid references in the text, by deleting their # or [], while keeping the text. This button only appears when invalid references are detected."
             },
             {
                 selector: ".entry-btn",
